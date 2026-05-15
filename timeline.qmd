@@ -9,6 +9,35 @@ subtitle: "17 weeks, three overlapping tracks, handover woven through"
 
 Three overlapping tracks, not three sequential phases. Handover is woven through rather than bolted on the end.
 
+## At a glance
+
+```{mermaid}
+gantt
+    title 4-month AIPLA timeline
+    dateFormat YYYY-MM-DD
+    axisFormat %b %d
+    todayMarker off
+
+    section Strand A
+    Setup & ADRs              :a1, 2026-05-15, 14d
+    Build core                :a2, after a1, 28d
+    Internal iteration        :a3, after a2, 21d
+    Teacher pilot             :a4, 2026-08-14, 28d
+
+    section Strand B
+    Build                     :b1, 2026-07-17, 28d
+    Pilot                     :b2, after b1, 14d
+
+    section Strand C
+    Scoping kickoff           :c1, 2026-07-17, 21d
+    Scoping draft             :c2, after c1, 21d
+
+    section Milestones
+    Mid-point review (JB)     :milestone, m1, 2026-07-17, 0d
+    JB summer holiday         :crit, 2026-07-17, 21d
+    Final handover            :milestone, m2, 2026-09-15, 0d
+```
+
 ## Phase shape
 
 | Phase | Weeks | Date range | Focus |

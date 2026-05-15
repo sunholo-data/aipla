@@ -15,6 +15,15 @@ A core design principle is that the most interesting tasks are those that the AI
 
 AIPLA follows an **ADDIE** cycle over three years:
 
+```{mermaid}
+flowchart LR
+    A[Analyze<br/>curriculum, AI capability,<br/>teacher dialogues] --> D[Design<br/>scaffolding,<br/>bot configs,<br/>infrastructure]
+    D --> Dev[Develop<br/>bot infra,<br/>sim/game tools,<br/>eval instruments]
+    Dev --> I[Implement<br/>classroom<br/>deployment]
+    I --> E[Evaluate<br/>interactions,<br/>perspectives,<br/>outcomes]
+    E -.iterate.-> A
+```
+
 - **Analyze** — curriculum analysis, AI capability assessment on physics tasks, teacher dialogue sessions to understand current practice and constraints
 - **Design** — pedagogical scaffolding, bot configurations, infrastructure architecture
 - **Develop** — implementation of bot infrastructure, simulation/game tooling, evaluation instruments

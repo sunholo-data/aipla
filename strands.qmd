@@ -15,17 +15,65 @@ The four-month contract splits the work into three strands. **A and B** are prio
 
 ## Timeline at a glance
 
-```
-Week:        1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17
-─────────────────────────────────────────────────────────────────────────────
-Strand A    [setup][═══════build═══════][══iterate══][══teacher pilot══][hand]
-Strand B                                            [═══build═══][═pilot═][over]
-Strand C                                    [scope kickoff][════draft══════]
-Reviews                                  ▲                              ▲
-                                   Mid-July (pre-JB holiday)    Final handover
+```{mermaid}
+gantt
+    title When each strand gets attention
+    dateFormat YYYY-MM-DD
+    axisFormat %b
+    todayMarker off
+
+    section A — Bots
+    Build & iterate           :a1, 2026-05-15, 63d
+    Teacher pilot             :a2, after a1, 35d
+
+    section B — Sims/games
+    Build                     :b1, 2026-07-17, 28d
+    Pilot                     :b2, after b1, 14d
+
+    section C — Scoping
+    Investigation             :c1, 2026-07-17, 21d
+    Scoping note              :c2, after c1, 21d
+
+    section Gates
+    Mid-point review          :milestone, m1, 2026-07-17, 0d
+    Final handover            :milestone, m2, 2026-09-15, 0d
 ```
 
 Strand A dominates the first nine weeks. Strand B starts after the mid-point review when Strand A is iterating with internal stakeholders. Strand C scoping happens in the back half, drawing on what has been learned from A and B about what's actually tractable.
+
+## How the strands relate
+
+```{mermaid}
+flowchart TB
+    A[Strand A<br/>Pedagogical bots]
+    B[Strand B<br/>Simulation / games]
+    C[Strand C<br/>Scoping note]
+
+    subgraph Shared["Shared infrastructure"]
+        direction LR
+        Auth[Auth / sessions]
+        Logs[Anonymised chat logs]
+        Router[Model router]
+        RAG[RAG store]
+    end
+
+    Eval[Capability-floor eval]
+
+    A --> Shared
+    B --> Shared
+    Shared --> Router
+    Router --> Eval
+
+    C -.investigates.-> Eval
+    C -.may bridge to.-> A
+
+    style A fill:#fce7e8,stroke:#901a1e,stroke-width:2px
+    style B fill:#fce7e8,stroke:#901a1e,stroke-width:2px
+    style C fill:#fff,stroke:#901a1e,stroke-width:2px,stroke-dasharray:5
+    style Eval fill:#f5f5f5,stroke:#666
+```
+
+Strand B reuses Strand A's plumbing — that's the load-bearing design decision that makes both pilots achievable in the contract window. Strand C is informed by what A and B reveal, and may produce a concrete prototype (the Plaud-like interface) that bridges back into Strand A's deployment.
 
 ---
 
@@ -86,6 +134,24 @@ Chat is the default but probably not the right interface for every physics task.
 :::
 
 Can we have an AI maintain and update a model of a student's understanding over the course of a topic — for example, as a network of concepts and relations — and compare it to a reference model of the same topic?
+
+```{mermaid}
+sequenceDiagram
+    autonumber
+    participant S as Student
+    participant Bot as AI tutor
+    participant SM as Student model<br/>(concept network)
+    participant Ref as Reference model<br/>(curated for the topic)
+
+    Note over S,Bot: Over the course of a topic
+    loop Each interaction
+        S->>Bot: free-form work, discussion, questions
+        Bot->>SM: extract & update<br/>concepts and relations
+    end
+    SM->>Ref: compare topology
+    Ref-->>Bot: gaps, divergences,<br/>misconceptions
+    Bot-->>S: formative feedback<br/>"here is what I can see in your understanding"
+```
 
 **Why this is exciting.** Intelligent tutoring systems have long modelled student understanding (Bayesian Knowledge Tracing, knowledge-component models, etc.), but the cost of building and maintaining these models has historically been high. LLMs change that arithmetic substantially: they can ingest free-form student work and produce structured concept-map outputs without requiring per-domain hand-engineering. If this turns out to work well, it opens up:
 

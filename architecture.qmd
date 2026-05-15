@@ -5,6 +5,35 @@ subtitle: "ADRs for Strand A — pedagogical bot infrastructure"
 
 Working document. One section per decision, ADR-style: context → options → decision → consequences. Decisions are revisable; flag any change with date and reason. The **Sign-off** column is the handover ownership track — every architectural decision needs a second signature before it's considered settled.
 
+## System view
+
+```{mermaid}
+flowchart LR
+    User["Student / Teacher<br/>(browser, short-code session join)"]
+    Front["Frontend<br/>web app"]
+    Back["Backend<br/>Cloud Run · Python/FastAPI"]
+    DB[("Postgres + pgvector<br/>logs · RAG vectors · identity")]
+    Storage[("Cloud Storage<br/>uploaded resources")]
+    Router["Model router<br/>capability-floor driven"]
+    Vertex["Vertex AI Gemini<br/>EU region · prototype default"]
+    Ollama["Local Ollama<br/>UCPH on-prem · migration target"]
+
+    User --> Front
+    Front --> Back
+    Back --> DB
+    Back --> Storage
+    Back --> Router
+    Router --> Vertex
+    Router -.future.-> Ollama
+
+    style User fill:#fff,stroke:#666
+    style Vertex fill:#fce7e8,stroke:#901a1e
+    style Ollama fill:#fff,stroke:#901a1e,stroke-dasharray:5
+    style Router fill:#f5f5f5,stroke:#333,stroke-width:2px
+```
+
+ADRs below cover each box in the diagram. The dashed Ollama path is the long-term [self-hosting](self-hosting.qmd) target; the prototype runs entirely against Vertex AI in an EU region.
+
 ## Index
 
 | # | Decision | Status | Sign-off |
