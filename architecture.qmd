@@ -106,7 +106,8 @@ The brief also notes the typical configuration: one shared phone per three stude
 
 **Why this works.**
 
-- **Privacy by construction** — the system literally cannot leak student PII because it never has any. UCPH data-protection review becomes substantially simpler.
+- **Privacy by design (GDPR Article 25), enforced by construction** — the system is *architecturally incapable* of collecting student personal data, rather than relying on operational discipline to anonymise after the fact. UCPH data-protection review becomes substantially simpler because the personal-data category is empty by design.
+- **Data minimisation (GDPR Article 5)** — only the strictly necessary group-level signals are processed. There is no "we might need it later" data hoarded.
 - **No identity-map maintenance** — researchers don't need a translation layer between pseudonyms and real students; there is no real-student data to translate.
 - **Friction-free onboarding** — students don't sign up, don't enter emails, don't reset passwords. Open the URL, enter the group ID, start working.
 - **Matches the actual classroom configuration** — one phone, three students, group is the natural unit anyway.
@@ -258,6 +259,11 @@ For a UCPH data-protection review, "13 of 15 supported formats never leave the t
 
 **Context.** Researcher access to chat logs is a core brief requirement. With [ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids) eliminating student authentication entirely, the anonymisation question largely collapses: there is no student PII to anonymise.
 
+This is the **privacy-by-design** (GDPR Article 25) commitment made concrete. The relevant regulatory frameworks are:
+
+- **GDPR** — general personal-data processing (Article 25 privacy by design, Article 5 data minimisation, Article 35 DPIA for educational contexts involving minors)
+- **ePrivacy Directive** — electronic communications specifically; chat logs fall within its scope independently of GDPR. ePrivacy obligations sit alongside GDPR, not inside it.
+
 **Decision.** Log every chat interaction, keyed by anonymous group ID, into a researcher-accessible BigQuery dataset via the template's OpenTelemetry sink (per [Multivac](#platform-foundation)'s OBSERVABLE-BY-DEFAULT axiom). Retention period and access scope follow the consent form (JB owns).
 
 **What gets stored:**
@@ -272,6 +278,8 @@ For a UCPH data-protection review, "13 of 15 supported formats never leave the t
 - Any data linking a group ID back to specific students
 
 **Pending.** Consent form drives final retention period and the scope of researcher access; the working assumption above can be tightened or extended once the consent text is settled.
+
+**DPIA recommendation.** Even though personal data is out of scope by design, an educational research project involving minors benefits from a brief **Data Protection Impact Assessment** (GDPR Article 35). The DPIA documents *why* personal-data processing was avoided architecturally and is useful evidence for both UCPH data-protection review and external scrutiny (Ministry, parents). M has prior privacy-by-design and ePrivacy work in Danish digital contexts and can draft the DPIA scaffold; JB and UCPH data-protection sign off.
 
 ---
 
