@@ -56,6 +56,23 @@ flowchart LR
 
 The **pink subgraph** is the AI Protocol Platform template — the application layer that AIPLA configures on top of. The **blue subgraph** is Multivac — Sunholo's wider AI platform, providing the infrastructure layer (model access, Ollama hosting, managed Postgres, Cloud Storage). AIPLA's prototype runs both layers in an EU region; the [self-hosting](self-hosting.qmd) migration target is to replace the Multivac layer with UCPH equivalents while keeping the template unchanged.
 
+## Core vs extensions
+
+The template provides a **fixed core** of capabilities. Everything else AIPLA adds is a **swappable extension** that plugs in through one of three protocols: **MCP** (tools and data), **MCP Apps** (interactive UI surfaces in sandboxed iframes), or **A2UI** (declarative UI components rendered inline in chat).
+
+This separation matters for three reasons: successors can add new plugins without touching template internals (handover), extensions can be released individually as Apache-2.0 community-contributable modules (open-source default), and the [ADR-011 scope-discipline table](#adr-011-strand-a-built-on-the-ai-protocol-platform) defines what ships in AIPLA v1 vs. later.
+
+| Layer | Protocol | What it is | Examples for AIPLA | AIPLA v1 |
+|---|---|---|---|---|
+| Application core | (template, fixed) | AG-UI streaming, ADK orchestration, skills framework, model router, auth/session, log capture, telemetry | n/a — provided | ✅ Adopted as-is |
+| Model providers | (template adapter) | Cloud + local model backends | Claude, Gemini, Ollama, on-device — see [ADR-003](#adr-003-llm-provider-mix-claude-gemini-ollama) | ✅ All four tiers |
+| Skills (app configuration) | (template) | Teacher-configurable bot setups | Physics tutors per topic, problem-set helpers, lab assistants | ✅ Multiple per topic |
+| Data + computation tools | **MCP server** | Anything that fetches data, runs computation, or wraps an external service | RAG retrieval ([ADR-005](#adr-005-rag-store)), code execution sandbox, document parse via AILANG Parse ([ADR-012](#adr-012-document-parsing-via-ailang-parse)), domain search | ✅ pgvector RAG · code sandbox · AILANG Parse · 🟡 graph DB (stretch — for C3) |
+| Interactive UI extensions | **MCP Apps** | Sandboxed iframes with their own state and UI | GeoGebra widget, Tracker / sensor-data viewer, concept-map editor for [student models (C3)](strands.qmd#c3-student-models), simulation workbench (Strand B) | 🟡 concept-map editor (C3 stretch) · Strand-B target |
+| Declarative UI extensions | **A2UI** | Backend-emitted structured UI elements rendered inline in chat | Problem-hint cards · LaTeX/KaTeX formula blocks · structured feedback panels · teacher-config forms | ✅ Hint cards · LaTeX · feedback panels |
+
+**Why this matters for the student-model stretch (Strand C3).** The most speculative item maps cleanly onto this architecture: a **graph database via MCP** for storing per-student concept networks, plus a **concept-map editor as an MCP App** for both teacher reference-model authoring and student-facing formative-feedback display. Both pieces are swappable, both follow open protocols, and both could be released as standalone Apache-2.0 extensions other physics-education projects can reuse.
+
 ## Index
 
 | # | Decision | Status | Sign-off |
@@ -63,9 +80,9 @@ The **pink subgraph** is the AI Protocol Platform template — the application l
 | 001 | Cloud provider for prototype | Decided | M, [JB TBC] |
 | 002 | Cloud region | Pending | — |
 | 003 | LLM provider mix (Claude · Gemini · Ollama) | Decided | M |
-| 004 | Model abstraction / routing layer | Pending | — |
-| 005 | RAG store | Pending | — |
-| 006 | Backend stack | Pending | — |
+| 004 | Model abstraction / routing layer | Decided (via template) | M |
+| 005 | RAG store | Lean: pgvector · graph DB for C3 stretch | — |
+| 006 | Backend stack | Decided (via template) | M |
 | 007 | Chat log storage + anonymisation | Pending | — |
 | 008 | Multimodal input handling | Pending | — |
 | 009 | AILANG usage in production stack | Pending — JB conversation | — |
@@ -135,34 +152,52 @@ Concrete model selection per task is driven by capability-floor eval results —
 
 **Context.** Brief implies and the 2026-05-15 conversation confirmed: provider should be a config swap, not a code change. Capability-floor eval determines which model is routed for which task class.
 
-**Options to evaluate.**
+**Decision.** Use the **AI Protocol Platform template's built-in model router**, which already abstracts across Claude, Gemini, OpenAI, and Ollama behind one interface. Adoption follows from [ADR-011](#adr-011-strand-a-built-on-the-ai-protocol-platform). The capability-floor eval matrix drives per-task routing config; the [four-tier model mix in ADR-003](#adr-003-llm-provider-mix-claude-gemini-ollama) defines the destinations.
 
-- AILANG's existing OpenRouter + Ollama integration (Apache 2.0; pending JB discussion per ADR-009)
-- LiteLLM (Python, broad provider support, mature)
-- Vertex AI SDK direct + custom router
-- Roll our own thin OpenAI-compatible adapter
-
-**Pending.** Decision after ADR-009 resolved.
+**Consequences.** Provider swap is a config change, not a code change. The on-device tier (tier 4) needs a thin client-side adapter that the router can fall through to, since on-device dispatch is browser-side. AILANG-Parse-related ML calls run through this same router for their AI path (PDFs and images — see [ADR-012](#adr-012-document-parsing-via-ailang-parse)).
 
 ---
 
 ## ADR-005 — RAG store
 
-**Context.** Teachers upload curriculum extracts, problem sets, lab guides. Bots retrieve at query time. Must be EU-resident.
+**Context.** Two retrieval needs, with different shapes:
+
+1. **Text RAG** (priority) — teachers upload curriculum extracts, problem sets, lab guides. Bots retrieve at query time. Vector similarity over chunked documents. Must be EU-resident.
+2. **Concept-network storage** (stretch — for the [student-models work in C3](strands.qmd#c3-student-models)) — per-student concept graphs of nodes and relations, compared to a reference model. Graph traversal, topology comparison.
 
 **Options.**
 
-- Vertex AI Vector Search (managed, EU-region, expensive at low volume)
-- ChromaDB on Cloud Run + Cloud Storage (self-hosted, simple, cheap, fits our scale)
-- pgvector on Cloud SQL Postgres (relational + vectors in one place)
+| Option | Text RAG fit | Concept-graph fit | Notes |
+|---|---|---|---|
+| Vertex AI Vector Search | Good | Poor | Managed, EU-region, expensive at low volume |
+| ChromaDB on Cloud Run | Good | Poor | Simple, cheap; vector-only |
+| **pgvector on Postgres** | Good | Partial | Relational + vectors in one place; concept graphs via edge tables work but are awkward |
+| **Neo4j / Memgraph (graph DB)** | Poor | Excellent | Native graph traversal; usable via MCP server |
+| **Dual store** — pgvector for text + graph DB for C3 | Best | Best | More moving parts; concept-graph layer only activates if C3 stretch is pursued |
 
-**Lean.** pgvector — combines metadata, ACLs, and vectors in one place; cleanly migratable to UCPH-hosted Postgres later. Pending confirmation against teacher-upload volumes once JB clarifies scale.
+**Lean.**
+
+- **For v1 (text RAG):** pgvector on Postgres — combines metadata, ACLs, and vectors in one place; cleanly migratable to UCPH-hosted Postgres later. Wraps as an MCP server per the [Core vs extensions](#core-vs-extensions) framing.
+- **For C3 stretch (concept networks):** add a graph DB (Neo4j AuraDB EU, Memgraph, or pgvector + edge tables if we want a single-store fallback) as a *second* MCP server. Decision deferred until the C3 scoping note recommends investment — see [strands.qmd](strands.qmd#c3-student-models).
+
+**Why this works.** Both retrieval surfaces are MCP servers — separate plugins, no template changes needed to swap or add either. UCPH self-host equivalents exist for both: Postgres+pgvector and Memgraph (Apache 2.0) both run on UCPH-managed VMs.
+
+**Pending.** Confirm teacher-upload volume estimates with JB before final scale sizing. Graph-DB decision waits on C3 scoping investment recommendation.
 
 ---
 
 ## ADR-006 — Backend stack
 
-**Pending.** Likely Python/FastAPI on Cloud Run (matches M's stack, easy migration to UCPH Kubernetes). Confirm.
+**Decision.** Determined by [ADR-011 (adopting the AI Protocol Platform template)](#adr-011-strand-a-built-on-the-ai-protocol-platform): **Python 3.11+ / FastAPI / Google ADK**, packaged via `uv`, deployed as a Cloud Run service on Multivac in the prototype phase.
+
+**Why this stack:**
+
+- **FastAPI** — the template's HTTP/SSE surface; AG-UI streaming, structured tool calls, and OpenAPI generation come standard
+- **Google ADK** — agent orchestration (sessions, memory, artifacts, eval); aligns with [ADR-008](#adr-008-multimodal-input-handling) for multimodal handling via Gemini and with the model router in [ADR-004](#adr-004-model-abstraction-routing-layer)
+- **`uv`** — fast Python package management; reproducible builds for handover
+- **Cloud Run** — containerised, EU-region available, autoscaling; portable to UCPH Kubernetes per the [self-hosting](self-hosting.qmd) migration
+
+**Consequences.** Successors operate the same stack the template documents — Multivac and Aitana use it, so the operational patterns are well-trodden. AIPLA's contribution is the physics-specific skills and MCP extensions on top, not the backend plumbing itself.
 
 ---
 
