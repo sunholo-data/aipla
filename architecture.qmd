@@ -18,7 +18,7 @@ AIPLA-specific work is the configuration *on top* of both: physics skill packs, 
 
 ```{mermaid}
 flowchart LR
-    User["Student / Teacher<br/>(browser, short-code session join)"]
+    User["Student group · Teacher<br/>(student: anonymous group ID, no auth<br/>teacher: UCPH SSO for admin)"]
     OnDevice["On-device model<br/>Apple Intelligence · Gemini Nano · WebLLM<br/>tier 4 — gold-standard privacy"]
 
     subgraph Platform["Application — AI Protocol Platform template"]
@@ -83,10 +83,10 @@ This separation matters for three reasons: successors can add new plugins withou
 | 004 | Model abstraction / routing layer | Decided (via template) | M |
 | 005 | RAG store | Lean: pgvector · graph DB for C3 stretch | — |
 | 006 | Backend stack | Decided (via template) | M |
-| 007 | Chat log storage + anonymisation | Pending | — |
+| 007 | Chat log storage | Decided (pending consent details) | M |
 | 008 | Multimodal input handling | Pending | — |
-| 009 | AILANG usage in production stack | Pending — JB conversation | — |
-| 010 | Student auth / identity model | Pending | — |
+| 009 | AILANG ecosystem in AIPLA (utilities, not runtime) | Decided | M, [JB to be informed] |
+| 010 | Student identity: no auth, anonymous group IDs | Decided | M, [JB TBC] |
 | 011 | Strand A built on the AI Protocol Platform | Decided | M, [JB TBC] |
 | 012 | Document parsing via AILANG Parse | Decided | M |
 
@@ -201,11 +201,24 @@ Concrete model selection per task is driven by capability-floor eval results —
 
 ---
 
-## ADR-007 — Chat log storage + anonymisation
+## ADR-007 — Chat log storage
 
-**Context.** Researcher access to chat logs is a core requirement. UCPH + Danish DPA consent forms (JB owns) define what we can store and for how long.
+**Context.** Researcher access to chat logs is a core brief requirement. With [ADR-010](#adr-010-student-identity-no-auth-anonymous-group-ids) eliminating student authentication entirely, the anonymisation question largely collapses: there is no student PII to anonymise.
 
-**Pending.** Anonymisation strategy depends on consent text. Working assumption: log retention with pseudonymous student IDs (per-session, per-class) and a separate identity map that researchers cannot access casually.
+**Decision.** Log every chat interaction, keyed by anonymous group ID, into a researcher-accessible BigQuery dataset via the template's OpenTelemetry sink (per [Multivac](#platform-foundation)'s OBSERVABLE-BY-DEFAULT axiom). Retention period and access scope follow the consent form (JB owns).
+
+**What gets stored:**
+
+- Full prompt and response content (group ID is the only "identifier")
+- Timestamps, skill / topic context, model used (the latter feeds the [capability-floor eval](evaluation.qmd))
+- Any uploaded resources by reference (content sits in Cloud Storage, EU-region)
+
+**What does not get stored:**
+
+- Real names, email addresses, UCPH IDs, device identifiers — none of these enter the system per ADR-010
+- Any data linking a group ID back to specific students
+
+**Pending.** Consent form drives final retention period and the scope of researcher access; the working assumption above can be tightened or extended once the consent text is settled.
 
 ---
 
@@ -217,25 +230,56 @@ Concrete model selection per task is driven by capability-floor eval results —
 
 ---
 
-## ADR-009 — AILANG in production stack
+## ADR-009 — AILANG ecosystem in AIPLA (utilities, not runtime)
 
-**Context.** AILANG (Apache 2.0, M's project, ailang.sunholo.com) has the routing + Ollama integration that ADR-004 would otherwise require us to build. Using it as the production model-routing layer is a defensible architectural choice given M's authority but needs explicit disclosure to JB for visibility, not permission.
+**Context.** AILANG is M's research language for AI applications (Apache 2.0, `sunholo-data/ailang`). It has its own runtime, routing, and model integrations. The question for AIPLA is whether the production stack uses AILANG as the runtime, uses AILANG-built tools as components, or both.
 
-**Pending.** Conversation with JB. Possible outcomes:
+**Decision.** AIPLA's production runtime is the **AI Protocol Platform template's Python + Google ADK stack** — not AILANG. AIPLA does, however, use specific AILANG-built tools as standalone components, all open-source and individually swappable:
 
-- Use AILANG as the routing layer in production (cleanest technically)
-- Use AILANG only for offline tooling (docparse, eval running) — production uses LiteLLM or similar
-- Document AILANG as the prototype routing layer and migrate to a vendor-neutral library before handover
+| AILANG-built tool | Role in AIPLA | How it integrates |
+|---|---|---|
+| **AILANG Parse** | Document parsing — see [ADR-012](#adr-012-document-parsing-via-ailang-parse) | MCP server. Used for its deterministic-XML-parsing privacy properties, not because of its origin. |
+| **AILANG capability benchmarks** | Reference data for the [capability-floor eval](evaluation.qmd) starting model panel | Eval methodology is independent of AILANG; benchmarks are a published starting reference. |
+| Future utilities | Additional MCP servers as appropriate | Each plugs in independently; no AILANG fluency required to maintain the runtime. |
 
-Until resolved, default to using AILANG for docparse and the eval runner (already in use, uncontroversial) and hold the production routing decision.
+**Disclosure (handover & conflict of interest).** Two layers:
+
+1. **AILANG itself is M's research work** — disclosed to JB. AIPLA does **not** depend on AILANG-the-runtime, so successors do not need to learn AILANG to maintain AIPLA. They maintain Python.
+2. **AILANG-built utilities used in AIPLA** are standalone open-source projects with non-AILANG SDKs (Python, JS, Go). Choosing them is no different in principle from choosing any other open-source tool — the disclosure is so JB can see the lineage explicitly.
+
+**Consequences.**
+
+- Successors maintain AIPLA in Python — no AILANG-language fluency required
+- Each AILANG-built MCP server is swappable for an equivalent if a future maintainer prefers (e.g., AILANG Parse could be replaced with Docling or MarkItDown — though none currently match its deterministic-XML privacy properties)
+- The eval framework is AIPLA's own; AILANG's published benchmarks are a starting reference, not a dependency
 
 ---
 
-## ADR-010 — Student auth / identity
+## ADR-010 — Student identity: no auth, anonymous group IDs
 
-**Context.** Brief: "students/teachers don't need their own accounts or subscriptions." Project bills usage centrally. But chat logs must be researcher-retrievable per-session, per-class — so some session identity is needed.
+**Context.** The brief is explicit that students should not need accounts. The strongest privacy posture for a research project deploying in Danish schools is to collect **no student identity data at all** — not pseudonyms, not first names, not device identifiers, nothing.
 
-**Pending.** Working assumption: short-code session join (teacher generates code, students join with code + first name or pseudonym). No persistent accounts. Per-class, per-session identity is enough for the research data, and minimises PII surface.
+The brief also notes the typical configuration: one shared phone per three students. The natural unit of analysis is therefore the **group**, not the individual student. Research outcomes are interpreted at the group / class level, not per-student.
+
+**Decision.** **No student authentication.** Students join sessions by entering a **system-assigned anonymous group ID** (e.g., `grp-7B-3`, or a short opaque token). The teacher generates group IDs when setting up a lesson; each group enters its ID on the shared device to join. Chat logs key on group ID. Nothing personally identifying about any student is captured anywhere in the system.
+
+**Teacher auth** is separate and minimal: required only for admin functions (creating a class session, generating group IDs, uploading lesson materials, viewing aggregated research data). Use **UCPH institutional SSO** where available (Firebase Auth federated with UCPH IDP, or whatever JB's preferred path is). Teachers are existing institutional users; this is the cheapest GDPR posture for the teacher side.
+
+**Why this works.**
+
+- **Privacy by construction** — the system literally cannot leak student PII because it never has any. UCPH data-protection review becomes substantially simpler.
+- **No identity-map maintenance** — researchers don't need a translation layer between pseudonyms and real students; there is no real-student data to translate.
+- **Friction-free onboarding** — students don't sign up, don't enter emails, don't reset passwords. Open the URL, enter the group ID, start working.
+- **Matches the actual classroom configuration** — one phone, three students, group is the natural unit anyway.
+
+**Trade-offs.**
+
+- Cannot follow *individual* students across sessions or topics. Research is per-group, not per-student. This is a deliberate constraint, not a bug; brief frames research at the classroom level.
+- Group IDs can persist across sessions for longitudinal per-group analysis without ever becoming identifying.
+
+**Consequences for [ADR-007](#adr-007-chat-log-storage).** Anonymisation collapses to a non-issue: there is no PII to anonymise. The "separate identity map that researchers cannot access casually" from the earlier draft is removed — the map doesn't exist.
+
+**Open question for JB.** Confirm teacher-auth mechanism (UCPH SSO, Firebase federated, or other) and the granularity of group IDs (per-class only, or finer for small-group work within a class).
 
 ---
 
