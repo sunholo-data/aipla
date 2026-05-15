@@ -5,6 +5,8 @@ subtitle: "ADRs for Strand A — pedagogical bot infrastructure"
 
 Working document. One section per decision, ADR-style: context → options → decision → consequences. Decisions are revisable; flag any change with date and reason. The **Sign-off** column is the handover ownership track — every architectural decision needs a second signature before it's considered settled.
 
+**Order is rough priority** — the most defining decisions first (privacy posture, platform foundation, model strategy), then privacy mechanics, then infrastructure and application architecture, with the AILANG disclosure last.
+
 ## Platform foundation
 
 AIPLA sits on two open layers from the `sunholo-data` ecosystem, with the AIPLA-specific configuration on top:
@@ -12,7 +14,7 @@ AIPLA sits on two open layers from the `sunholo-data` ecosystem, with the AIPLA-
 - **[AI Protocol Platform](https://github.com/sunholo-data/ai-protocol-platform)** — open-source template (Apache 2.0) for the **application layer**: AG-UI streaming, A2UI declarative rendering, MCP tool integration, A2A agent discovery, ADK orchestration, multi-provider model routing, OpenTelemetry observability, `LOCAL_MODE` workshop path. Cloud-agnostic — runs on GCP, AWS, Azure, or on-premises. Used inside the Aitana assistant product among others.
 - **Multivac** — Sunholo's wider AI platform, providing the **infrastructure layer**: managed model access (Vertex AI Gemini, Ollama hosting), Postgres + pgvector, Cloud Storage, identity, telemetry sinks. AIPLA's prototype runs on Multivac in an EU region; the [self-hosting](self-hosting.qmd) migration target is replacing Multivac with UCPH equivalents while keeping the template layer intact.
 
-AIPLA-specific work is the configuration *on top* of both: physics skill packs, the [capability-floor router](evaluation.qmd) wiring, short-code session join (ADR-010), and EU-region constraints. See [ADR-001](#adr-001-cloud-provider-for-prototype-google-cloud-platform-eu) for the cloud/infrastructure decision and [ADR-011](#adr-011-strand-a-built-on-the-ai-protocol-platform) for the template adoption rationale and scope discipline.
+AIPLA-specific work is the configuration *on top* of both: physics skill packs, the [capability-floor router](evaluation.qmd) wiring, anonymous group IDs ([ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids)), and EU-region constraints. See [ADR-002](#adr-002-strand-a-built-on-the-ai-protocol-platform) for the template adoption rationale and scope discipline.
 
 ## System view
 
@@ -60,14 +62,14 @@ The **pink subgraph** is the AI Protocol Platform template — the application l
 
 The template provides a **fixed core** of capabilities. Everything else AIPLA adds is a **swappable extension** that plugs in through one of three protocols: **MCP** (tools and data), **MCP Apps** (interactive UI surfaces in sandboxed iframes), or **A2UI** (declarative UI components rendered inline in chat).
 
-This separation matters for three reasons: successors can add new plugins without touching template internals (handover), extensions can be released individually as Apache-2.0 community-contributable modules (open-source default), and the [ADR-011 scope-discipline table](#adr-011-strand-a-built-on-the-ai-protocol-platform) defines what ships in AIPLA v1 vs. later.
+This separation matters for three reasons: successors can add new plugins without touching template internals (handover), extensions can be released individually as Apache-2.0 community-contributable modules (open-source default), and the [ADR-002 scope-discipline table](#adr-002-strand-a-built-on-the-ai-protocol-platform) defines what ships in AIPLA v1 vs. later.
 
 | Layer | Protocol | What it is | Examples for AIPLA | AIPLA v1 |
 |---|---|---|---|---|
 | Application core | (template, fixed) | AG-UI streaming, ADK orchestration, skills framework, model router, auth/session, log capture, telemetry | n/a — provided | ✅ Adopted as-is |
 | Model providers | (template adapter) | Cloud + local model backends | Claude, Gemini, Ollama, on-device — see [ADR-003](#adr-003-llm-provider-mix-claude-gemini-ollama) | ✅ All four tiers |
 | Skills (app configuration) | (template) | Teacher-configurable bot setups | Physics tutors per topic, problem-set helpers, lab assistants | ✅ Multiple per topic |
-| Data + computation tools | **MCP server** | Anything that fetches data, runs computation, or wraps an external service | RAG retrieval ([ADR-005](#adr-005-rag-store)), code execution sandbox, document parse via AILANG Parse ([ADR-012](#adr-012-document-parsing-via-ailang-parse)), domain search | ✅ pgvector RAG · code sandbox · AILANG Parse · 🟡 graph DB (stretch — for C3) |
+| Data + computation tools | **MCP server** | Anything that fetches data, runs computation, or wraps an external service | RAG retrieval ([ADR-010](#adr-010-rag-store)), code execution sandbox, document parse via AILANG Parse ([ADR-004](#adr-004-document-parsing-via-ailang-parse)), domain search | ✅ pgvector RAG · code sandbox · AILANG Parse · 🟡 graph DB (stretch — for C3) |
 | Interactive UI extensions | **MCP Apps** | Sandboxed iframes with their own state and UI | GeoGebra widget, Tracker / sensor-data viewer, concept-map editor for [student models (C3)](strands.qmd#c3-student-models), simulation workbench (Strand B) | 🟡 concept-map editor (C3 stretch) · Strand-B target |
 | Declarative UI extensions | **A2UI** | Backend-emitted structured UI elements rendered inline in chat | Problem-hint cards · LaTeX/KaTeX formula blocks · structured feedback panels · teacher-config forms | ✅ Hint cards · LaTeX · feedback panels |
 
@@ -77,220 +79,22 @@ This separation matters for three reasons: successors can add new plugins withou
 
 | # | Decision | Status | Sign-off |
 |---|---|---|---|
-| 001 | Cloud provider for prototype | Decided | M, [JB TBC] |
-| 002 | Cloud region | Decided · europe-north1 (Finland), europe-west3 (Frankfurt) fallback | M, [JB / UCPH IT TBC] |
-| 003 | LLM provider mix (Claude · Gemini · Ollama) | Decided | M |
-| 004 | Model abstraction / routing layer | Decided (via template) | M |
-| 005 | RAG store | Lean: pgvector · graph DB for C3 stretch | — |
-| 006 | Backend stack | Decided (via template) | M |
-| 007 | Chat log storage | Decided (pending consent details) | M |
-| 008 | Multimodal input handling | Decided · via AILANG Parse (swappable backends) | M |
-| 009 | AILANG ecosystem in AIPLA (utilities, not runtime) | Decided | M, [JB to be informed] |
-| 010 | Student identity: no auth, anonymous group IDs | Decided | M, [JB TBC] |
-| 011 | Strand A built on the AI Protocol Platform | Decided | M, [JB TBC] |
-| 012 | Document parsing via AILANG Parse | Decided | M |
+| 001 | Student identity: no auth, anonymous group IDs | Decided | M, [JB TBC] |
+| 002 | Strand A built on the AI Protocol Platform | Decided | M, [JB TBC] |
+| 003 | LLM provider mix (Claude · Gemini · Ollama · on-device) | Decided | M |
+| 004 | Document parsing via AILANG Parse | Decided | M |
+| 005 | Chat log storage | Decided (pending consent details) | M |
+| 006 | Cloud provider for prototype: GCP EU via Multivac | Decided | M, [JB TBC] |
+| 007 | Cloud region: europe-north1 (Finland) | Decided | M, [JB / UCPH IT TBC] |
+| 008 | Model abstraction / routing layer | Decided (via template) | M |
+| 009 | Backend stack | Decided (via template) | M |
+| 010 | RAG store | Lean: pgvector · graph DB for C3 stretch | — |
+| 011 | Multimodal input handling | Decided · via AILANG Parse (swappable backends) | M |
+| 012 | AILANG ecosystem in AIPLA (utilities, not runtime) | Decided | M, [JB to be informed] |
 
 ---
 
-## ADR-001 — Cloud provider for prototype: Google Cloud Platform (EU)
-
-**Context.** JB's brief requires EU-hosted, GDPR-compliant infrastructure with no PII leakage to US providers where avoidable, holding up to UCPH data-protection review. Mid-July prototype deadline (~9 weeks) constrains us toward a managed stack.
-
-**Options considered.**
-
-- GCP EU regions (Vertex AI, Cloud Run, Firestore) — full stack from one vendor with EU residency
-- AWS EU (Bedrock + Lambda) — comparable but Bedrock's Claude routing has US-control concerns
-- Azure EU — workable but M less familiar
-- Mistral La Plateforme + EU-hosted backend (Scaleway / Hetzner) — most EU-native but more pieces to assemble
-- Pure self-host (UCPH server) — only viable if UCPH IT responds with a usable timeline
-
-**Decision.** GCP EU for prototype, deployed via **Multivac** (Sunholo's AI platform — see [Platform foundation](#platform-foundation)). Vertex AI in europe-west3 (Frankfurt) or europe-west1 (Belgium) — pick one in ADR-002. Single-vendor EU-resident stack: cleanest DPA story for UCPH review.
-
-**Consequences.**
-
-- Multivac provides managed access to Vertex AI, Ollama hosting, Postgres, and Cloud Storage. AIPLA's infrastructure surface is Multivac's surface in the prototype.
-- UCPH self-host migration becomes the dual track — see [Self-hosting](self-hosting.qmd). The application layer (template) is portable; the infrastructure layer (Multivac) is what gets swapped for UCPH equivalents.
-- Cost is API-billed, not infrastructure-capex; tracked per-task via the capability-floor [evaluation](evaluation.qmd)
-- M has Vertex AI familiarity (AILANG uses it) — reduces ramp time
-
----
-
-## ADR-002 — Cloud region
-
-**Context.** GCP offers several EU regions; the relevant question is which best fits a Danish research project with student data and a sustainability-conscious institution.
-
-**Options shortlist.**
-
-| Region | Jurisdiction | Power source | Notes |
-|---|---|---|---|
-| **europe-north1** (Finland) | EU · Nordic | 100% renewable (Hamina datacenter) | Strongest carbon-neutrality story; Nordic regional alignment; Vertex AI Gemini available |
-| **europe-west3** (Frankfurt) | EU · Germany | Mixed | Most-used EU region; first to get new GCP features; broadest service availability |
-| europe-west1 (Belgium) | EU | Mixed | Equivalent to Frankfurt on services; less differentiated |
-| europe-west4 (Netherlands) | EU | Mixed | Similar to Belgium |
-
-**Decision.** **europe-north1 (Finland)** as primary, with **europe-west3 (Frankfurt)** as fallback if a specific service availability gap appears during build.
-
-**Why Finland over Frankfurt:**
-
-- **Nordic alignment** — Danish school data hosted in a Nordic country is a marginally cleaner political story than Germany; UCPH data-protection review and parent/teacher communication both benefit
-- **100% renewable power** at the Hamina datacenter is a genuine differentiator for an academic project with sustainability stakeholders
-- **Latency from Copenhagen** is comparable to Frankfurt (~20–30ms ballpark either way) — not a meaningful difference for chat-style UX
-
-**Frankfurt fallback** is reserved for a specific scenario: if a Vertex AI feature AIPLA needs lands in europe-west3 but not europe-north1 during the contract window, swap is cheap (regional config change, no architectural impact).
-
-**Pending.** Confirm with JB / UCPH IT that europe-north1 has no institutional objection. If UCPH data-protection has a specific preference, defer to it.
-
----
-
-## ADR-003 — LLM provider mix (Claude · Gemini · Ollama)
-
-**Context.** AIPLA needs strong text reasoning for problem-set hints and conceptual dialogue, strong multimodal for worksheet photos and diagram interpretation, EU data residency for student-facing use, and a credible path to self-hosted models for the [UCPH on-prem](self-hosting.qmd) migration target. No single provider gives the best answer across all three.
-
-**Decision.** Four-tier model mix, routed **case-by-case per task class** via the [capability-floor eval](evaluation.qmd):
-
-| Tier | Provider | Used for | Why |
-|---|---|---|---|
-| 1 — Cloud, cloud-agnostic | **Anthropic Claude** (Sonnet 4.6 / Haiku 4.5 / Opus 4.7) | Text reasoning — problem-set hints, conceptual dialogue, Socratic scaffolding, presentation critique | Strong reasoning; available via direct Anthropic API, AWS Bedrock, and GCP Vertex AI Model Garden — reduces single-cloud lock-in. |
-| 2 — Cloud, EU-resident | **Google Gemini** (Vertex AI, EU region) | Multimodal — photos of free-body diagrams, Tracker screenshots, CSV / tabular reasoning | Best-in-class multimodal at price point; native EU residency. |
-| 3 — Server-local | **Self-hosted Ollama** (UCPH GPU server, or M's 128GB Mac during prototyping) | Per-task-class adoption — only when the capability-floor eval shows an open-weight model meets the threshold for that class | Privacy-positive, zero API spend, no data crossing the institutional boundary. Adoption is **case-by-case**, not all-or-nothing. |
-| 4 — On-device | **Apple Intelligence**, **Gemini Nano**, WebLLM / Transformers.js, or llama.cpp running on the student's device | Tasks the device can handle without help (light Q&A, summarisation, formatting), and offline scenarios | Gold standard for privacy — data literally never leaves the device. Also enables offline use, which is relevant for playground / lab / poor-WiFi settings mentioned in JB's brief. Constrained by device capability; included as a routing tier where it fits. |
-
-Concrete model selection per task is driven by capability-floor eval results — see [Evaluation](evaluation.qmd).
-
-**Consequences.**
-
-- Routing layer (ADR-004) handles all four tiers behind one interface. The AI Protocol Platform template already supports multi-provider routing; the on-device tier requires a thin client-side adapter (most platforms expose simple JS APIs).
-- **Cloud-agnosticism on the Claude path** is a strategic hedge: if AIPLA needs to move off GCP for any reason (UCPH preference, vendor change), Claude access doesn't have to change provider — only the auth endpoint.
-- Cost mix: Haiku-class on cheap text tasks, Gemini Flash for cheap multimodal, Opus / Sonnet / Gemini Pro reserved for tasks the eval shows benefit from them. On-device tasks cost nothing.
-- Migration trajectory: as the local-readiness fraction in the capability-floor eval rises, the server-local and on-device tiers grow; the cloud-provider share shrinks proportionally.
-- **On-device tier viability is per-device**. A student on an iPad with Apple Intelligence has tier 4 available for certain tasks; a student on a basic Chromebook does not. The routing layer falls back gracefully (tier 4 → 3 → 2 → 1) when a higher-privacy tier isn't available for the given device or task.
-
----
-
-## ADR-004 — Model abstraction / routing layer
-
-**Context.** Brief implies and the 2026-05-15 conversation confirmed: provider should be a config swap, not a code change. Capability-floor eval determines which model is routed for which task class.
-
-**Decision.** Use the **AI Protocol Platform template's built-in model router**, which already abstracts across Claude, Gemini, OpenAI, and Ollama behind one interface. Adoption follows from [ADR-011](#adr-011-strand-a-built-on-the-ai-protocol-platform). The capability-floor eval matrix drives per-task routing config; the [four-tier model mix in ADR-003](#adr-003-llm-provider-mix-claude-gemini-ollama) defines the destinations.
-
-**Consequences.** Provider swap is a config change, not a code change. The on-device tier (tier 4) needs a thin client-side adapter that the router can fall through to, since on-device dispatch is browser-side. AILANG-Parse-related ML calls run through this same router for their AI path (PDFs and images — see [ADR-012](#adr-012-document-parsing-via-ailang-parse)).
-
----
-
-## ADR-005 — RAG store
-
-**Context.** Two retrieval needs, with different shapes:
-
-1. **Text RAG** (priority) — teachers upload curriculum extracts, problem sets, lab guides. Bots retrieve at query time. Vector similarity over chunked documents. Must be EU-resident.
-2. **Concept-network storage** (stretch — for the [student-models work in C3](strands.qmd#c3-student-models)) — per-student concept graphs of nodes and relations, compared to a reference model. Graph traversal, topology comparison.
-
-**Options.**
-
-| Option | Text RAG fit | Concept-graph fit | Notes |
-|---|---|---|---|
-| Vertex AI Vector Search | Good | Poor | Managed, EU-region, expensive at low volume |
-| ChromaDB on Cloud Run | Good | Poor | Simple, cheap; vector-only |
-| **pgvector on Postgres** | Good | Partial | Relational + vectors in one place; concept graphs via edge tables work but are awkward |
-| **Neo4j / Memgraph (graph DB)** | Poor | Excellent | Native graph traversal; usable via MCP server |
-| **Dual store** — pgvector for text + graph DB for C3 | Best | Best | More moving parts; concept-graph layer only activates if C3 stretch is pursued |
-
-**Lean.**
-
-- **For v1 (text RAG):** pgvector on Postgres — combines metadata, ACLs, and vectors in one place; cleanly migratable to UCPH-hosted Postgres later. Wraps as an MCP server per the [Core vs extensions](#core-vs-extensions) framing.
-- **For C3 stretch (concept networks):** add a graph DB (Neo4j AuraDB EU, Memgraph, or pgvector + edge tables if we want a single-store fallback) as a *second* MCP server. Decision deferred until the C3 scoping note recommends investment — see [strands.qmd](strands.qmd#c3-student-models).
-
-**Why this works.** Both retrieval surfaces are MCP servers — separate plugins, no template changes needed to swap or add either. UCPH self-host equivalents exist for both: Postgres+pgvector and Memgraph (Apache 2.0) both run on UCPH-managed VMs.
-
-**Pending.** Confirm teacher-upload volume estimates with JB before final scale sizing. Graph-DB decision waits on C3 scoping investment recommendation.
-
----
-
-## ADR-006 — Backend stack
-
-**Decision.** Determined by [ADR-011 (adopting the AI Protocol Platform template)](#adr-011-strand-a-built-on-the-ai-protocol-platform): **Python 3.11+ / FastAPI / Google ADK**, packaged via `uv`, deployed as a Cloud Run service on Multivac in the prototype phase.
-
-**Why this stack:**
-
-- **FastAPI** — the template's HTTP/SSE surface; AG-UI streaming, structured tool calls, and OpenAPI generation come standard
-- **Google ADK** — agent orchestration (sessions, memory, artifacts, eval); aligns with [ADR-008](#adr-008-multimodal-input-handling) for multimodal handling via Gemini and with the model router in [ADR-004](#adr-004-model-abstraction-routing-layer)
-- **`uv`** — fast Python package management; reproducible builds for handover
-- **Cloud Run** — containerised, EU-region available, autoscaling; portable to UCPH Kubernetes per the [self-hosting](self-hosting.qmd) migration
-
-**Consequences.** Successors operate the same stack the template documents — Multivac and Aitana use it, so the operational patterns are well-trodden. AIPLA's contribution is the physics-specific skills and MCP extensions on top, not the backend plumbing itself.
-
----
-
-## ADR-007 — Chat log storage
-
-**Context.** Researcher access to chat logs is a core brief requirement. With [ADR-010](#adr-010-student-identity-no-auth-anonymous-group-ids) eliminating student authentication entirely, the anonymisation question largely collapses: there is no student PII to anonymise.
-
-**Decision.** Log every chat interaction, keyed by anonymous group ID, into a researcher-accessible BigQuery dataset via the template's OpenTelemetry sink (per [Multivac](#platform-foundation)'s OBSERVABLE-BY-DEFAULT axiom). Retention period and access scope follow the consent form (JB owns).
-
-**What gets stored:**
-
-- Full prompt and response content (group ID is the only "identifier")
-- Timestamps, skill / topic context, model used (the latter feeds the [capability-floor eval](evaluation.qmd))
-- Any uploaded resources by reference (content sits in Cloud Storage, EU-region)
-
-**What does not get stored:**
-
-- Real names, email addresses, UCPH IDs, device identifiers — none of these enter the system per ADR-010
-- Any data linking a group ID back to specific students
-
-**Pending.** Consent form drives final retention period and the scope of researcher access; the working assumption above can be tightened or extended once the consent text is settled.
-
----
-
-## ADR-008 — Multimodal input handling
-
-**Context.** Students and teachers upload a mix of formats: photos of hand-drawn free-body diagrams (JPG/PNG), screenshots of Tracker output (PNG), worksheet scans (PDF), CSV / Excel exports from sensors, lesson plans (DOCX/PPTX), email threads (EML). Each of these has different optimal handling — and from a privacy standpoint, the goal is to send as little to a remote model as possible.
-
-**Decision.** **All uploads route through AILANG Parse first** (see [ADR-012](#adr-012-document-parsing-via-ailang-parse)). AILANG Parse selects the right backend per format:
-
-| Format type | Backend | Where the content goes |
-|---|---|---|
-| DOCX, PPTX, XLSX, ODT, ODP, ODS, CSV, EML, HTML, MD, TEX, EPUB | Deterministic XML parser | **Local** — content never reaches an LLM |
-| PDF, JPG, PNG | AI backend (currently cloud multimodal) | Cloud LLM via the [model router](#adr-004-model-abstraction-routing-layer) — tier 2 (Gemini EU) or tier 1 (Claude) |
-
-The AI-backend layer is **swappable**: AILANG Parse currently calls cloud multimodal models, but on its roadmap are local OCR models. Local OCR currently underperforms cloud multimodal on physics-shaped content (hand-drawn diagrams, equations) — once it closes the gap, the swap is a config change and the capability-floor eval captures when that's worth doing.
-
-**Code execution** (geometry / arithmetic checks, CSV computation, simulation snippets) is **separate from input handling** and plugs in as an [MCP server extension](#core-vs-extensions). Likely candidates: Cloud Run Jobs sandbox, or a containerised Python/JS sandbox MCP server. The student-facing bot calls the code-exec MCP server as a tool, not as part of upload processing.
-
-**Consequences.**
-
-- The privacy story is concrete: 13 of 15 supported upload formats are extracted locally with no LLM involvement. Only image-shaped content goes to a model.
-- The AI backend for image extraction is the same as the chat-routing AI — one router, one telemetry surface, one billing surface.
-- Migration path is clear: when local OCR matures (AILANG Parse roadmap), the image-extraction path shifts from cloud to local without touching application code.
-- Code execution is intentionally a separate extension; we can ship multimodal upload handling in v1 and add code-exec when needed without re-architecting either.
-
----
-
-## ADR-009 — AILANG ecosystem in AIPLA (utilities, not runtime)
-
-**Context.** AILANG is M's research language for AI applications (Apache 2.0, `sunholo-data/ailang`). It has its own runtime, routing, and model integrations. The question for AIPLA is whether the production stack uses AILANG as the runtime, uses AILANG-built tools as components, or both.
-
-**Decision.** AIPLA's production runtime is the **AI Protocol Platform template's Python + Google ADK stack** — not AILANG. AIPLA does, however, use specific AILANG-built tools as standalone components, all open-source and individually swappable:
-
-| AILANG-built tool | Role in AIPLA | How it integrates |
-|---|---|---|
-| **AILANG Parse** | Document parsing — see [ADR-012](#adr-012-document-parsing-via-ailang-parse) | MCP server. Used for its deterministic-XML-parsing privacy properties, not because of its origin. |
-| **AILANG capability benchmarks** | Reference data for the [capability-floor eval](evaluation.qmd) starting model panel | Eval methodology is independent of AILANG; benchmarks are a published starting reference. |
-| Future utilities | Additional MCP servers as appropriate | Each plugs in independently; no AILANG fluency required to maintain the runtime. |
-
-**Disclosure (handover & conflict of interest).** Two layers:
-
-1. **AILANG itself is M's research work** — disclosed to JB. AIPLA does **not** depend on AILANG-the-runtime, so successors do not need to learn AILANG to maintain AIPLA. They maintain Python.
-2. **AILANG-built utilities used in AIPLA** are standalone open-source projects with non-AILANG SDKs (Python, JS, Go). Choosing them is no different in principle from choosing any other open-source tool — the disclosure is so JB can see the lineage explicitly.
-
-**Consequences.**
-
-- Successors maintain AIPLA in Python — no AILANG-language fluency required
-- Each AILANG-built MCP server is swappable for an equivalent if a future maintainer prefers (e.g., AILANG Parse could be replaced with Docling or MarkItDown — though none currently match its deterministic-XML privacy properties)
-- The eval framework is AIPLA's own; AILANG's published benchmarks are a starting reference, not a dependency
-
----
-
-## ADR-010 — Student identity: no auth, anonymous group IDs
+## ADR-001 — Student identity: no auth, anonymous group IDs
 
 **Context.** The brief is explicit that students should not need accounts. The strongest privacy posture for a research project deploying in Danish schools is to collect **no student identity data at all** — not pseudonyms, not first names, not device identifiers, nothing.
 
@@ -312,13 +116,13 @@ The brief also notes the typical configuration: one shared phone per three stude
 - Cannot follow *individual* students across sessions or topics. Research is per-group, not per-student. This is a deliberate constraint, not a bug; brief frames research at the classroom level.
 - Group IDs can persist across sessions for longitudinal per-group analysis without ever becoming identifying.
 
-**Consequences for [ADR-007](#adr-007-chat-log-storage).** Anonymisation collapses to a non-issue: there is no PII to anonymise. The "separate identity map that researchers cannot access casually" from the earlier draft is removed — the map doesn't exist.
+**Consequences for [ADR-005](#adr-005-chat-log-storage).** Anonymisation collapses to a non-issue: there is no PII to anonymise. The "separate identity map that researchers cannot access casually" from the earlier draft is removed — the map doesn't exist.
 
 **Open question for JB.** Confirm teacher-auth mechanism (UCPH SSO, Firebase federated, or other) and the granularity of group IDs (per-class only, or finer for small-group work within a class).
 
 ---
 
-## ADR-011 — Strand A built on the AI Protocol Platform
+## ADR-002 — Strand A built on the AI Protocol Platform
 
 **Context.** Building Strand A's pedagogical bot infrastructure from scratch within the four-month contract is feasible but tight: GDPR-grade auth, multi-provider model routing, log capture with anonymisation, multimodal upload handling, teacher-facing skill configuration, and the supporting telemetry are each multi-week tracks. The [AI Protocol Platform](https://github.com/sunholo-data/ai-protocol-platform) (Apache 2.0, public repo on the `sunholo-data` org) is an open-source template that already solves most of these. It is cloud-agnostic (GCP, AWS, Azure, on-prem) and designed by M to serve a class of projects including AIPLA — already used inside Sunholo's wider Multivac AI platform offering and in the Aitana assistant product.
 
@@ -334,11 +138,11 @@ The brief also notes the typical configuration: one shared phone per three stude
 
 **Options considered.**
 
-- Build Strand A bot infrastructure from scratch in Python/FastAPI on Cloud Run (originally implied by ADR-001)
+- Build Strand A bot infrastructure from scratch in Python/FastAPI on Cloud Run (originally implied by [ADR-006](#adr-006-cloud-provider-for-prototype-gcp-eu-via-multivac))
 - Adopt LangChain or a similar open-source framework as the base
 - Adopt the AI Protocol Platform template as the foundation and add AIPLA-specific configuration on top
 
-**Decision.** Adopt the AI Protocol Platform template. AIPLA work is the configuration, skill packs, EU-region pinning, short-code session join, and self-host migration path on top of an already-mature template.
+**Decision.** Adopt the AI Protocol Platform template. AIPLA work is the configuration, skill packs, EU-region pinning, anonymous group join (ADR-001), and self-host migration path on top of an already-mature template.
 
 **Scope discipline.** The template has more surface area than AIPLA needs in four months. The risk is that *because* features exist, we feel obliged to use them. Explicit opt-in list for AIPLA v1:
 
@@ -355,10 +159,10 @@ The brief also notes the typical configuration: one shared phone per three stude
 | MCP Apps (sandboxed iframes) | 🟡 Strand B target | Holds the simulation/game artefacts cleanly |
 | A2A agent discovery | ❌ Skip v1 | Useful long-term, not required for the pilot |
 | Telegram / Email / WhatsApp channels | ❌ Skip v1 | Available; not needed for STX teacher pilot |
-| Vertex AI Search | ❌ Skip v1 | pgvector covers AIPLA's RAG needs per ADR-005 |
+| Vertex AI Search | ❌ Skip v1 | pgvector covers AIPLA's RAG needs per [ADR-010](#adr-010-rag-store) |
 | Real-time collaboration features | ❌ Skip v1 | Out of brief scope |
 
-**Disclosure (handover & conflict of interest).** The AI Protocol Platform is M's own work. This is parallel to the AILANG disclosure in [ADR-009](#adr-009-ailang-in-production-stack) and needs the same explicit visibility with JB. Three mitigating points:
+**Disclosure (handover & conflict of interest).** The AI Protocol Platform is M's own work. This is parallel to the AILANG disclosure in [ADR-012](#adr-012-ailang-ecosystem-in-aipla-utilities-not-runtime) and needs the same explicit visibility with JB. Three mitigating points:
 
 - The template is Apache 2.0 licensed and the repo is public; AIPLA's open-source-at-end-of-project goal is fully compatible
 - The template is multi-purpose — designed for a class of projects, not AIPLA-specific. AILANG itself is not required to use the template (it's used inside the platform for LaTeX parsing and capability benchmarks, but the template supports plain Python stacks)
@@ -373,7 +177,32 @@ The brief also notes the typical configuration: one shared phone per three stude
 
 ---
 
-## ADR-012 — Document parsing via AILANG Parse
+## ADR-003 — LLM provider mix (Claude · Gemini · Ollama)
+
+**Context.** AIPLA needs strong text reasoning for problem-set hints and conceptual dialogue, strong multimodal for worksheet photos and diagram interpretation, EU data residency for student-facing use, and a credible path to self-hosted models for the [UCPH on-prem](self-hosting.qmd) migration target. No single provider gives the best answer across all three.
+
+**Decision.** Four-tier model mix, routed **case-by-case per task class** via the [capability-floor eval](evaluation.qmd):
+
+| Tier | Provider | Used for | Why |
+|---|---|---|---|
+| 1 — Cloud, cloud-agnostic | **Anthropic Claude** (Sonnet 4.6 / Haiku 4.5 / Opus 4.7) | Text reasoning — problem-set hints, conceptual dialogue, Socratic scaffolding, presentation critique | Strong reasoning; available via direct Anthropic API, AWS Bedrock, and GCP Vertex AI Model Garden — reduces single-cloud lock-in. |
+| 2 — Cloud, EU-resident | **Google Gemini** (Vertex AI, EU region) | Multimodal — photos of free-body diagrams, Tracker screenshots, CSV / tabular reasoning | Best-in-class multimodal at price point; native EU residency. |
+| 3 — Server-local | **Self-hosted Ollama** (UCPH GPU server, or M's 128GB Mac during prototyping) | Per-task-class adoption — only when the capability-floor eval shows an open-weight model meets the threshold for that class | Privacy-positive, zero API spend, no data crossing the institutional boundary. Adoption is **case-by-case**, not all-or-nothing. |
+| 4 — On-device | **Apple Intelligence**, **Gemini Nano**, WebLLM / Transformers.js, or llama.cpp running on the student's device | Tasks the device can handle without help (light Q&A, summarisation, formatting), and offline scenarios | Gold standard for privacy — data literally never leaves the device. Also enables offline use, which is relevant for playground / lab / poor-WiFi settings mentioned in JB's brief. Constrained by device capability; included as a routing tier where it fits. |
+
+Concrete model selection per task is driven by capability-floor eval results — see [Evaluation](evaluation.qmd).
+
+**Consequences.**
+
+- Routing layer ([ADR-008](#adr-008-model-abstraction-routing-layer)) handles all four tiers behind one interface. The AI Protocol Platform template already supports multi-provider routing; the on-device tier requires a thin client-side adapter (most platforms expose simple JS APIs).
+- **Cloud-agnosticism on the Claude path** is a strategic hedge: if AIPLA needs to move off GCP for any reason (UCPH preference, vendor change), Claude access doesn't have to change provider — only the auth endpoint.
+- Cost mix: Haiku-class on cheap text tasks, Gemini Flash for cheap multimodal, Opus / Sonnet / Gemini Pro reserved for tasks the eval shows benefit from them. On-device tasks cost nothing.
+- Migration trajectory: as the local-readiness fraction in the capability-floor eval rises, the server-local and on-device tiers grow; the cloud-provider share shrinks proportionally.
+- **On-device tier viability is per-device**. A student on an iPad with Apple Intelligence has tier 4 available for certain tasks; a student on a basic Chromebook does not. The routing layer falls back gracefully (tier 4 → 3 → 2 → 1) when a higher-privacy tier isn't available for the given device or task.
+
+---
+
+## ADR-004 — Document parsing via AILANG Parse
 
 **Context.** AIPLA bots ingest teacher and student documents: lesson plans (DOCX), worksheets, sensor exports (CSV/XLSX), email threads (EML), presentation slides (PPTX), lab reports (PDF), photos of hand-drawn diagrams (PNG/JPG). The naive approach — pass every upload to a multimodal LLM for extraction — is wasteful in tokens, slow, and substantially weaker on the GDPR/privacy axis than is necessary.
 
@@ -414,7 +243,7 @@ The AI path is only invoked for genuinely image-shaped content — scanned PDFs,
 
 For a UCPH data-protection review, "13 of 15 supported formats never leave the trust boundary" is a stronger story than any single-vendor multimodal approach.
 
-**Disclosure.** AILANG Parse is part of the AILANG ecosystem ([ADR-009](#adr-009-ailang-in-production-stack)) — same disclosure considerations apply. It is published as a standalone Apache 2.0 library with Python, JavaScript, and Go SDKs and is used by projects beyond AIPLA. The AI Protocol Platform template integrates it natively.
+**Disclosure.** AILANG Parse is part of the AILANG ecosystem ([ADR-012](#adr-012-ailang-ecosystem-in-aipla-utilities-not-runtime)) — same disclosure considerations apply. It is published as a standalone Apache 2.0 library with Python, JavaScript, and Go SDKs and is used by projects beyond AIPLA. The AI Protocol Platform template integrates it natively.
 
 **Consequences.**
 
@@ -422,3 +251,176 @@ For a UCPH data-protection review, "13 of 15 supported formats never leave the t
 - **Latency.** Deterministic XML parsing is sub-second; multimodal extraction is multi-second. Most uploads land instantly.
 - **UCPH self-host friendliness.** AILANG Parse runs anywhere — CLI binary, Python SDK, or local service. No cloud dependency. Integrates cleanly with the [self-hosting](self-hosting.qmd) migration path.
 - **Calibration tracking.** Extraction quality is part of the capability-floor benchmark: for PDF/image tasks (T5 — worksheet OCR, T6 — tabular data interpretation), comparing AILANG-Parse-via-Gemini, AILANG-Parse-via-local-Ollama, and the underlying alternatives is exactly what the eval is designed for.
+
+---
+
+## ADR-005 — Chat log storage
+
+**Context.** Researcher access to chat logs is a core brief requirement. With [ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids) eliminating student authentication entirely, the anonymisation question largely collapses: there is no student PII to anonymise.
+
+**Decision.** Log every chat interaction, keyed by anonymous group ID, into a researcher-accessible BigQuery dataset via the template's OpenTelemetry sink (per [Multivac](#platform-foundation)'s OBSERVABLE-BY-DEFAULT axiom). Retention period and access scope follow the consent form (JB owns).
+
+**What gets stored:**
+
+- Full prompt and response content (group ID is the only "identifier")
+- Timestamps, skill / topic context, model used (the latter feeds the [capability-floor eval](evaluation.qmd))
+- Any uploaded resources by reference (content sits in Cloud Storage, EU-region)
+
+**What does not get stored:**
+
+- Real names, email addresses, UCPH IDs, device identifiers — none of these enter the system per ADR-001
+- Any data linking a group ID back to specific students
+
+**Pending.** Consent form drives final retention period and the scope of researcher access; the working assumption above can be tightened or extended once the consent text is settled.
+
+---
+
+## ADR-006 — Cloud provider for prototype: GCP EU via Multivac
+
+**Context.** JB's brief requires EU-hosted, GDPR-compliant infrastructure with no PII leakage to US providers where avoidable, holding up to UCPH data-protection review. Mid-July prototype deadline (~9 weeks) constrains us toward a managed stack.
+
+**Options considered.**
+
+- GCP EU regions (Vertex AI, Cloud Run, Firestore) — full stack from one vendor with EU residency
+- AWS EU (Bedrock + Lambda) — comparable but Bedrock's Claude routing has US-control concerns
+- Azure EU — workable but M less familiar
+- Mistral La Plateforme + EU-hosted backend (Scaleway / Hetzner) — most EU-native but more pieces to assemble
+- Pure self-host (UCPH server) — only viable if UCPH IT responds with a usable timeline
+
+**Decision.** GCP EU for prototype, deployed via **Multivac** (Sunholo's AI platform — see [Platform foundation](#platform-foundation)). Vertex AI in europe-north1 (Finland) or europe-west3 (Frankfurt) — pick one in [ADR-007](#adr-007-cloud-region). Single-vendor EU-resident stack: cleanest DPA story for UCPH review.
+
+**Consequences.**
+
+- Multivac provides managed access to Vertex AI, Ollama hosting, Postgres, and Cloud Storage. AIPLA's infrastructure surface is Multivac's surface in the prototype.
+- UCPH self-host migration becomes the dual track — see [Self-hosting](self-hosting.qmd). The application layer (template) is portable; the infrastructure layer (Multivac) is what gets swapped for UCPH equivalents.
+- Cost is API-billed, not infrastructure-capex; tracked per-task via the capability-floor [evaluation](evaluation.qmd)
+- M has Vertex AI familiarity (AILANG uses it) — reduces ramp time
+
+---
+
+## ADR-007 — Cloud region
+
+**Context.** GCP offers several EU regions; the relevant question is which best fits a Danish research project with student data and a sustainability-conscious institution.
+
+**Options shortlist.**
+
+| Region | Jurisdiction | Power source | Notes |
+|---|---|---|---|
+| **europe-north1** (Finland) | EU · Nordic | 100% renewable (Hamina datacenter) | Strongest carbon-neutrality story; Nordic regional alignment; Vertex AI Gemini available |
+| **europe-west3** (Frankfurt) | EU · Germany | Mixed | Most-used EU region; first to get new GCP features; broadest service availability |
+| europe-west1 (Belgium) | EU | Mixed | Equivalent to Frankfurt on services; less differentiated |
+| europe-west4 (Netherlands) | EU | Mixed | Similar to Belgium |
+
+**Decision.** **europe-north1 (Finland)** as primary, with **europe-west3 (Frankfurt)** as fallback if a specific service availability gap appears during build.
+
+**Why Finland over Frankfurt:**
+
+- **Nordic alignment** — Danish school data hosted in a Nordic country is a marginally cleaner political story than Germany; UCPH data-protection review and parent/teacher communication both benefit
+- **100% renewable power** at the Hamina datacenter is a genuine differentiator for an academic project with sustainability stakeholders
+- **Latency from Copenhagen** is comparable to Frankfurt (~20–30ms ballpark either way) — not a meaningful difference for chat-style UX
+
+**Frankfurt fallback** is reserved for a specific scenario: if a Vertex AI feature AIPLA needs lands in europe-west3 but not europe-north1 during the contract window, swap is cheap (regional config change, no architectural impact).
+
+**Pending.** Confirm with JB / UCPH IT that europe-north1 has no institutional objection. If UCPH data-protection has a specific preference, defer to it.
+
+---
+
+## ADR-008 — Model abstraction / routing layer
+
+**Context.** Brief implies and the 2026-05-15 conversation confirmed: provider should be a config swap, not a code change. Capability-floor eval determines which model is routed for which task class.
+
+**Decision.** Use the **AI Protocol Platform template's built-in model router**, which already abstracts across Claude, Gemini, OpenAI, and Ollama behind one interface. Adoption follows from [ADR-002](#adr-002-strand-a-built-on-the-ai-protocol-platform). The capability-floor eval matrix drives per-task routing config; the [four-tier model mix in ADR-003](#adr-003-llm-provider-mix-claude-gemini-ollama) defines the destinations.
+
+**Consequences.** Provider swap is a config change, not a code change. The on-device tier (tier 4) needs a thin client-side adapter that the router can fall through to, since on-device dispatch is browser-side. AILANG-Parse-related ML calls run through this same router for their AI path (PDFs and images — see [ADR-004](#adr-004-document-parsing-via-ailang-parse)).
+
+---
+
+## ADR-009 — Backend stack
+
+**Decision.** Determined by [ADR-002 (adopting the AI Protocol Platform template)](#adr-002-strand-a-built-on-the-ai-protocol-platform): **Python 3.11+ / FastAPI / Google ADK**, packaged via `uv`, deployed as a Cloud Run service on Multivac in the prototype phase.
+
+**Why this stack:**
+
+- **FastAPI** — the template's HTTP/SSE surface; AG-UI streaming, structured tool calls, and OpenAPI generation come standard
+- **Google ADK** — agent orchestration (sessions, memory, artifacts, eval); aligns with [ADR-011](#adr-011-multimodal-input-handling) for multimodal handling via Gemini and with the model router in [ADR-008](#adr-008-model-abstraction-routing-layer)
+- **`uv`** — fast Python package management; reproducible builds for handover
+- **Cloud Run** — containerised, EU-region available, autoscaling; portable to UCPH Kubernetes per the [self-hosting](self-hosting.qmd) migration
+
+**Consequences.** Successors operate the same stack the template documents — Multivac and Aitana use it, so the operational patterns are well-trodden. AIPLA's contribution is the physics-specific skills and MCP extensions on top, not the backend plumbing itself.
+
+---
+
+## ADR-010 — RAG store
+
+**Context.** Two retrieval needs, with different shapes:
+
+1. **Text RAG** (priority) — teachers upload curriculum extracts, problem sets, lab guides. Bots retrieve at query time. Vector similarity over chunked documents. Must be EU-resident.
+2. **Concept-network storage** (stretch — for the [student-models work in C3](strands.qmd#c3-student-models)) — per-student concept graphs of nodes and relations, compared to a reference model. Graph traversal, topology comparison.
+
+**Options.**
+
+| Option | Text RAG fit | Concept-graph fit | Notes |
+|---|---|---|---|
+| Vertex AI Vector Search | Good | Poor | Managed, EU-region, expensive at low volume |
+| ChromaDB on Cloud Run | Good | Poor | Simple, cheap; vector-only |
+| **pgvector on Postgres** | Good | Partial | Relational + vectors in one place; concept graphs via edge tables work but are awkward |
+| **Neo4j / Memgraph (graph DB)** | Poor | Excellent | Native graph traversal; usable via MCP server |
+| **Dual store** — pgvector for text + graph DB for C3 | Best | Best | More moving parts; concept-graph layer only activates if C3 stretch is pursued |
+
+**Lean.**
+
+- **For v1 (text RAG):** pgvector on Postgres — combines metadata, ACLs, and vectors in one place; cleanly migratable to UCPH-hosted Postgres later. Wraps as an MCP server per the [Core vs extensions](#core-vs-extensions) framing.
+- **For C3 stretch (concept networks):** add a graph DB (Neo4j AuraDB EU, Memgraph, or pgvector + edge tables if we want a single-store fallback) as a *second* MCP server. Decision deferred until the C3 scoping note recommends investment — see [strands.qmd](strands.qmd#c3-student-models).
+
+**Why this works.** Both retrieval surfaces are MCP servers — separate plugins, no template changes needed to swap or add either. UCPH self-host equivalents exist for both: Postgres+pgvector and Memgraph (Apache 2.0) both run on UCPH-managed VMs.
+
+**Pending.** Confirm teacher-upload volume estimates with JB before final scale sizing. Graph-DB decision waits on C3 scoping investment recommendation.
+
+---
+
+## ADR-011 — Multimodal input handling
+
+**Context.** Students and teachers upload a mix of formats: photos of hand-drawn free-body diagrams (JPG/PNG), screenshots of Tracker output (PNG), worksheet scans (PDF), CSV / Excel exports from sensors, lesson plans (DOCX/PPTX), email threads (EML). Each of these has different optimal handling — and from a privacy standpoint, the goal is to send as little to a remote model as possible.
+
+**Decision.** **All uploads route through AILANG Parse first** (see [ADR-004](#adr-004-document-parsing-via-ailang-parse)). AILANG Parse selects the right backend per format:
+
+| Format type | Backend | Where the content goes |
+|---|---|---|
+| DOCX, PPTX, XLSX, ODT, ODP, ODS, CSV, EML, HTML, MD, TEX, EPUB | Deterministic XML parser | **Local** — content never reaches an LLM |
+| PDF, JPG, PNG | AI backend (currently cloud multimodal) | Cloud LLM via the [model router](#adr-008-model-abstraction-routing-layer) — tier 2 (Gemini EU) or tier 1 (Claude) |
+
+The AI-backend layer is **swappable**: AILANG Parse currently calls cloud multimodal models, but on its roadmap are local OCR models. Local OCR currently underperforms cloud multimodal on physics-shaped content (hand-drawn diagrams, equations) — once it closes the gap, the swap is a config change and the capability-floor eval captures when that's worth doing.
+
+**Code execution** (geometry / arithmetic checks, CSV computation, simulation snippets) is **separate from input handling** and plugs in as an [MCP server extension](#core-vs-extensions). Likely candidates: Cloud Run Jobs sandbox, or a containerised Python/JS sandbox MCP server. The student-facing bot calls the code-exec MCP server as a tool, not as part of upload processing.
+
+**Consequences.**
+
+- The privacy story is concrete: 13 of 15 supported upload formats are extracted locally with no LLM involvement. Only image-shaped content goes to a model.
+- The AI backend for image extraction is the same as the chat-routing AI — one router, one telemetry surface, one billing surface.
+- Migration path is clear: when local OCR matures (AILANG Parse roadmap), the image-extraction path shifts from cloud to local without touching application code.
+- Code execution is intentionally a separate extension; we can ship multimodal upload handling in v1 and add code-exec when needed without re-architecting either.
+
+---
+
+## ADR-012 — AILANG ecosystem in AIPLA (utilities, not runtime)
+
+**Context.** AILANG is M's research language for AI applications (Apache 2.0, `sunholo-data/ailang`). It has its own runtime, routing, and model integrations. The question for AIPLA is whether the production stack uses AILANG as the runtime, uses AILANG-built tools as components, or both.
+
+**Decision.** AIPLA's production runtime is the **AI Protocol Platform template's Python + Google ADK stack** — not AILANG. AIPLA does, however, use specific AILANG-built tools as standalone components, all open-source and individually swappable:
+
+| AILANG-built tool | Role in AIPLA | How it integrates |
+|---|---|---|
+| **AILANG Parse** | Document parsing — see [ADR-004](#adr-004-document-parsing-via-ailang-parse) | MCP server. Used for its deterministic-XML-parsing privacy properties, not because of its origin. |
+| **AILANG capability benchmarks** | Reference data for the [capability-floor eval](evaluation.qmd) starting model panel | Eval methodology is independent of AILANG; benchmarks are a published starting reference. |
+| Future utilities | Additional MCP servers as appropriate | Each plugs in independently; no AILANG fluency required to maintain the runtime. |
+
+**Disclosure (handover & conflict of interest).** Two layers:
+
+1. **AILANG itself is M's research work** — disclosed to JB. AIPLA does **not** depend on AILANG-the-runtime, so successors do not need to learn AILANG to maintain AIPLA. They maintain Python.
+2. **AILANG-built utilities used in AIPLA** are standalone open-source projects with non-AILANG SDKs (Python, JS, Go). Choosing them is no different in principle from choosing any other open-source tool — the disclosure is so JB can see the lineage explicitly.
+
+**Consequences.**
+
+- Successors maintain AIPLA in Python — no AILANG-language fluency required
+- Each AILANG-built MCP server is swappable for an equivalent if a future maintainer prefers (e.g., AILANG Parse could be replaced with Docling or MarkItDown — though none currently match its deterministic-XML privacy properties)
+- The eval framework is AIPLA's own; AILANG's published benchmarks are a starting reference, not a dependency
