@@ -3,9 +3,11 @@ title: "UCPH self-hosting"
 subtitle: "Living migration table from EU cloud to on-premises"
 ---
 
-For every cloud component used in the prototype, this page captures the UCPH-self-host equivalent and what would be needed to migrate. Half of the final handover package.
+The AIPLA prototype runs on two layers: the **AI Protocol Platform template** (application) and **Multivac** (infrastructure — model access, Ollama hosting, managed Postgres, Cloud Storage). The template is cloud-agnostic and portable as-is. The migration target is to **swap the Multivac infrastructure layer for UCPH-managed equivalents** while keeping the template unchanged.
 
-**Status:** stub. To be populated as architecture decisions on the [Architecture](architecture.qmd) page solidify.
+This page captures the component-by-component swap and what UCPH IT would need to provide. Half of the final handover package.
+
+**Status:** stub. To be populated as the architecture decisions on the [Architecture](architecture.qmd) page solidify and as UCPH IT responds with hosting capabilities.
 
 ## Migration table
 

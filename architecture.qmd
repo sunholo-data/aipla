@@ -7,44 +7,54 @@ Working document. One section per decision, ADR-style: context → options → d
 
 ## Platform foundation
 
-Strand A is built on **[Multivac](https://github.com/sunholo-data/ai-protocol-platform)**, a protocol-native Python + Google ADK template (Apache 2.0). Multivac provides AG-UI streaming, A2UI declarative rendering, MCP tool integration, A2A agent discovery, multi-provider model routing, OpenTelemetry observability, and a `LOCAL_MODE` workshop path that runs end-to-end without cloud credentials. Aitana (a commercial product) is the first consumer of Multivac; AIPLA is a second.
+AIPLA sits on two open layers from the `sunholo-data` ecosystem, with the AIPLA-specific configuration on top:
 
-AIPLA-specific work is the configuration *on top* of Multivac: physics skill packs, the [capability-floor router](evaluation.qmd) wiring, short-code session join (ADR-010), EU-region pinning, and the [UCPH self-host migration path](self-hosting.qmd). See [ADR-011](#adr-011-strand-a-built-on-multivac) for the rationale and scope discipline.
+- **[AI Protocol Platform](https://github.com/sunholo-data/ai-protocol-platform)** — open-source template (Apache 2.0) for the **application layer**: AG-UI streaming, A2UI declarative rendering, MCP tool integration, A2A agent discovery, ADK orchestration, multi-provider model routing, OpenTelemetry observability, `LOCAL_MODE` workshop path. Cloud-agnostic — runs on GCP, AWS, Azure, or on-premises. Used inside the Aitana assistant product among others.
+- **Multivac** — Sunholo's wider AI platform, providing the **infrastructure layer**: managed model access (Vertex AI Gemini, Ollama hosting), Postgres + pgvector, Cloud Storage, identity, telemetry sinks. AIPLA's prototype runs on Multivac in an EU region; the [self-hosting](self-hosting.qmd) migration target is replacing Multivac with UCPH equivalents while keeping the template layer intact.
+
+AIPLA-specific work is the configuration *on top* of both: physics skill packs, the [capability-floor router](evaluation.qmd) wiring, short-code session join (ADR-010), and EU-region constraints. See [ADR-001](#adr-001-cloud-provider-for-prototype-google-cloud-platform-eu) for the cloud/infrastructure decision and [ADR-011](#adr-011-strand-a-built-on-the-ai-protocol-platform) for the template adoption rationale and scope discipline.
 
 ## System view
 
 ```{mermaid}
 flowchart LR
     User["Student / Teacher<br/>(browser, short-code session join)"]
+    OnDevice["On-device model<br/>Apple Intelligence · Gemini Nano · WebLLM<br/>tier 4 — gold-standard privacy"]
 
-    subgraph Multivac["Multivac platform"]
+    subgraph Platform["Application — AI Protocol Platform template"]
         direction LR
         Front["Frontend<br/>Next.js + AG-UI"]
         Back["Backend<br/>FastAPI + Google ADK"]
         Router["Model router<br/>capability-floor driven"]
     end
 
-    DB[("Postgres + pgvector<br/>logs · RAG · identity")]
-    Storage[("Cloud Storage<br/>uploads")]
-    Vertex["Vertex AI Gemini<br/>EU region · prototype default"]
-    Ollama["Local Ollama<br/>UCPH on-prem · migration target"]
+    subgraph Multivac["Infrastructure — Multivac (EU region)"]
+        direction TB
+        DB[("Postgres + pgvector<br/>logs · RAG · identity")]
+        Storage[("Cloud Storage<br/>uploads")]
+        Claude["Anthropic Claude<br/>tier 1 — cloud-agnostic text"]
+        Gemini["Google Gemini<br/>tier 2 — EU multimodal"]
+        Ollama["Self-hosted Ollama<br/>tier 3 — case-by-case per task"]
+    end
 
     User --> Front
+    Front -.tier 4 routes here.-> OnDevice
     Front --> Back
     Back --> DB
     Back --> Storage
     Back --> Router
-    Router --> Vertex
-    Router -.future.-> Ollama
+    Router --> Claude
+    Router --> Gemini
+    Router --> Ollama
 
     style User fill:#fff,stroke:#666
-    style Multivac fill:#fff8f8,stroke:#901a1e,stroke-width:2px
-    style Vertex fill:#fce7e8,stroke:#901a1e
-    style Ollama fill:#fff,stroke:#901a1e,stroke-dasharray:5
+    style OnDevice fill:#fff,stroke:#2d7d3a,stroke-width:2px,stroke-dasharray:5
+    style Platform fill:#fff8f8,stroke:#901a1e,stroke-width:2px
+    style Multivac fill:#f0f4f8,stroke:#3a5a7a,stroke-width:2px
     style Router fill:#f5f5f5,stroke:#333,stroke-width:2px
 ```
 
-Pink-bordered subgraph is platform-provided. ADRs below cover each box. The dashed Ollama path is the long-term [self-hosting](self-hosting.qmd) target; the prototype runs entirely against Vertex AI in an EU region.
+The **pink subgraph** is the AI Protocol Platform template — the application layer that AIPLA configures on top of. The **blue subgraph** is Multivac — Sunholo's wider AI platform, providing the infrastructure layer (model access, Ollama hosting, managed Postgres, Cloud Storage). AIPLA's prototype runs both layers in an EU region; the [self-hosting](self-hosting.qmd) migration target is to replace the Multivac layer with UCPH equivalents while keeping the template unchanged.
 
 ## Index
 
@@ -52,7 +62,7 @@ Pink-bordered subgraph is platform-provided. ADRs below cover each box. The dash
 |---|---|---|---|
 | 001 | Cloud provider for prototype | Decided | M, [JB TBC] |
 | 002 | Cloud region | Pending | — |
-| 003 | LLM provider for prototype | Decided | M |
+| 003 | LLM provider mix (Claude · Gemini · Ollama) | Decided | M |
 | 004 | Model abstraction / routing layer | Pending | — |
 | 005 | RAG store | Pending | — |
 | 006 | Backend stack | Pending | — |
@@ -60,7 +70,7 @@ Pink-bordered subgraph is platform-provided. ADRs below cover each box. The dash
 | 008 | Multimodal input handling | Pending | — |
 | 009 | AILANG usage in production stack | Pending — JB conversation | — |
 | 010 | Student auth / identity model | Pending | — |
-| 011 | Strand A built on Multivac | Decided | M, [JB TBC] |
+| 011 | Strand A built on the AI Protocol Platform | Decided | M, [JB TBC] |
 | 012 | Document parsing via AILANG Parse | Decided | M |
 
 ---
@@ -77,11 +87,12 @@ Pink-bordered subgraph is platform-provided. ADRs below cover each box. The dash
 - Mistral La Plateforme + EU-hosted backend (Scaleway / Hetzner) — most EU-native but more pieces to assemble
 - Pure self-host (UCPH server) — only viable if UCPH IT responds with a usable timeline
 
-**Decision.** GCP EU for prototype. Vertex AI in europe-west3 (Frankfurt) or europe-west1 (Belgium) — pick one in ADR-002. Single-vendor EU-resident stack: cleanest DPA story for UCPH review.
+**Decision.** GCP EU for prototype, deployed via **Multivac** (Sunholo's AI platform — see [Platform foundation](#platform-foundation)). Vertex AI in europe-west3 (Frankfurt) or europe-west1 (Belgium) — pick one in ADR-002. Single-vendor EU-resident stack: cleanest DPA story for UCPH review.
 
 **Consequences.**
 
-- UCPH self-host migration becomes the dual track — see [Self-hosting](self-hosting.qmd)
+- Multivac provides managed access to Vertex AI, Ollama hosting, Postgres, and Cloud Storage. AIPLA's infrastructure surface is Multivac's surface in the prototype.
+- UCPH self-host migration becomes the dual track — see [Self-hosting](self-hosting.qmd). The application layer (template) is portable; the infrastructure layer (Multivac) is what gets swapped for UCPH equivalents.
 - Cost is API-billed, not infrastructure-capex; tracked per-task via the capability-floor [evaluation](evaluation.qmd)
 - M has Vertex AI familiarity (AILANG uses it) — reduces ramp time
 
@@ -95,13 +106,28 @@ Pink-bordered subgraph is platform-provided. ADRs below cover each box. The dash
 
 ---
 
-## ADR-003 — LLM provider for prototype: Vertex AI Gemini
+## ADR-003 — LLM provider mix (Claude · Gemini · Ollama)
 
-**Context.** Need multimodal (photos, screenshots, CSVs), strong physics/math reasoning, EU data residency, integration with the chosen cloud stack.
+**Context.** AIPLA needs strong text reasoning for problem-set hints and conceptual dialogue, strong multimodal for worksheet photos and diagram interpretation, EU data residency for student-facing use, and a credible path to self-hosted models for the [UCPH on-prem](self-hosting.qmd) migration target. No single provider gives the best answer across all three.
 
-**Decision.** Vertex AI Gemini 2.5 Pro for high-capability tasks, Gemini 2.5 Flash for cost-sensitive routes. Concrete model selection per task driven by capability-floor eval results — see [Evaluation](evaluation.qmd).
+**Decision.** Four-tier model mix, routed **case-by-case per task class** via the [capability-floor eval](evaluation.qmd):
 
-**Consequences.** Multimodal handled natively. Routing layer (ADR-004) needs to be model-agnostic so we can swap to local Ollama or Mistral later without rewriting application code.
+| Tier | Provider | Used for | Why |
+|---|---|---|---|
+| 1 — Cloud, cloud-agnostic | **Anthropic Claude** (Sonnet 4.6 / Haiku 4.5 / Opus 4.7) | Text reasoning — problem-set hints, conceptual dialogue, Socratic scaffolding, presentation critique | Strong reasoning; available via direct Anthropic API, AWS Bedrock, and GCP Vertex AI Model Garden — reduces single-cloud lock-in. |
+| 2 — Cloud, EU-resident | **Google Gemini** (Vertex AI, EU region) | Multimodal — photos of free-body diagrams, Tracker screenshots, CSV / tabular reasoning | Best-in-class multimodal at price point; native EU residency. |
+| 3 — Server-local | **Self-hosted Ollama** (UCPH GPU server, or M's 128GB Mac during prototyping) | Per-task-class adoption — only when the capability-floor eval shows an open-weight model meets the threshold for that class | Privacy-positive, zero API spend, no data crossing the institutional boundary. Adoption is **case-by-case**, not all-or-nothing. |
+| 4 — On-device | **Apple Intelligence**, **Gemini Nano**, WebLLM / Transformers.js, or llama.cpp running on the student's device | Tasks the device can handle without help (light Q&A, summarisation, formatting), and offline scenarios | Gold standard for privacy — data literally never leaves the device. Also enables offline use, which is relevant for playground / lab / poor-WiFi settings mentioned in JB's brief. Constrained by device capability; included as a routing tier where it fits. |
+
+Concrete model selection per task is driven by capability-floor eval results — see [Evaluation](evaluation.qmd).
+
+**Consequences.**
+
+- Routing layer (ADR-004) handles all four tiers behind one interface. The AI Protocol Platform template already supports multi-provider routing; the on-device tier requires a thin client-side adapter (most platforms expose simple JS APIs).
+- **Cloud-agnosticism on the Claude path** is a strategic hedge: if AIPLA needs to move off GCP for any reason (UCPH preference, vendor change), Claude access doesn't have to change provider — only the auth endpoint.
+- Cost mix: Haiku-class on cheap text tasks, Gemini Flash for cheap multimodal, Opus / Sonnet / Gemini Pro reserved for tasks the eval shows benefit from them. On-device tasks cost nothing.
+- Migration trajectory: as the local-readiness fraction in the capability-floor eval rises, the server-local and on-device tiers grow; the cloud-provider share shrinks proportionally.
+- **On-device tier viability is per-device**. A student on an iPad with Apple Intelligence has tier 4 available for certain tasks; a student on a basic Chromebook does not. The routing layer falls back gracefully (tier 4 → 3 → 2 → 1) when a higher-privacy tier isn't available for the given device or task.
 
 ---
 
@@ -178,11 +204,11 @@ Until resolved, default to using AILANG for docparse and the eval runner (alread
 
 ---
 
-## ADR-011 — Strand A built on Multivac
+## ADR-011 — Strand A built on the AI Protocol Platform
 
-**Context.** Building Strand A's pedagogical bot infrastructure from scratch within the four-month contract is feasible but tight: GDPR-grade auth, multi-provider model routing, log capture with anonymisation, multimodal upload handling, teacher-facing skill configuration, and the supporting telemetry are each multi-week tracks. [Multivac](https://github.com/sunholo-data/ai-protocol-platform) (Apache 2.0, public repo on the `sunholo-data` org) is a protocol-native Python + Google ADK template that already solves most of these. It was designed by M to serve a class of projects including AIPLA — Aitana is its first consumer; AIPLA would be the second.
+**Context.** Building Strand A's pedagogical bot infrastructure from scratch within the four-month contract is feasible but tight: GDPR-grade auth, multi-provider model routing, log capture with anonymisation, multimodal upload handling, teacher-facing skill configuration, and the supporting telemetry are each multi-week tracks. The [AI Protocol Platform](https://github.com/sunholo-data/ai-protocol-platform) (Apache 2.0, public repo on the `sunholo-data` org) is an open-source template that already solves most of these. It is cloud-agnostic (GCP, AWS, Azure, on-prem) and designed by M to serve a class of projects including AIPLA — already used inside Sunholo's wider Multivac AI platform offering and in the Aitana assistant product.
 
-**What Multivac provides off the shelf:**
+**What the template provides off the shelf:**
 
 - **Protocols** — AG-UI streaming, A2UI declarative rendering, MCP tool integration, A2A agent discovery
 - **Orchestration** — Google ADK with sessions, memory, artifacts, evaluation
@@ -196,11 +222,11 @@ Until resolved, default to using AILANG for docparse and the eval runner (alread
 
 - Build Strand A bot infrastructure from scratch in Python/FastAPI on Cloud Run (originally implied by ADR-001)
 - Adopt LangChain or a similar open-source framework as the base
-- Adopt Multivac as the platform foundation and add AIPLA-specific configuration on top
+- Adopt the AI Protocol Platform template as the foundation and add AIPLA-specific configuration on top
 
-**Decision.** Adopt Multivac. AIPLA work is the configuration, skill packs, EU-region pinning, short-code session join, and self-host migration path on top of an already-mature template.
+**Decision.** Adopt the AI Protocol Platform template. AIPLA work is the configuration, skill packs, EU-region pinning, short-code session join, and self-host migration path on top of an already-mature template.
 
-**Scope discipline.** Multivac has more surface area than AIPLA needs in four months. The risk is that *because* features exist, we feel obliged to use them. Explicit opt-in list for AIPLA v1:
+**Scope discipline.** The template has more surface area than AIPLA needs in four months. The risk is that *because* features exist, we feel obliged to use them. Explicit opt-in list for AIPLA v1:
 
 | Feature | AIPLA v1 | Notes |
 |---|---|---|
@@ -218,18 +244,18 @@ Until resolved, default to using AILANG for docparse and the eval runner (alread
 | Vertex AI Search | ❌ Skip v1 | pgvector covers AIPLA's RAG needs per ADR-005 |
 | Real-time collaboration features | ❌ Skip v1 | Out of brief scope |
 
-**Disclosure (handover & conflict of interest).** Multivac is M's own work. This is parallel to the AILANG disclosure in [ADR-009](#adr-009-ailang-in-production-stack) and needs the same explicit visibility with JB. Three mitigating points:
+**Disclosure (handover & conflict of interest).** The AI Protocol Platform is M's own work. This is parallel to the AILANG disclosure in [ADR-009](#adr-009-ailang-in-production-stack) and needs the same explicit visibility with JB. Three mitigating points:
 
-- Multivac is Apache 2.0 licensed and the repo is public; AIPLA's open-source-at-end-of-project goal is fully compatible
-- Multivac is multi-tenant — designed for a class of projects, not AIPLA-specific. AILANG itself is not required to use Multivac (it's used internally for LaTeX parsing and capability benchmarks, but the platform supports plain Python stacks)
+- The template is Apache 2.0 licensed and the repo is public; AIPLA's open-source-at-end-of-project goal is fully compatible
+- The template is multi-purpose — designed for a class of projects, not AIPLA-specific. AILANG itself is not required to use the template (it's used inside the platform for LaTeX parsing and capability benchmarks, but the template supports plain Python stacks)
 - M's architectural authority on AIPLA (per JB's brief) covers this kind of choice, but the choice should be *named* rather than implicit
 
 **Consequences.**
 
-- **Build-time saving.** What would otherwise be ~6 of the 9 Strand A build weeks is absorbed by Multivac. Frees time for physics-specific extensions, the capability-floor eval, and the teacher pilot.
-- **UCPH self-host implications.** Several Multivac components (Firestore for some session data, Firebase Auth for non-LOCAL_MODE) don't have direct UCPH-on-prem equivalents. The [self-hosting](self-hosting.qmd) page needs to expand to cover these. UCPH IT conversation needs to be informed by Multivac's specific dependencies, not a generic GCP stack.
-- **Handover surface.** P2 and successors need to understand Multivac's structure to maintain AIPLA. Multivac's own documentation and the `LOCAL_MODE` workshop story help here — successors can spin up the platform locally without cloud credentials and learn it without risk.
-- **Update cadence.** Multivac evolves on Aitana's roadmap. AIPLA will need to track upstream changes. Acceptable risk during the contract (M is the maintainer); needs an explicit version-pinning + upstream-tracking strategy in the handover package.
+- **Build-time saving.** What would otherwise be ~6 of the 9 Strand A build weeks is absorbed by the template. Frees time for physics-specific extensions, the capability-floor eval, and the teacher pilot.
+- **UCPH self-host implications.** A few template defaults (Firestore for some session data, Firebase Auth for non-LOCAL_MODE) don't have direct UCPH-on-prem equivalents. The [self-hosting](self-hosting.qmd) page needs to expand to cover these. UCPH IT conversation needs to be informed by the template's actual dependencies, not a generic GCP stack.
+- **Handover surface.** P2 and successors need to understand the template's structure to maintain AIPLA. The template's own documentation and the `LOCAL_MODE` workshop story help here — successors can spin up the platform locally without cloud credentials and learn it without risk.
+- **Update cadence.** The template evolves on its own roadmap (driven by Multivac and Aitana usage). AIPLA will need to track upstream changes. Acceptable risk during the contract (M is the maintainer); needs an explicit version-pinning + upstream-tracking strategy in the handover package.
 
 ---
 
@@ -262,7 +288,7 @@ The deterministic path is the load-bearing one for privacy: a Word document or E
 
 The AI path is only invoked for genuinely image-shaped content — scanned PDFs, photos of hand-drawn diagrams. Those go through the same [capability-floor eval](evaluation.qmd)–driven model router as chat tasks, with the same option to route to a local Ollama model when on-prem deployment matures.
 
-**Decision.** Document upload pipeline routes through AILANG Parse first. Office and structured formats take the deterministic path. PDF and image extraction routes through the Multivac model router; the capability-floor eval determines which model handles which kind of PDF/image task.
+**Decision.** Document upload pipeline routes through AILANG Parse first. Office and structured formats take the deterministic path. PDF and image extraction routes through the template's model router; the capability-floor eval determines which model handles which kind of PDF/image task.
 
 **Why this is a strong GDPR move.**
 
@@ -274,7 +300,7 @@ The AI path is only invoked for genuinely image-shaped content — scanned PDFs,
 
 For a UCPH data-protection review, "13 of 15 supported formats never leave the trust boundary" is a stronger story than any single-vendor multimodal approach.
 
-**Disclosure.** AILANG Parse is part of the AILANG ecosystem ([ADR-009](#adr-009-ailang-in-production-stack)) — same disclosure considerations apply. It is published as a standalone Apache 2.0 library with Python, JavaScript, and Go SDKs and is used by projects beyond AIPLA. Multivac integrates it natively.
+**Disclosure.** AILANG Parse is part of the AILANG ecosystem ([ADR-009](#adr-009-ailang-in-production-stack)) — same disclosure considerations apply. It is published as a standalone Apache 2.0 library with Python, JavaScript, and Go SDKs and is used by projects beyond AIPLA. The AI Protocol Platform template integrates it natively.
 
 **Consequences.**
 
