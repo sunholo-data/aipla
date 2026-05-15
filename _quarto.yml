@@ -7,6 +7,7 @@ project:
     # the site URL is shared only with the project team.
     - "index.qmd"
     - "about.qmd"
+    - "strands.qmd"
     - "timeline.qmd"
     - "architecture.qmd"
     - "evaluation.qmd"
@@ -36,6 +37,8 @@ website:
         text: Home
       - href: about.qmd
         text: About
+      - href: strands.qmd
+        text: Strands
       - href: timeline.qmd
         text: Timeline
       - href: architecture.qmd

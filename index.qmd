@@ -28,6 +28,7 @@ A three-year research programme investigating how generative AI can be meaningfu
 ## Pages
 
 - **[About](about.qmd)** — project context, the ADDIE method, the four research questions, intended outputs
+- **[Strands](strands.qmd)** — the three work strands (pedagogical bots, simulation/games, scoping investigation) and how they map to the timeline
 - **[Timeline](timeline.qmd)** — 17-week plan, the three overlapping tracks, the handover fan-out, ownership map
 - **[Architecture](architecture.qmd)** — ADRs for Strand A: cloud provider, region, model, RAG store, routing layer, multimodal, student auth, AILANG disclosure
 - **[Evaluation](evaluation.qmd)** — capability-floor framework: task taxonomy, model panel, KPIs that drive routing and the local-deployment migration timeline

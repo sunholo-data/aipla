@@ -1,0 +1,114 @@
+---
+title: "The three strands"
+subtitle: "What gets built, what gets investigated, and when"
+---
+
+The four-month contract splits the work into three strands. **A and B** are priority delivery — working pilots that can be put in front of teachers. **C** is a scoping investigation that informs what gets built after the contract ends.
+
+## Quick view
+
+| Strand | Type | Priority | Deliverable |
+|---|---|---|---|
+| **A** — Pedagogical bot infrastructure | Build | High | Working pilot in front of teachers by end of contract |
+| **B** — Simulation & game creation | Build | High | Working pilot similar to A |
+| **C** — Investigation and scoping | Research | Lower | 5–10pp scoping note with feasibility + recommendations |
+
+## Timeline at a glance
+
+```
+Week:        1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17
+─────────────────────────────────────────────────────────────────────────────
+Strand A    [setup][═══════build═══════][══iterate══][══teacher pilot══][hand]
+Strand B                                            [═══build═══][═pilot═][over]
+Strand C                                    [scope kickoff][════draft══════]
+Reviews                                  ▲                              ▲
+                                   Mid-July (pre-JB holiday)    Final handover
+```
+
+Strand A dominates the first nine weeks. Strand B starts after the mid-point review when Strand A is iterating with internal stakeholders. Strand C scoping happens in the back half, drawing on what has been learned from A and B about what's actually tractable.
+
+---
+
+## Strand A — Pedagogical bot infrastructure
+
+**Goal.** Deploy purpose-configured chatbots ("pedagogical bots") that teachers can use with their stx physics classes during the project.
+
+**Requirements** (from the brief):
+
+- **GDPR / privacy-by-design.** EU-hosted, no PII leakage to US providers where avoidable. Holds up to UCPH data-protection review and to teachers' and parents' scrutiny.
+- **Usage-based billing on the project side.** Students and teachers don't need their own accounts or subscriptions.
+- **Researcher access to chat logs.** Retrievable, anonymisable, and analysable. Core research data.
+- **Resource upload.** Teachers and the project team upload their own materials (curriculum extracts, problem sets, lab guides) that a given bot draws on. RAG-style.
+- **Rich physics output.** LaTeX formulae, tables, diagrams, graphs where possible. Output compatible with TI-Nspire / GeoGebra would be a plus.
+- **Multimodal input.** Photos of hand-drawn free-body diagrams, screenshots of Tracker video-analysis results, CSV/Excel exports from sensors.
+- **Teacher bot configuration.** Teachers configure or instantiate bots for a specific topic / assignment without a developer in the loop each time. Doesn't have to be polished in v1, but the path to it should be clear.
+
+**Deliverable.** A working pilot we can put in front of a small group of teachers by the end of the contract, plus documentation that lets us hand it off cleanly to the postdocs joining the project later.
+
+**Timeline.** See [Architecture](architecture.qmd) for the ADRs that govern how Strand A gets built. Build phase weeks 3–6; internal iteration weeks 6–9; teacher pilot weeks 13–17. Mid-point review at week 9 is the first hard gate.
+
+---
+
+## Strand B — Simulation and game creation
+
+**Goal.** A setup for students and teachers to produce simulations and games themselves, with AI assistance. Similar infrastructure requirements to Strand A (GDPR, project-side billing, log access).
+
+**One concrete option discussed:** couple this to a GitHub-based workflow so that artefacts students produce are versioned and inspectable. This is interesting beyond just version control — it gives students exposure to a real engineering workflow and gives researchers a complete history of how each artefact evolved.
+
+**Deliverable.** A working pilot similar to Strand A.
+
+**Timeline.** Kickoff after the mid-July review (week 10), pilot-ready by weeks 14–15. Strand A's infrastructure (auth, billing, log access, model routing) should be reused — Strand B is largely a different front-end and a different prompt strategy on top of the same plumbing, not a separate stack.
+
+---
+
+## Strand C — Investigation and scoping
+
+Three open questions that go beyond what gets built in this contract. The deliverable is a written scoping note (5–10 pages) covering all three, with a recommendation on which directions are worth pursuing and rough effort estimates.
+
+### C1 — Beyond LLMs
+
+Are there model classes that might be better than LLMs for some of the project's tasks, or that could supplement them? Vision-language models (VLMs) and embodied/world-model classes are obvious candidates worth investigating.
+
+**Questions to answer:** What's available now? What's GDPR-tractable? What would cost to host? Where does each model class shine vs. fall short for stx physics tasks?
+
+This feeds directly into the [capability-floor eval](evaluation.qmd) — once a new model class is in the eval, its capability becomes tracked alongside the LLM panel.
+
+### C2 — Beyond chat interfaces
+
+Chat is the default but probably not the right interface for every physics task. Voice interfaces, tree-structured / branching interfaces, concept-map interfaces all have a case.
+
+**One concrete option to investigate** — a Plaud-like setup (see [plaud.ai](https://plaud.ai)): record a student group's discussion, transcribe, then have AI analyse it. This sits at the intersection of A and C — if a thin end-to-end prototype is feasible, it could be a useful target to design against during Strand A development.
+
+### C3 — Student models {.unnumbered}
+
+::: {.callout-note appearance="simple" icon=false}
+**The most speculative item — and the one the team is most excited about.**
+:::
+
+Can we have an AI maintain and update a model of a student's understanding over the course of a topic — for example, as a network of concepts and relations — and compare it to a reference model of the same topic?
+
+**Why this is exciting.** Intelligent tutoring systems have long modelled student understanding (Bayesian Knowledge Tracing, knowledge-component models, etc.), but the cost of building and maintaining these models has historically been high. LLMs change that arithmetic substantially: they can ingest free-form student work and produce structured concept-map outputs without requiring per-domain hand-engineering. If this turns out to work well, it opens up:
+
+- **Formative feedback** at three levels — individual student, group, whole class. Output back to students framed as "here is what I, the AI, can see in your understanding."
+- **Teacher visibility** into how a class is converging or diverging from a reference understanding.
+- **A research instrument** for studying how student understanding evolves over a topic — potentially novel data for physics-education research.
+
+**What the scoping needs to assess.** Clear-eyed feasibility, not advocacy:
+
+- Are LLMs actually consistent enough at extracting concept-map representations from free-form student input? Run trials against curated examples.
+- How well do LLM-extracted models align with expert-built reference models? Calibrate on physics-education concept inventories where these exist (e.g., FCI for mechanics).
+- What is the smallest useful slice? A "thin end-to-end prototype" — one topic, one concept network, one comparison — would teach more than a long literature review.
+- What's the privacy posture? Student understanding models are sensitive data; the GDPR analysis needs to be in scope from day one.
+
+**Recommendation framing.** The scoping note should give JB a decision-quality assessment: is this worth investing in as a Year-2 development item, is it worth a small Year-2 exploratory study, or is it a dead end in current model capability? Mark's recommendation will come with rough effort estimates and risk markers.
+
+**Timeline.** Scoping kickoff after the mid-July review. Initial assessment based on existing literature + AILANG benchmark probes. A thin proof-of-concept against a single physics topic would be ideal but is not required by the deliverable — if it fits in weeks 14–15 without compromising Strand A or B, do it.
+
+---
+
+## How the strands connect
+
+- **Strand A's infrastructure is shared by Strand B.** Auth, billing, log access, model routing — built once, reused. Strand B is largely a different front end on the same plumbing.
+- **Strand C's investigation is informed by what gets built in A and B.** The "beyond chat" question becomes much sharper once we've seen what students actually do with the chat-based Strand A bots.
+- **The capability-floor [evaluation](evaluation.qmd) is the shared instrument.** Strand A models, Strand B models, and any Strand C model classes all go into the same eval and are compared on the same task taxonomy.
+- **The [Plaud-like interface](#c2-beyond-chat-interfaces) workflow is the most concrete A↔C bridge.** If we build a thin slice of it during the Strand A iteration phase, it serves both as a deployment artefact and as feasibility evidence for the scoping note.
