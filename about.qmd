@@ -1,0 +1,46 @@
+---
+title: "About AIPLA"
+subtitle: "Generative AI in upper-secondary physics education"
+---
+
+## The premise
+
+Generative AI is already used by Danish upper-secondary students — predominantly through consumer chatbots and predominantly without explicit teaching about appropriate use. AIPLA starts from the position that this is not a future hypothetical to plan for, but a current condition to engage with: students are using these tools today, and the interface, the model, and the pedagogical layers between them and the model all matter.
+
+The project investigates how generative AI can be **meaningfully** integrated into upper-secondary (stx) physics education in Denmark — for teaching and for formative and summative assessment. "Meaningfully" is doing real work in that sentence: the goal is not to maximise AI use, nor to suppress it, but to find configurations where the AI productively supports learning rather than substituting for it.
+
+A core design principle is that the most interesting tasks are those that the AI **cannot fully solve**, but can productively support a student in solving. Designing assignments and bot configurations that hit that target is much of the project's research substance.
+
+## Method
+
+AIPLA follows an **ADDIE** cycle over three years:
+
+- **Analyze** — curriculum analysis, AI capability assessment on physics tasks, teacher dialogue sessions to understand current practice and constraints
+- **Design** — pedagogical scaffolding, bot configurations, infrastructure architecture
+- **Develop** — implementation of bot infrastructure, simulation/game tooling, evaluation instruments
+- **Implement** — classroom deployment with consenting teachers and students
+- **Evaluate** — analysis of student–AI interactions, teacher perspectives, learning outcomes
+
+The unit of analysis is classroom practice; the research instruments include teacher dialogues, classroom observations, anonymised student–AI chat logs, and pre/post measures of student understanding.
+
+## Research questions
+
+Four guiding questions structure the work — how generative AI can support students in:
+
+1. **Solving exam problem sets.** Where can AI act as a productive tutor without simply producing solutions? What scaffolds work?
+2. **Making experiments.** Physics in Denmark places strong emphasis on experimental work. Can AI support experimental design, troubleshooting, and data interpretation in ways that strengthen rather than displace experimental reasoning?
+3. **Exploring physics conceptually.** Conceptual exploration sits at the heart of physics as a discipline. Can AI act as a Socratic counterpart in conceptual dialogue?
+4. **Making presentations.** Oral presentation and written communication are part of how Danish physics teaching assesses understanding. What is AI's appropriate role here?
+
+## Outputs
+
+The project's outputs are intended for multiple audiences:
+
+- **Peer-reviewed research** — papers on the analysis, the technical evaluation, and the classroom findings
+- **Teacher seminars and resources** — material that supports Danish physics teachers in integrating AI into their practice
+- **Stakeholder engagement** — with [DASG](https://dasg.dk), the Danish national physics-education subject consultant, and the Ministry of Education
+- **Open-source tooling** — software and documentation released under permissive licences at end of project, where compatible with GDPR and institutional considerations
+
+## Context
+
+The project is hosted by the [Center for Digital Education](https://digitaledu.ku.dk) at the University of Copenhagen, working with Danish upper-secondary (stx) physics teachers and the national subject community.

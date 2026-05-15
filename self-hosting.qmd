@@ -1,0 +1,41 @@
+---
+title: "UCPH self-hosting"
+subtitle: "Living migration table from EU cloud to on-premises"
+---
+
+For every cloud component used in the prototype, this page captures the UCPH-self-host equivalent and what would be needed to migrate. Half of the final handover package.
+
+**Status:** stub. To be populated as architecture decisions on the [Architecture](architecture.qmd) page solidify.
+
+## Migration table
+
+| Cloud component | Role in prototype | UCPH equivalent | Migration effort | Notes |
+|---|---|---|---|---|
+| Vertex AI (Gemini) | LLM + multimodal | Ollama on UCPH GPU server | Medium — depends on local-readiness fraction per task class | Capability gap depends on which local models are at the floor; see [Evaluation](evaluation.qmd) |
+| Cloud Run | Backend hosting | UCPH Kubernetes / VM | Low | Containerised backend portable as-is |
+| Cloud SQL (Postgres + pgvector) | Application DB + RAG vectors | UCPH-managed Postgres | Low | `pg_dump` → restore; pgvector extension widely available |
+| Cloud Storage | Uploaded resources (PDFs, images, CSVs) | UCPH NFS or S3-compatible | Low | Path abstraction in app |
+| Firestore (if used) | TBD | TBD | TBD | Prefer not to use — see ADR-005 |
+| Cloud Logging | Operational logs | UCPH ELK or similar | Low | Standard log shipping |
+| Vertex AI Vector Search (if used) | RAG vectors | pgvector or self-hosted Chroma | Low if not used; see ADR-005 | Lean is to avoid in favour of pgvector |
+| GCP IAM | Service auth | UCPH SSO / institutional IDs | TBD | Depends on student-auth decision in ADR-010 |
+
+## Outstanding questions for UCPH IT
+
+(JB has already pinged them; awaiting response. Populate as answers come in.)
+
+- Do they have GPU-capable hosting for inference? Spec?
+- What's the institutional Kubernetes / container hosting story?
+- Do they offer managed Postgres (with pgvector)?
+- What's the policy on cloud-to-on-prem migration timelines for live research projects?
+- Is there an existing pattern for student-facing services that already meets data-protection review? (We may be able to piggyback rather than green-field this.)
+
+## When to trigger migration
+
+The migration becomes worth doing when:
+
+1. UCPH IT confirms hosting availability with timeline
+2. Local-readiness fraction (per [Evaluation](evaluation.qmd)) reaches a threshold per task class — likely 70–80% as a working bar
+3. Steady-state usage justifies fixed infrastructure cost over per-API spend
+
+Until then, GCP EU is the right place to be.

@@ -1,0 +1,70 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    # Whitelist: only these files reach the published site.
+    # All pages use initials (M, JB, AR, DS, ZL, P2, K) for light anonymisation —
+    # the site URL is shared only with the project team.
+    - "index.qmd"
+    - "about.qmd"
+    - "timeline.qmd"
+    - "architecture.qmd"
+    - "evaluation.qmd"
+    - "self-hosting.qmd"
+  resources:
+    - "assets/"
+
+website:
+  title: "AIPLA"
+  description: "AI in Physics Learning and Assessment — generative AI integration in upper-secondary physics education at the University of Copenhagen"
+  site-url: https://sunholo-data.github.io/aipla
+  repo-url: https://github.com/sunholo-data/aipla
+  repo-actions: [edit, issue]
+  favicon: "assets/favicon.svg"
+  open-graph:
+    description: "AI in Physics Learning and Assessment — University of Copenhagen"
+  twitter-card:
+    card-style: summary
+  navbar:
+    background: light
+    logo: "assets/logo.svg"
+    logo-alt: "AIPLA — University of Copenhagen"
+    title: false
+    collapse-below: lg
+    left:
+      - href: index.qmd
+        text: Home
+      - href: about.qmd
+        text: About
+      - href: timeline.qmd
+        text: Timeline
+      - href: architecture.qmd
+        text: Architecture
+      - href: evaluation.qmd
+        text: Evaluation
+      - href: self-hosting.qmd
+        text: Self-hosting
+    right:
+      - icon: github
+        href: https://github.com/sunholo-data/aipla
+        aria-label: GitHub repository
+  page-footer:
+    border: true
+    left: |
+      **AIPLA** — Center for Digital Education, University of Copenhagen
+    right: |
+      Built with [Quarto](https://quarto.org)
+
+format:
+  html:
+    theme:
+      light: [cosmo, assets/custom.scss]
+      dark: [darkly, assets/custom.scss]
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    code-overflow: wrap
+    anchor-sections: true
+    smooth-scroll: true
+    link-external-icon: true
+    link-external-newwindow: true

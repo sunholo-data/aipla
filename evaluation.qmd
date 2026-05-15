@@ -1,0 +1,82 @@
+---
+title: "Capability-floor evaluation"
+subtitle: "Which AI model is adequate for which task — and when do local models catch up"
+---
+
+## Purpose
+
+For each task class in the STX physics setting, identify the smallest and cheapest model that performs adequately. The result drives:
+
+- **Production routing decisions** — which model handles each request type
+- **Cost projections** — what the project will pay at scale
+- **Migration timeline** — when locally-hosted open-weight models become viable for full self-hosting
+
+**Deliverable.** A versioned eval dataset + runner + a periodically-updated capability-floor report. Reusable beyond M's contract — successors re-run quarterly as new models release.
+
+## Task taxonomy
+
+Anchored on the four AIPLA research questions, refined with AR's curriculum priorities (experiments, mathematical representations, written assessment).
+
+| ID | Task class | Mapped RQ | Source of examples |
+|---|---|---|---|
+| T1 | Problem-set hints (mechanics, electromagnetism, etc.) | RQ1 (exam problem sets) | STX exam past papers; AR's curriculum annotations |
+| T2 | Experimental troubleshooting | RQ2 (experiments) | Lab guides; teacher input |
+| T3 | Conceptual exploration / Socratic dialogue | RQ3 (conceptual) | Curriculum core-material topics |
+| T4 | Presentation critique | RQ4 (presentations) | Anonymised student slide decks (when available) |
+| T5 | Worksheet OCR / diagram interpretation | cross-cuts RQ1–2 | Photos of free-body diagrams, hand-drawn graphs |
+| T6 | Tabular / sensor data interpretation | RQ2 | CSV exports, Tracker outputs |
+| T7 | LaTeX / formula generation | cross-cuts | Embedded in T1, T3 |
+
+Each task class needs ~20–50 graded items to be statistically meaningful. Initial scale: 10–20 per class for v0.1, expand iteratively.
+
+## Capability dimensions
+
+| Dimension | Why it matters | Measurement |
+|---|---|---|
+| Correctness | Did the model give the right physics answer? | Deterministic where possible (exam answer keys); LLM-as-judge otherwise |
+| Pedagogical appropriateness | Did it hint rather than solve? | LLM-as-judge against ESRU / IBSE rubric |
+| Multimodal accuracy | Did it correctly read the diagram/photo? | Human-graded sample + LLM-as-judge |
+| LaTeX validity | Are formulae renderable and correct? | Parse + render check |
+| Latency | Acceptable for classroom UX? | p50/p95 ms |
+| Cost | €/1000 tasks | Per-provider rate card |
+
+## Model panel
+
+Start small, grow as benchmarks justify.
+
+**Frontier closed (ceiling reference).** Claude 4.7, Gemini 2.5 Pro, GPT-class. Used to define what "good enough" looks like relative to current best.
+
+**Capable hosted-EU (likely production candidates).** Vertex AI Gemini 2.5 Pro / Flash (europe-west); Mistral Large (La Plateforme, EU).
+
+**Open-weight local-runnable (migration targets).** Llama 3.3 70B (text-strong, no native vision); Qwen 2.5 72B (strong on math/code); Gemma family (multimodal — M to confirm current Gemma version's vision spec via ailang benchmarks); smaller multimodal: ~7–32B parameter VLMs as they emerge.
+
+Panel updates as AILANG benchmarks publish new results.
+
+## KPIs
+
+Per task class, tracked over time:
+
+- **Capability floor** — smallest/cheapest model achieving ≥ 80% on the task class. *This is the headline metric.*
+- **Cost ratio** — €/1000 tasks at floor vs. €/1000 at frontier
+- **Latency at floor** — p95 ms
+- **Local-readiness fraction** — % of task classes where an open-weight model sits at the floor. When this approaches 100%, full local deployment becomes viable.
+
+## Scoring methodology
+
+- **Deterministic where possible** — exam problems with answer keys, structured extractions, LaTeX renders.
+- **LLM-as-judge with rubric** for qualitative dimensions (pedagogical appropriateness, conceptual depth). Judge model = Claude 4.7 or equivalent frontier; rubric versioned alongside the eval.
+- **Human-rated calibration sample** — ~20 items per task class graded by AR or a physics teacher, used to calibrate the LLM judge.
+
+## Versioning and reproducibility
+
+- Eval set lives under `infrastructure/evals/tasks/` with version tags (v0.1, v0.2, ...)
+- Runner is deterministic given a fixed model panel and dataset version
+- Results snapshots dated and never overwritten
+- Every capability-floor report revision cites the dataset and snapshot versions it draws on
+
+## How this connects
+
+- **Production routing** — the model abstraction layer (ADR-004 on [Architecture](architecture.qmd)) reads the capability-floor matrix to choose models per task class
+- **UCPH migration timeline** — local-readiness fraction tells UCPH IT when to invest in GPU hardware (see [Self-hosting](self-hosting.qmd))
+- **Strand C scoping** — new model classes (VLMs, embodied) plug into the same eval to compare against LLM baselines
+- **Handover** — successors re-run quarterly; the eval is a research instrument that outlives the contract

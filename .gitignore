@@ -1,0 +1,28 @@
+# Quarto build output
+_site/
+.quarto/
+*_files/
+*_cache/
+
+# Private project content — never committed
+# These contain real names, raw correspondence, contract details, and observations.
+# The published .qmd pages use initials and exclude this material.
+briefs/
+notes/
+admin/
+sources/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Local model caches (if any end up here)
+*.gguf
+*.bin
+
+# docparse outputs (may contain extracted private content)
+docparse/
+/tmp/docparse-*
+
+/.quarto/

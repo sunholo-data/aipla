@@ -1,0 +1,68 @@
+---
+pagetitle: "AIPLA — AI in Physics Learning and Assessment"
+title-block-banner: false
+page-layout: full
+toc: false
+---
+
+::: {.aipla-hero}
+::: {.container}
+
+[University of Copenhagen · Center for Digital Education]{.affiliation}
+
+# AIPLA
+
+::: {.hero-subtitle}
+AI in Physics Learning and Assessment
+:::
+
+::: {.lead}
+A three-year research programme investigating how generative AI can be meaningfully integrated into upper-secondary physics education in Denmark. This site collects the working plan for the four-month technical-infrastructure contract within it.
+:::
+
+:::
+:::
+
+::: {.container .content-section}
+
+## Pages
+
+- **[About](about.qmd)** — project context, the ADDIE method, the four research questions, intended outputs
+- **[Timeline](timeline.qmd)** — 17-week plan, the three overlapping tracks, the handover fan-out, ownership map
+- **[Architecture](architecture.qmd)** — ADRs for Strand A: cloud provider, region, model, RAG store, routing layer, multimodal, student auth, AILANG disclosure
+- **[Evaluation](evaluation.qmd)** — capability-floor framework: task taxonomy, model panel, KPIs that drive routing and the local-deployment migration timeline
+- **[Self-hosting](self-hosting.qmd)** — UCPH migration table: cloud components and their on-premises equivalents
+
+People referenced by initials throughout (M, JB, AR, DS, ZL, P2, K) for light anonymisation — the team knows the mapping.
+
+## Design principles
+
+::: {.principle-grid}
+
+::: {.principle-card}
+### GDPR by design
+EU-hosted infrastructure. No PII leakage to US providers where avoidable. Solutions hold up to UCPH data-protection review and to teachers' and parents' scrutiny.
+:::
+
+::: {.principle-card}
+### Model-agnostic routing
+Production chooses models per task class based on continuous capability-floor evaluation. Cloud APIs and local models are interchangeable through configuration.
+:::
+
+::: {.principle-card}
+### Migration-ready
+Every cloud component has a documented on-premises equivalent. Hosting can move to the University of Copenhagen's own infrastructure when capability and policy align.
+:::
+
+::: {.principle-card}
+### Handover as a first-class deliverable
+Documentation, pairing, and ADR sign-offs from week 4, not week 13. Each major artefact has a named co-owner who will operate it after the contract.
+:::
+
+:::
+
+## Status
+
+Project is in its first year. Technical infrastructure under active development; teacher pilots begin after the Danish summer holidays. The plan on this site is the working version — pages are updated as decisions land.
+
+:::

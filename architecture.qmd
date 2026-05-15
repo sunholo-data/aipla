@@ -1,0 +1,134 @@
+---
+title: "Architecture decisions"
+subtitle: "ADRs for Strand A — pedagogical bot infrastructure"
+---
+
+Working document. One section per decision, ADR-style: context → options → decision → consequences. Decisions are revisable; flag any change with date and reason. The **Sign-off** column is the handover ownership track — every architectural decision needs a second signature before it's considered settled.
+
+## Index
+
+| # | Decision | Status | Sign-off |
+|---|---|---|---|
+| 001 | Cloud provider for prototype | Decided | M, [JB TBC] |
+| 002 | Cloud region | Pending | — |
+| 003 | LLM provider for prototype | Decided | M |
+| 004 | Model abstraction / routing layer | Pending | — |
+| 005 | RAG store | Pending | — |
+| 006 | Backend stack | Pending | — |
+| 007 | Chat log storage + anonymisation | Pending | — |
+| 008 | Multimodal input handling | Pending | — |
+| 009 | AILANG usage in production stack | Pending — JB conversation | — |
+| 010 | Student auth / identity model | Pending | — |
+
+---
+
+## ADR-001 — Cloud provider for prototype: Google Cloud Platform (EU)
+
+**Context.** JB's brief requires EU-hosted, GDPR-compliant infrastructure with no PII leakage to US providers where avoidable, holding up to UCPH data-protection review. Mid-July prototype deadline (~9 weeks) constrains us toward a managed stack.
+
+**Options considered.**
+
+- GCP EU regions (Vertex AI, Cloud Run, Firestore) — full stack from one vendor with EU residency
+- AWS EU (Bedrock + Lambda) — comparable but Bedrock's Claude routing has US-control concerns
+- Azure EU — workable but M less familiar
+- Mistral La Plateforme + EU-hosted backend (Scaleway / Hetzner) — most EU-native but more pieces to assemble
+- Pure self-host (UCPH server) — only viable if UCPH IT responds with a usable timeline
+
+**Decision.** GCP EU for prototype. Vertex AI in europe-west3 (Frankfurt) or europe-west1 (Belgium) — pick one in ADR-002. Single-vendor EU-resident stack: cleanest DPA story for UCPH review.
+
+**Consequences.**
+
+- UCPH self-host migration becomes the dual track — see [Self-hosting](self-hosting.qmd)
+- Cost is API-billed, not infrastructure-capex; tracked per-task via the capability-floor [evaluation](evaluation.qmd)
+- M has Vertex AI familiarity (AILANG uses it) — reduces ramp time
+
+---
+
+## ADR-002 — Cloud region
+
+**Context.** GCP offers europe-west1 (Belgium), europe-west3 (Frankfurt), europe-north1 (Finland), europe-west4 (Netherlands). For Danish school data, the relevant question is which EU region UCPH's data-protection team prefers and where Vertex AI Gemini is fully available.
+
+**Pending:** confirm Vertex AI Gemini multimodal availability per region; confirm UCPH preference.
+
+---
+
+## ADR-003 — LLM provider for prototype: Vertex AI Gemini
+
+**Context.** Need multimodal (photos, screenshots, CSVs), strong physics/math reasoning, EU data residency, integration with the chosen cloud stack.
+
+**Decision.** Vertex AI Gemini 2.5 Pro for high-capability tasks, Gemini 2.5 Flash for cost-sensitive routes. Concrete model selection per task driven by capability-floor eval results — see [Evaluation](evaluation.qmd).
+
+**Consequences.** Multimodal handled natively. Routing layer (ADR-004) needs to be model-agnostic so we can swap to local Ollama or Mistral later without rewriting application code.
+
+---
+
+## ADR-004 — Model abstraction / routing layer
+
+**Context.** Brief implies and the 2026-05-15 conversation confirmed: provider should be a config swap, not a code change. Capability-floor eval determines which model is routed for which task class.
+
+**Options to evaluate.**
+
+- AILANG's existing OpenRouter + Ollama integration (Apache 2.0; pending JB discussion per ADR-009)
+- LiteLLM (Python, broad provider support, mature)
+- Vertex AI SDK direct + custom router
+- Roll our own thin OpenAI-compatible adapter
+
+**Pending.** Decision after ADR-009 resolved.
+
+---
+
+## ADR-005 — RAG store
+
+**Context.** Teachers upload curriculum extracts, problem sets, lab guides. Bots retrieve at query time. Must be EU-resident.
+
+**Options.**
+
+- Vertex AI Vector Search (managed, EU-region, expensive at low volume)
+- ChromaDB on Cloud Run + Cloud Storage (self-hosted, simple, cheap, fits our scale)
+- pgvector on Cloud SQL Postgres (relational + vectors in one place)
+
+**Lean.** pgvector — combines metadata, ACLs, and vectors in one place; cleanly migratable to UCPH-hosted Postgres later. Pending confirmation against teacher-upload volumes once JB clarifies scale.
+
+---
+
+## ADR-006 — Backend stack
+
+**Pending.** Likely Python/FastAPI on Cloud Run (matches M's stack, easy migration to UCPH Kubernetes). Confirm.
+
+---
+
+## ADR-007 — Chat log storage + anonymisation
+
+**Context.** Researcher access to chat logs is a core requirement. UCPH + Danish DPA consent forms (JB owns) define what we can store and for how long.
+
+**Pending.** Anonymisation strategy depends on consent text. Working assumption: log retention with pseudonymous student IDs (per-session, per-class) and a separate identity map that researchers cannot access casually.
+
+---
+
+## ADR-008 — Multimodal input handling
+
+**Context.** Photos of diagrams, screenshots of Tracker results, CSV/Excel exports. Gemini handles vision natively; tabular data via either direct upload or code execution.
+
+**Pending.** Decide whether to do tabular data via Gemini's native handling or route through a code-execution sandbox (Cloud Run Jobs or similar). Code execution is needed anyway for Strand A's "geometry/arithmetic checks" requirement.
+
+---
+
+## ADR-009 — AILANG in production stack
+
+**Context.** AILANG (Apache 2.0, M's project, ailang.sunholo.com) has the routing + Ollama integration that ADR-004 would otherwise require us to build. Using it as the production model-routing layer is a defensible architectural choice given M's authority but needs explicit disclosure to JB for visibility, not permission.
+
+**Pending.** Conversation with JB. Possible outcomes:
+
+- Use AILANG as the routing layer in production (cleanest technically)
+- Use AILANG only for offline tooling (docparse, eval running) — production uses LiteLLM or similar
+- Document AILANG as the prototype routing layer and migrate to a vendor-neutral library before handover
+
+Until resolved, default to using AILANG for docparse and the eval runner (already in use, uncontroversial) and hold the production routing decision.
+
+---
+
+## ADR-010 — Student auth / identity
+
+**Context.** Brief: "students/teachers don't need their own accounts or subscriptions." Project bills usage centrally. But chat logs must be researcher-retrievable per-session, per-class — so some session identity is needed.
+
+**Pending.** Working assumption: short-code session join (teacher generates code, students join with code + first name or pseudonym). No persistent accounts. Per-class, per-session identity is enough for the research data, and minimises PII surface.
