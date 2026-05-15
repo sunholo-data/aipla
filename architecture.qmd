@@ -78,13 +78,13 @@ This separation matters for three reasons: successors can add new plugins withou
 | # | Decision | Status | Sign-off |
 |---|---|---|---|
 | 001 | Cloud provider for prototype | Decided | M, [JB TBC] |
-| 002 | Cloud region | Pending | — |
+| 002 | Cloud region | Decided · europe-north1 (Finland), europe-west3 (Frankfurt) fallback | M, [JB / UCPH IT TBC] |
 | 003 | LLM provider mix (Claude · Gemini · Ollama) | Decided | M |
 | 004 | Model abstraction / routing layer | Decided (via template) | M |
 | 005 | RAG store | Lean: pgvector · graph DB for C3 stretch | — |
 | 006 | Backend stack | Decided (via template) | M |
 | 007 | Chat log storage | Decided (pending consent details) | M |
-| 008 | Multimodal input handling | Pending | — |
+| 008 | Multimodal input handling | Decided · via AILANG Parse (swappable backends) | M |
 | 009 | AILANG ecosystem in AIPLA (utilities, not runtime) | Decided | M, [JB to be informed] |
 | 010 | Student identity: no auth, anonymous group IDs | Decided | M, [JB TBC] |
 | 011 | Strand A built on the AI Protocol Platform | Decided | M, [JB TBC] |
@@ -117,9 +117,28 @@ This separation matters for three reasons: successors can add new plugins withou
 
 ## ADR-002 — Cloud region
 
-**Context.** GCP offers europe-west1 (Belgium), europe-west3 (Frankfurt), europe-north1 (Finland), europe-west4 (Netherlands). For Danish school data, the relevant question is which EU region UCPH's data-protection team prefers and where Vertex AI Gemini is fully available.
+**Context.** GCP offers several EU regions; the relevant question is which best fits a Danish research project with student data and a sustainability-conscious institution.
 
-**Pending:** confirm Vertex AI Gemini multimodal availability per region; confirm UCPH preference.
+**Options shortlist.**
+
+| Region | Jurisdiction | Power source | Notes |
+|---|---|---|---|
+| **europe-north1** (Finland) | EU · Nordic | 100% renewable (Hamina datacenter) | Strongest carbon-neutrality story; Nordic regional alignment; Vertex AI Gemini available |
+| **europe-west3** (Frankfurt) | EU · Germany | Mixed | Most-used EU region; first to get new GCP features; broadest service availability |
+| europe-west1 (Belgium) | EU | Mixed | Equivalent to Frankfurt on services; less differentiated |
+| europe-west4 (Netherlands) | EU | Mixed | Similar to Belgium |
+
+**Decision.** **europe-north1 (Finland)** as primary, with **europe-west3 (Frankfurt)** as fallback if a specific service availability gap appears during build.
+
+**Why Finland over Frankfurt:**
+
+- **Nordic alignment** — Danish school data hosted in a Nordic country is a marginally cleaner political story than Germany; UCPH data-protection review and parent/teacher communication both benefit
+- **100% renewable power** at the Hamina datacenter is a genuine differentiator for an academic project with sustainability stakeholders
+- **Latency from Copenhagen** is comparable to Frankfurt (~20–30ms ballpark either way) — not a meaningful difference for chat-style UX
+
+**Frankfurt fallback** is reserved for a specific scenario: if a Vertex AI feature AIPLA needs lands in europe-west3 but not europe-north1 during the contract window, swap is cheap (regional config change, no architectural impact).
+
+**Pending.** Confirm with JB / UCPH IT that europe-north1 has no institutional objection. If UCPH data-protection has a specific preference, defer to it.
 
 ---
 
@@ -224,9 +243,25 @@ Concrete model selection per task is driven by capability-floor eval results —
 
 ## ADR-008 — Multimodal input handling
 
-**Context.** Photos of diagrams, screenshots of Tracker results, CSV/Excel exports. Gemini handles vision natively; tabular data via either direct upload or code execution.
+**Context.** Students and teachers upload a mix of formats: photos of hand-drawn free-body diagrams (JPG/PNG), screenshots of Tracker output (PNG), worksheet scans (PDF), CSV / Excel exports from sensors, lesson plans (DOCX/PPTX), email threads (EML). Each of these has different optimal handling — and from a privacy standpoint, the goal is to send as little to a remote model as possible.
 
-**Pending.** Decide whether to do tabular data via Gemini's native handling or route through a code-execution sandbox (Cloud Run Jobs or similar). Code execution is needed anyway for Strand A's "geometry/arithmetic checks" requirement.
+**Decision.** **All uploads route through AILANG Parse first** (see [ADR-012](#adr-012-document-parsing-via-ailang-parse)). AILANG Parse selects the right backend per format:
+
+| Format type | Backend | Where the content goes |
+|---|---|---|
+| DOCX, PPTX, XLSX, ODT, ODP, ODS, CSV, EML, HTML, MD, TEX, EPUB | Deterministic XML parser | **Local** — content never reaches an LLM |
+| PDF, JPG, PNG | AI backend (currently cloud multimodal) | Cloud LLM via the [model router](#adr-004-model-abstraction-routing-layer) — tier 2 (Gemini EU) or tier 1 (Claude) |
+
+The AI-backend layer is **swappable**: AILANG Parse currently calls cloud multimodal models, but on its roadmap are local OCR models. Local OCR currently underperforms cloud multimodal on physics-shaped content (hand-drawn diagrams, equations) — once it closes the gap, the swap is a config change and the capability-floor eval captures when that's worth doing.
+
+**Code execution** (geometry / arithmetic checks, CSV computation, simulation snippets) is **separate from input handling** and plugs in as an [MCP server extension](#core-vs-extensions). Likely candidates: Cloud Run Jobs sandbox, or a containerised Python/JS sandbox MCP server. The student-facing bot calls the code-exec MCP server as a tool, not as part of upload processing.
+
+**Consequences.**
+
+- The privacy story is concrete: 13 of 15 supported upload formats are extracted locally with no LLM involvement. Only image-shaped content goes to a model.
+- The AI backend for image extraction is the same as the chat-routing AI — one router, one telemetry surface, one billing surface.
+- Migration path is clear: when local OCR matures (AILANG Parse roadmap), the image-extraction path shifts from cloud to local without touching application code.
+- Code execution is intentionally a separate extension; we can ship multimodal upload handling in v1 and add code-exec when needed without re-architecting either.
 
 ---
 
