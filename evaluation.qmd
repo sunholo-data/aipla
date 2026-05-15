@@ -39,6 +39,35 @@ The eval doesn't recreate the wheel — it composes published benchmarks with ST
 
 External benchmarks calibrate the model panel; the AIPLA eval adds physics-specific task definitions and the threshold scores.
 
+### Real numbers — GPQA Diamond, the closest public proxy
+
+GPQA Diamond is graduate-level physics, chemistry, and biology — the closest public benchmark to upper-secondary physics reasoning. A snapshot of current top scores from the [Artificial Analysis leaderboard](https://artificialanalysis.ai/evaluations/gpqa-diamond) (verified 2026-05-15):
+
+| Model | Tier | GPQA Diamond | Source |
+|---|---|---|---|
+| Gemini 3.1 Pro Preview | Frontier cloud | **94.1%** | [Artificial Analysis](https://artificialanalysis.ai/evaluations/gpqa-diamond) |
+| GPT-5.5 (xhigh) | Frontier cloud | **93.5%** | Artificial Analysis |
+| GPT-5.5 (high) | Frontier cloud | **93.2%** | Artificial Analysis |
+| Claude Opus 4.7 | Frontier cloud | (verify on live source) | Anthropic card |
+| Gemini 2.5 Pro | Cloud (EU resident) | ~85–86% (reported) | Google model card |
+| Llama 3.3 70B | Open-weight | ~50% (reported, text-only) | Meta model card |
+| Phi-4 (14B) | Small / on-device | ~56% (reported) | Microsoft tech report |
+
+**Two observations:**
+
+1. **Frontier has crossed 90% on graduate-level science questions.** Whatever threshold AIPLA sets for the hardest physics-reasoning tasks, the cloud tier already clears it.
+2. **The gap between frontier and open-weight is roughly 40 percentage points** on this benchmark today. That's the gap the migration timeline tracks — when (and which) open-weight model reaches a usable threshold determines when self-hosted deployment becomes viable for which task class.
+
+**Where this populates from going forward.** AIPLA's own capability-floor report (a periodic deliverable, refreshed as new models release) will include current scores across the full model panel for *each* AIPLA task class — not just GPQA Diamond, which is a proxy. The eval composes published benchmark trajectories with AIPLA's STX-physics-specific task definitions.
+
+### Live trackers (verify current scores here)
+
+- **[Artificial Analysis](https://artificialanalysis.ai)** — cross-provider model comparisons (price, speed, quality, latency); live and updates frequently
+- **[Open LLM Leaderboard](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard) (HuggingFace)** — comprehensive open-weight tracker
+- **[LMArena](https://lmarena.ai)** — human-preference comparisons; useful for chat-style tasks
+- **[Epoch AI Benchmarking Dashboard](https://epoch.ai/data/ai-benchmarking-dashboard)** — long-run trajectories and projections
+- **[GPQA leaderboard](https://github.com/idavidrein/gpqa)** — primary source for GPQA Diamond results
+
 ## Task taxonomy
 
 Anchored on the four AIPLA research questions, refined with AR's curriculum priorities (experiments, mathematical representations, written assessment).
