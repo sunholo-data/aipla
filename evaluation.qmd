@@ -9,6 +9,36 @@ For each task class in the STX physics setting, identify the smallest and cheape
 
 **Deliverable.** A versioned eval dataset + runner + a periodically-updated capability-floor report. Reusable beyond M's contract — successors re-run quarterly as new models release.
 
+## The picture
+
+For each task we run, we set a **minimum score threshold** the AI must hit to be useful. We then watch how each model tier — frontier cloud, capable open-weight, small/on-device — tracks against that threshold over time. When a tier crosses the threshold, that's our estimated migration date for routing the task to that tier.
+
+![Illustrative plot of AI capability by model tier over time, with an AIPLA threshold at 80%](assets/capability-over-time.svg){fig-alt="Three rising curves over 2023–2027 showing frontier cloud, open-weight, and small/on-device model capability; a horizontal red dashed line marks the AIPLA threshold; frontier crossed mid-2024, open-weight crosses late 2026."}
+
+Three things this plot makes concrete:
+
+- **Some tasks always want state-of-the-art** — high thresholds (complex multi-step physics reasoning, nuanced pedagogical scaffolding) may stay on the cloud frontier indefinitely.
+- **Other tasks have lower thresholds** — summarisation, formatting, structured extraction, simple Q&A. For these, open-weight catches up in months, and on-device follows a year or two behind.
+- **The timeline is estimable.** We're not guessing when to migrate — we're tracking published benchmark trajectories and projecting against our task-specific thresholds. The projection sharpens every time a new model releases.
+
+## Public benchmarks we draw on
+
+The eval doesn't recreate the wheel — it composes published benchmarks with STX-physics-specific task data. Primary sources for the model panel and trajectory estimation:
+
+| Benchmark | What it measures | Relevance |
+|---|---|---|
+| [GPQA](https://github.com/idavidrein/gpqa) | Graduate-level physics, chemistry, biology questions | Direct upper-bound proxy for stx physics reasoning |
+| [MATH](https://github.com/hendrycks/math) | Competition-level mathematics | Closely tracks formula-and-derivation tasks |
+| [MMLU](https://github.com/hendrycks/test) | Massive multitask language understanding | Broad knowledge ceiling |
+| [MMMU](https://mmmu-benchmark.github.io) | College-level multimodal understanding (figures, diagrams) | Tracks the multimodal-input path |
+| [HumanEval](https://github.com/openai/human-eval) / [MBPP](https://github.com/google-research/google-research/tree/master/mbpp) | Code generation | Relevant for the code-execution MCP tool |
+| [Open LLM Leaderboard](https://huggingface.co/open-llm-leaderboard) (HuggingFace) | Aggregated open-weight comparisons | Live tracker for tier 3 candidates |
+| [Artificial Analysis](https://artificialanalysis.ai) | Cross-provider model comparisons (price, speed, quality) | Live tracker for tier 1 and tier 2 |
+| [Epoch AI](https://epochai.org) | Long-run AI capability trends | Source for the trajectory projections |
+| **AILANG benchmarks** | Project-internal panel runs across multiple providers | Primary source for AIPLA's per-task scores |
+
+External benchmarks calibrate the model panel; the AIPLA eval adds physics-specific task definitions and the threshold scores.
+
 ## Task taxonomy
 
 Anchored on the four AIPLA research questions, refined with AR's curriculum priorities (experiments, mathematical representations, written assessment).
