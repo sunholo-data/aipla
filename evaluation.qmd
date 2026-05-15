@@ -5,11 +5,7 @@ subtitle: "Which AI model is adequate for which task — and when do local model
 
 ## Purpose
 
-For each task class in the STX physics setting, identify the smallest and cheapest model that performs adequately. The result drives:
-
-- **Production routing decisions** — which model handles each request type
-- **Cost projections** — what the project will pay at scale
-- **Migration timeline** — when locally-hosted open-weight models become viable for full self-hosting
+For each task class in the STX physics setting, identify the smallest and cheapest model that performs adequately. The result drives production routing decisions, cost projections, and the migration timeline for self-hosted open-weight models.
 
 **Deliverable.** A versioned eval dataset + runner + a periodically-updated capability-floor report. Reusable beyond M's contract — successors re-run quarterly as new models release.
 
@@ -76,7 +72,4 @@ Per task class, tracked over time:
 
 ## How this connects
 
-- **Production routing** — the model abstraction layer (ADR-004 on [Architecture](architecture.qmd)) reads the capability-floor matrix to choose models per task class
-- **UCPH migration timeline** — local-readiness fraction tells UCPH IT when to invest in GPU hardware (see [Self-hosting](self-hosting.qmd))
-- **Strand C scoping** — new model classes (VLMs, embodied) plug into the same eval to compare against LLM baselines
-- **Handover** — successors re-run quarterly; the eval is a research instrument that outlives the contract
+The [Architecture](architecture.qmd) model router reads the capability-floor matrix to choose models per task class. The local-readiness fraction signals to UCPH IT when on-prem [self-hosting](self-hosting.qmd) is worth the GPU investment. New model classes from the [Strand C](strands.qmd#c1-beyond-llms) investigation plug into the same eval to be compared against the LLM baselines. The eval itself is a research instrument that outlives the contract.

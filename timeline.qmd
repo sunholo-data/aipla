@@ -7,8 +7,6 @@ subtitle: "17 weeks, three overlapping tracks, handover woven through"
 **Mid-point review:** week 9 (~2026-07-17), before JB's summer holiday
 **Teacher pilot starts:** week 13 (~2026-08-14), when Danish teachers return from summer
 
-Three overlapping tracks, not three sequential phases. Handover is woven through rather than bolted on the end.
-
 ## At a glance
 
 ```{mermaid}
@@ -53,7 +51,7 @@ gantt
 
 ## Handover fan-out (parallel, not sequential)
 
-The big bottleneck. Handover activities start **week 4**, not week 13. Each artefact is explicitly co-owned with someone who'll be around after the contract.
+Handover starts **week 4**, not week 13. Each artefact is explicitly co-owned with someone who'll be around after the contract.
 
 | Artefact | Primary inheritor | Co-owned with | First touchpoint |
 |---|---|---|---|

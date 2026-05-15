@@ -3,9 +3,9 @@ title: "Architecture decisions"
 subtitle: "ADRs for Strand A — pedagogical bot infrastructure"
 ---
 
-Working document. One section per decision, ADR-style: context → options → decision → consequences. Decisions are revisable; flag any change with date and reason. The **Sign-off** column is the handover ownership track — every architectural decision needs a second signature before it's considered settled.
+Working document. ADR-style: context → options → decision → consequences. The **Sign-off** column tracks handover ownership — every decision needs a second signature before it's settled.
 
-**Order is rough priority** — the most defining decisions first (privacy posture, platform foundation, model strategy), then privacy mechanics, then infrastructure and application architecture, with the AILANG disclosure last.
+Order is rough priority: privacy and platform foundation first, infrastructure and mechanics after, AILANG disclosure last.
 
 ## Platform foundation
 
@@ -56,7 +56,7 @@ flowchart LR
     style Router fill:#f5f5f5,stroke:#333,stroke-width:2px
 ```
 
-The **pink subgraph** is the AI Protocol Platform template — the application layer that AIPLA configures on top of. The **blue subgraph** is Multivac — Sunholo's wider AI platform, providing the infrastructure layer (model access, Ollama hosting, managed Postgres, Cloud Storage). AIPLA's prototype runs both layers in an EU region; the [self-hosting](self-hosting.qmd) migration target is to replace the Multivac layer with UCPH equivalents while keeping the template unchanged.
+Pink: the template (application layer). Blue: Multivac (infrastructure layer). [Self-hosting](self-hosting.qmd) migration target is to replace the Multivac layer with UCPH equivalents while keeping the template unchanged.
 
 ## Core vs extensions
 
@@ -171,10 +171,10 @@ The brief also notes the typical configuration: one shared phone per three stude
 
 **Consequences.**
 
-- **Build-time saving.** What would otherwise be ~6 of the 9 Strand A build weeks is absorbed by the template. Frees time for physics-specific extensions, the capability-floor eval, and the teacher pilot.
-- **UCPH self-host implications.** A few template defaults (Firestore for some session data, Firebase Auth for non-LOCAL_MODE) don't have direct UCPH-on-prem equivalents. The [self-hosting](self-hosting.qmd) page needs to expand to cover these. UCPH IT conversation needs to be informed by the template's actual dependencies, not a generic GCP stack.
-- **Handover surface.** P2 and successors need to understand the template's structure to maintain AIPLA. The template's own documentation and the `LOCAL_MODE` workshop story help here — successors can spin up the platform locally without cloud credentials and learn it without risk.
-- **Update cadence.** The template evolves on its own roadmap (driven by Multivac and Aitana usage). AIPLA will need to track upstream changes. Acceptable risk during the contract (M is the maintainer); needs an explicit version-pinning + upstream-tracking strategy in the handover package.
+- **Build-time saving.** ~6 of the 9 Strand A build weeks are absorbed by the template. Frees time for physics-specific extensions, the eval, and the teacher pilot.
+- **UCPH self-host implications.** A few template defaults (Firestore, Firebase Auth for non-LOCAL_MODE) need explicit UCPH equivalents in the [self-hosting](self-hosting.qmd) page; the IT conversation must be informed by actual dependencies, not a generic GCP stack.
+- **Handover surface.** Successors learn the template via its own docs and `LOCAL_MODE` — no cloud credentials required to come up to speed.
+- **Update cadence.** Template tracks its own roadmap. Needs explicit version-pinning and upstream-tracking in the handover package.
 
 ---
 
@@ -195,17 +195,17 @@ Concrete model selection per task is driven by capability-floor eval results —
 
 **Consequences.**
 
-- Routing layer ([ADR-008](#adr-008-model-abstraction-routing-layer)) handles all four tiers behind one interface. The AI Protocol Platform template already supports multi-provider routing; the on-device tier requires a thin client-side adapter (most platforms expose simple JS APIs).
-- **Cloud-agnosticism on the Claude path** is a strategic hedge: if AIPLA needs to move off GCP for any reason (UCPH preference, vendor change), Claude access doesn't have to change provider — only the auth endpoint.
-- Cost mix: Haiku-class on cheap text tasks, Gemini Flash for cheap multimodal, Opus / Sonnet / Gemini Pro reserved for tasks the eval shows benefit from them. On-device tasks cost nothing.
-- Migration trajectory: as the local-readiness fraction in the capability-floor eval rises, the server-local and on-device tiers grow; the cloud-provider share shrinks proportionally.
-- **On-device tier viability is per-device**. A student on an iPad with Apple Intelligence has tier 4 available for certain tasks; a student on a basic Chromebook does not. The routing layer falls back gracefully (tier 4 → 3 → 2 → 1) when a higher-privacy tier isn't available for the given device or task.
+- The [router](#adr-008-model-abstraction-routing-layer) handles all four tiers behind one interface. On-device adds a thin client-side adapter.
+- **Cloud-agnosticism on the Claude path** is a strategic hedge: moving off GCP would only change auth endpoints, not providers.
+- Cost mix: Haiku-class on cheap text, Gemini Flash on cheap multimodal, larger models only where the eval shows benefit. On-device tasks cost nothing.
+- Migration trajectory: as the local-readiness fraction rises, tiers 3 and 4 grow and the cloud share shrinks.
+- **On-device viability is per-device**: an iPad with Apple Intelligence has tier 4 available; a basic Chromebook doesn't. Router falls back tier 4 → 3 → 2 → 1 as needed.
 
 ---
 
 ## ADR-004 — Document parsing via AILANG Parse
 
-**Context.** AIPLA bots ingest teacher and student documents: lesson plans (DOCX), worksheets, sensor exports (CSV/XLSX), email threads (EML), presentation slides (PPTX), lab reports (PDF), photos of hand-drawn diagrams (PNG/JPG). The naive approach — pass every upload to a multimodal LLM for extraction — is wasteful in tokens, slow, and substantially weaker on the GDPR/privacy axis than is necessary.
+**Context.** AIPLA bots ingest a mix of teacher and student documents: lesson plans (DOCX), worksheets, sensor exports (CSV/XLSX), email threads (EML), slides (PPTX), lab reports (PDF), photos (PNG/JPG). Passing every upload to a multimodal LLM is wasteful in tokens, slow, and weaker on privacy than necessary.
 
 **What [AILANG Parse](https://github.com/sunholo-data/ailang-parse) (Apache 2.0) provides.**
 
@@ -228,9 +228,9 @@ flowchart LR
     style Parse fill:#f5f5f5,stroke:#333,stroke-width:2px
 ```
 
-The deterministic path is the load-bearing one for privacy: a Word document or Excel sheet uploaded by a teacher is parsed by reading the file's XML directly. **The content never reaches an LLM.** That covers the majority of formats used in Danish stx physics teaching: lesson materials, problem sets, lab data exports, email correspondence.
+The deterministic path is load-bearing for privacy: a Word doc or Excel sheet is parsed from its XML directly — **the content never reaches an LLM**. That covers most formats in Danish stx physics teaching (lesson materials, problem sets, lab data, email).
 
-The AI path is only invoked for genuinely image-shaped content — scanned PDFs, photos of hand-drawn diagrams. Those go through the same [capability-floor eval](evaluation.qmd)–driven model router as chat tasks, with the same option to route to a local Ollama model when on-prem deployment matures.
+The AI path is only invoked for genuinely image-shaped content (scanned PDFs, hand-drawn diagrams) and routes through the same capability-floor-driven model router as chat tasks.
 
 **Decision.** Document upload pipeline routes through AILANG Parse first. Office and structured formats take the deterministic path. PDF and image extraction routes through the template's model router; the capability-floor eval determines which model handles which kind of PDF/image task.
 
@@ -248,10 +248,9 @@ For a UCPH data-protection review, "13 of 15 supported formats never leave the t
 
 **Consequences.**
 
-- **Cost.** Substantially fewer LLM tokens consumed on document ingest. The capability-floor eval will quantify by how much.
-- **Latency.** Deterministic XML parsing is sub-second; multimodal extraction is multi-second. Most uploads land instantly.
-- **UCPH self-host friendliness.** AILANG Parse runs anywhere — CLI binary, Python SDK, or local service. No cloud dependency. Integrates cleanly with the [self-hosting](self-hosting.qmd) migration path.
-- **Calibration tracking.** Extraction quality is part of the capability-floor benchmark: for PDF/image tasks (T5 — worksheet OCR, T6 — tabular data interpretation), comparing AILANG-Parse-via-Gemini, AILANG-Parse-via-local-Ollama, and the underlying alternatives is exactly what the eval is designed for.
+- **Cost & latency.** Substantially fewer LLM tokens on ingest; deterministic parsing is sub-second vs. multi-second multimodal calls.
+- **UCPH self-host friendliness.** AILANG Parse runs anywhere — CLI, Python SDK, or local service. No cloud dependency.
+- **Calibration tracking.** Extraction quality is part of the capability-floor benchmark (T5 worksheet OCR, T6 tabular data) — exactly what the eval is designed for.
 
 ---
 
@@ -429,6 +428,6 @@ The AI-backend layer is **swappable**: AILANG Parse currently calls cloud multim
 
 **Consequences.**
 
-- Successors maintain AIPLA in Python — no AILANG-language fluency required
-- Each AILANG-built MCP server is swappable for an equivalent if a future maintainer prefers (e.g., AILANG Parse could be replaced with Docling or MarkItDown — though none currently match its deterministic-XML privacy properties)
-- The eval framework is AIPLA's own; AILANG's published benchmarks are a starting reference, not a dependency
+- Successors maintain AIPLA in Python — no AILANG fluency required
+- Each AILANG-built MCP server is swappable (AILANG Parse could be replaced by Docling or MarkItDown, though none currently match its deterministic-XML privacy)
+- The eval framework is AIPLA's own; AILANG's benchmarks are a starting reference, not a dependency

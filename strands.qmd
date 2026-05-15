@@ -3,9 +3,7 @@ title: "The three strands"
 subtitle: "What gets built, what gets investigated, and when"
 ---
 
-The four-month contract splits the work into three strands. **A and B** are priority delivery — working pilots that can be put in front of teachers. **C** is a scoping investigation that informs what gets built after the contract ends.
-
-## Quick view
+The four-month contract splits into three strands. **A and B** are priority delivery — working pilots in front of teachers. **C** is a scoping investigation that informs what gets built after the contract ends.
 
 | Strand | Type | Priority | Deliverable |
 |---|---|---|---|
@@ -39,7 +37,7 @@ gantt
     Final handover            :milestone, m2, 2026-09-15, 0d
 ```
 
-Strand A dominates the first nine weeks. Strand B starts after the mid-point review when Strand A is iterating with internal stakeholders. Strand C scoping happens in the back half, drawing on what has been learned from A and B about what's actually tractable.
+Strand A dominates the first nine weeks. Strand B kicks off after the mid-point review. Strand C scoping happens in the back half, drawing on what A and B reveal.
 
 ## How the strands relate
 
@@ -73,7 +71,7 @@ flowchart TB
     style Eval fill:#f5f5f5,stroke:#666
 ```
 
-Strand B reuses Strand A's plumbing — that's the load-bearing design decision that makes both pilots achievable in the contract window. Strand C is informed by what A and B reveal, and may produce a concrete prototype (the Plaud-like interface) that bridges back into Strand A's deployment.
+Strand B reuses Strand A's plumbing — the load-bearing decision that makes both pilots achievable in the contract window. Strand C may produce a concrete prototype (the Plaud-like interface) that bridges back into Strand A.
 
 ---
 
@@ -101,7 +99,7 @@ Strand B reuses Strand A's plumbing — that's the load-bearing design decision 
 
 **Goal.** A setup for students and teachers to produce simulations and games themselves, with AI assistance. Similar infrastructure requirements to Strand A (GDPR, project-side billing, log access).
 
-**One concrete option discussed:** couple this to a GitHub-based workflow so that artefacts students produce are versioned and inspectable. This is interesting beyond just version control — it gives students exposure to a real engineering workflow and gives researchers a complete history of how each artefact evolved.
+**One concrete option:** couple this to a GitHub-based workflow so artefacts are versioned and inspectable — students get exposure to a real engineering workflow, researchers get a complete history of how each artefact evolved.
 
 **Deliverable.** A working pilot similar to Strand A.
 
@@ -168,13 +166,4 @@ sequenceDiagram
 
 **Recommendation framing.** The scoping note should give JB a decision-quality assessment: is this worth investing in as a Year-2 development item, is it worth a small Year-2 exploratory study, or is it a dead end in current model capability? Mark's recommendation will come with rough effort estimates and risk markers.
 
-**Timeline.** Scoping kickoff after the mid-July review. Initial assessment based on existing literature + AILANG benchmark probes. A thin proof-of-concept against a single physics topic would be ideal but is not required by the deliverable — if it fits in weeks 14–15 without compromising Strand A or B, do it.
-
----
-
-## How the strands connect
-
-- **Strand A's infrastructure is shared by Strand B.** Auth, billing, log access, model routing — built once, reused. Strand B is largely a different front end on the same plumbing.
-- **Strand C's investigation is informed by what gets built in A and B.** The "beyond chat" question becomes much sharper once we've seen what students actually do with the chat-based Strand A bots.
-- **The capability-floor [evaluation](evaluation.qmd) is the shared instrument.** Strand A models, Strand B models, and any Strand C model classes all go into the same eval and are compared on the same task taxonomy.
-- **The [Plaud-like interface](#c2-beyond-chat-interfaces) workflow is the most concrete A↔C bridge.** If we build a thin slice of it during the Strand A iteration phase, it serves both as a deployment artefact and as feasibility evidence for the scoping note.
+**Timeline.** Scoping kickoff after the mid-July review. Initial assessment based on existing literature + AILANG benchmark probes. A thin proof-of-concept against a single physics topic is ideal but not required — if it fits in weeks 14–15 without compromising Strand A or B, do it.
