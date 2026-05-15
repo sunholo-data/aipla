@@ -1,120 +1,142 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 520" font-family="Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif" role="img" aria-label="Plot of AI capability over time across four model tiers, calibrated to GPQA Diamond benchmark trajectories">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" font-family="Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif" role="img" aria-label="Plot of AI capability over time across four model tiers showing time lag for each tier to reach the cloud-frontier threshold">
 
   <!-- Title -->
-  <text x="440" y="30" text-anchor="middle" font-size="18" font-weight="700" fill="#1a1a1a">
-    AI capability over time — four tiers, calibrated to GPQA Diamond
+  <text x="450" y="30" text-anchor="middle" font-size="18" font-weight="700" fill="#1a1a1a">
+    AI capability over time — four tiers, with time-to-threshold lags
   </text>
-  <text x="440" y="50" text-anchor="middle" font-size="12" fill="#666">
-    Trajectory points anchored on published scores. Live data: Artificial Analysis · Vellum · Epoch AI · OpenRouter · AILANG benchmarks.
+  <text x="450" y="50" text-anchor="middle" font-size="12" fill="#666">
+    Trajectory points anchored on published scores · Sources: Artificial Analysis · Vellum · Epoch AI · OpenRouter · AILANG benchmarks
   </text>
 
   <!-- Plot area axes -->
-  <line x1="80" y1="430" x2="640" y2="430" stroke="#333" stroke-width="1.5"/>
-  <line x1="80" y1="80" x2="80" y2="430" stroke="#333" stroke-width="1.5"/>
+  <line x1="80" y1="450" x2="660" y2="450" stroke="#333" stroke-width="1.5"/>
+  <line x1="80" y1="100" x2="80" y2="450" stroke="#333" stroke-width="1.5"/>
 
   <!-- Y-axis gridlines (light) -->
-  <line x1="80" y1="360" x2="640" y2="360" stroke="#eee" stroke-width="1"/>
-  <line x1="80" y1="290" x2="640" y2="290" stroke="#eee" stroke-width="1"/>
-  <line x1="80" y1="220" x2="640" y2="220" stroke="#eee" stroke-width="1"/>
-  <line x1="80" y1="150" x2="640" y2="150" stroke="#eee" stroke-width="1"/>
+  <line x1="80" y1="380" x2="660" y2="380" stroke="#eee" stroke-width="1"/>
+  <line x1="80" y1="310" x2="660" y2="310" stroke="#eee" stroke-width="1"/>
+  <line x1="80" y1="240" x2="660" y2="240" stroke="#eee" stroke-width="1"/>
+  <line x1="80" y1="170" x2="660" y2="170" stroke="#eee" stroke-width="1"/>
 
   <!-- Y-axis labels -->
-  <text x="72" y="435" text-anchor="end" font-size="11" fill="#666">0</text>
-  <text x="72" y="364" text-anchor="end" font-size="11" fill="#666">20</text>
-  <text x="72" y="294" text-anchor="end" font-size="11" fill="#666">40</text>
-  <text x="72" y="224" text-anchor="end" font-size="11" fill="#666">60</text>
-  <text x="72" y="154" text-anchor="end" font-size="11" fill="#666">80</text>
-  <text x="72" y="84" text-anchor="end" font-size="11" fill="#666">100</text>
-  <text x="32" y="255" text-anchor="middle" font-size="12" fill="#333" font-weight="600" transform="rotate(-90 32 255)">
+  <text x="72" y="455" text-anchor="end" font-size="11" fill="#666">0</text>
+  <text x="72" y="384" text-anchor="end" font-size="11" fill="#666">20</text>
+  <text x="72" y="314" text-anchor="end" font-size="11" fill="#666">40</text>
+  <text x="72" y="244" text-anchor="end" font-size="11" fill="#666">60</text>
+  <text x="72" y="174" text-anchor="end" font-size="11" fill="#666">80</text>
+  <text x="72" y="104" text-anchor="end" font-size="11" fill="#666">100</text>
+  <text x="32" y="275" text-anchor="middle" font-size="12" fill="#333" font-weight="600" transform="rotate(-90 32 275)">
     GPQA Diamond score (%)
   </text>
 
-  <!-- X-axis labels (5 points; 80 to 640 = 560 wide, 4 intervals of 140) -->
-  <text x="80" y="450" text-anchor="middle" font-size="11" fill="#666">2023</text>
-  <text x="220" y="450" text-anchor="middle" font-size="11" fill="#666">2024</text>
-  <text x="360" y="450" text-anchor="middle" font-size="11" fill="#666">2025</text>
-  <text x="500" y="450" text-anchor="middle" font-size="11" fill="#666">2026</text>
-  <text x="640" y="450" text-anchor="middle" font-size="11" fill="#666">2027 (proj.)</text>
+  <!-- X-axis label positions (5 points: 2023 to 2027). x=80 to x=660 = 580 wide, 4 intervals of 145 -->
+  <!-- 2023:80, 2024:225, 2025:370, 2026:515, 2027:660 -->
+  <text x="80" y="470" text-anchor="middle" font-size="11" fill="#666">2023</text>
+  <text x="225" y="470" text-anchor="middle" font-size="11" fill="#666">2024</text>
+  <text x="370" y="470" text-anchor="middle" font-size="11" fill="#666">2025</text>
+  <text x="515" y="470" text-anchor="middle" font-size="11" fill="#666">2026</text>
+  <text x="660" y="470" text-anchor="middle" font-size="11" fill="#666">2027 (proj.)</text>
 
-  <!-- "Now" marker (May 2026 ≈ x=540) -->
-  <line x1="540" y1="80" x2="540" y2="430" stroke="#999" stroke-width="1" stroke-dasharray="2,3"/>
-  <text x="540" y="72" text-anchor="middle" font-size="10" fill="#999" font-style="italic">now (May 2026)</text>
+  <!-- "Now" marker (May 2026 ≈ x=515+(5/12)*145 = ~575) -->
+  <line x1="555" y1="100" x2="555" y2="450" stroke="#999" stroke-width="1" stroke-dasharray="2,3"/>
+  <text x="555" y="92" text-anchor="middle" font-size="10" fill="#999" font-style="italic">now (May 2026)</text>
 
-  <!-- AIPLA threshold (80%) at y = 430 - 80*3.5 = 150 -->
-  <line x1="80" y1="150" x2="640" y2="150" stroke="#901a1e" stroke-width="2" stroke-dasharray="6,4"/>
-  <text x="648" y="154" font-size="12" fill="#901a1e" font-weight="700">
+  <!-- AIPLA threshold (80%) at y = 450 - 80*3.5 = 170 -->
+  <line x1="80" y1="170" x2="660" y2="170" stroke="#901a1e" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="668" y="174" font-size="11" fill="#901a1e" font-weight="700">
     Example 80% threshold
   </text>
-  <text x="648" y="168" font-size="10" fill="#901a1e">
-    (per-task in practice)
-  </text>
 
-  <!-- Tier 1 — AI API (Claude/Gemini/GPT frontier) -->
-  <!-- 50, 70, 85, 94, 97 -->
-  <polyline points="80,255 220,185 360,133 500,101 640,90"
+  <!-- Tier 1 — AI API (50, 70, 85, 94, 97); y = 450 - score*3.5 -->
+  <polyline points="80,275 225,205 370,153 515,121 660,110"
             fill="none" stroke="#3a5a7a" stroke-width="2.5"/>
-  <circle cx="80" cy="255" r="4" fill="#3a5a7a"/>
-  <circle cx="220" cy="185" r="4" fill="#3a5a7a"/>
-  <circle cx="360" cy="133" r="4" fill="#3a5a7a"/>
-  <circle cx="500" cy="101" r="4" fill="#3a5a7a"/>
-  <circle cx="640" cy="90" r="4" fill="#3a5a7a"/>
+  <circle cx="80" cy="275" r="4" fill="#3a5a7a"/>
+  <circle cx="225" cy="205" r="4" fill="#3a5a7a"/>
+  <circle cx="370" cy="153" r="4" fill="#3a5a7a"/>
+  <circle cx="515" cy="121" r="4" fill="#3a5a7a"/>
+  <circle cx="660" cy="110" r="4" fill="#3a5a7a"/>
 
-  <!-- Tier 2 — Self-hosted server (DeepSeek V4 Pro class, large MoE) -->
-  <!-- 25, 45, 70, 90, 95 — anchored at DeepSeek V4 Pro 90.1% in 2026 -->
-  <polyline points="80,342 220,272 360,185 500,115 640,97"
+  <!-- Tier 2 — Server (25, 45, 70, 90, 95) -->
+  <polyline points="80,362 225,292 370,205 515,135 660,117"
             fill="none" stroke="#7a3a5a" stroke-width="2.5"/>
-  <circle cx="80" cy="342" r="4" fill="#7a3a5a"/>
-  <circle cx="220" cy="272" r="4" fill="#7a3a5a"/>
-  <circle cx="360" cy="185" r="4" fill="#7a3a5a"/>
-  <circle cx="500" cy="115" r="4" fill="#7a3a5a"/>
-  <circle cx="640" cy="97" r="4" fill="#7a3a5a"/>
+  <circle cx="80" cy="362" r="4" fill="#7a3a5a"/>
+  <circle cx="225" cy="292" r="4" fill="#7a3a5a"/>
+  <circle cx="370" cy="205" r="4" fill="#7a3a5a"/>
+  <circle cx="515" cy="135" r="4" fill="#7a3a5a"/>
+  <circle cx="660" cy="117" r="4" fill="#7a3a5a"/>
 
-  <!-- Tier 3 — Server-local (Qwen 3.5 27B / Gemma 4 31B class) -->
-  <!-- 18, 35, 60, 85, 92 — anchored at Qwen 3.5 27B 85.5% in 2026 -->
-  <polyline points="80,367 220,308 360,220 500,133 640,108"
+  <!-- Tier 3 — Server-local (18, 35, 60, 85, 92) -->
+  <polyline points="80,387 225,328 370,240 515,153 660,128"
             fill="none" stroke="#2d7d3a" stroke-width="2.5"/>
-  <circle cx="80" cy="367" r="4" fill="#2d7d3a"/>
-  <circle cx="220" cy="308" r="4" fill="#2d7d3a"/>
-  <circle cx="360" cy="220" r="4" fill="#2d7d3a"/>
-  <circle cx="500" cy="133" r="4" fill="#2d7d3a"/>
-  <circle cx="640" cy="108" r="4" fill="#2d7d3a"/>
+  <circle cx="80" cy="387" r="4" fill="#2d7d3a"/>
+  <circle cx="225" cy="328" r="4" fill="#2d7d3a"/>
+  <circle cx="370" cy="240" r="4" fill="#2d7d3a"/>
+  <circle cx="515" cy="153" r="4" fill="#2d7d3a"/>
+  <circle cx="660" cy="128" r="4" fill="#2d7d3a"/>
 
-  <!-- Tier 4 — On-device (Phi-4 / Gemma small / Apple Intelligence) -->
-  <!-- 15, 28, 42, 56, 70 — anchored at Phi-4 56.1% in 2026 -->
-  <polyline points="80,377 220,332 360,283 500,234 640,185"
+  <!-- Tier 4 — On-device (18, 32, 50, 65, 80) — boosted from prior estimate; hardware ceiling not yet saturated -->
+  <polyline points="80,387 225,338 370,275 515,222 660,170"
             fill="none" stroke="#c2710c" stroke-width="2.5"/>
-  <circle cx="80" cy="377" r="4" fill="#c2710c"/>
-  <circle cx="220" cy="332" r="4" fill="#c2710c"/>
-  <circle cx="360" cy="283" r="4" fill="#c2710c"/>
-  <circle cx="500" cy="234" r="4" fill="#c2710c"/>
-  <circle cx="640" cy="185" r="4" fill="#c2710c"/>
+  <circle cx="80" cy="387" r="4" fill="#c2710c"/>
+  <circle cx="225" cy="338" r="4" fill="#c2710c"/>
+  <circle cx="370" cy="275" r="4" fill="#c2710c"/>
+  <circle cx="515" cy="222" r="4" fill="#c2710c"/>
+  <circle cx="660" cy="170" r="4" fill="#c2710c"/>
 
-  <!-- Crossing band annotation -->
-  <text x="430" y="100" text-anchor="middle" font-size="11" fill="#333" font-weight="600">
-    All 3 cloud + open-weight tiers clear 80% by mid-2026
+  <!-- Threshold crossing marker circles (white-filled, ring-coloured) on the threshold line -->
+  <!-- AI API crosses 80% at ~x=323 (mid-2025) -->
+  <circle cx="323" cy="170" r="6" fill="#ffffff" stroke="#3a5a7a" stroke-width="2"/>
+  <!-- Server crosses 80% at ~x=428 (Q1 2026) -->
+  <circle cx="428" cy="170" r="6" fill="#ffffff" stroke="#7a3a5a" stroke-width="2"/>
+  <!-- Server-local crosses 80% at ~x=512 (early 2026) -->
+  <circle cx="512" cy="170" r="6" fill="#ffffff" stroke="#2d7d3a" stroke-width="2"/>
+  <!-- On-device crosses 80% at ~x=660 (end of 2027 projection) -->
+  <circle cx="660" cy="170" r="6" fill="#ffffff" stroke="#c2710c" stroke-width="2"/>
+
+  <!-- Time-lag arrows + labels along the time axis ABOVE the threshold line -->
+  <!-- AI API base line marker at x=323 -->
+  <line x1="323" y1="170" x2="323" y2="500" stroke="#3a5a7a" stroke-width="1" stroke-dasharray="2,3" opacity="0.5"/>
+  <text x="323" y="515" text-anchor="middle" font-size="10" fill="#3a5a7a" font-weight="600">Tier 1</text>
+  <text x="323" y="528" text-anchor="middle" font-size="10" fill="#3a5a7a">mid-2025</text>
+
+  <line x1="428" y1="170" x2="428" y2="500" stroke="#7a3a5a" stroke-width="1" stroke-dasharray="2,3" opacity="0.5"/>
+  <text x="428" y="515" text-anchor="middle" font-size="10" fill="#7a3a5a" font-weight="600">Tier 2</text>
+  <text x="428" y="528" text-anchor="middle" font-size="10" fill="#7a3a5a">Q1 2026 (+~8 mo)</text>
+
+  <line x1="512" y1="170" x2="512" y2="500" stroke="#2d7d3a" stroke-width="1" stroke-dasharray="2,3" opacity="0.5"/>
+  <text x="512" y="515" text-anchor="middle" font-size="10" fill="#2d7d3a" font-weight="600">Tier 3</text>
+  <text x="512" y="528" text-anchor="middle" font-size="10" fill="#2d7d3a">early-2026 (+~12 mo)</text>
+
+  <line x1="660" y1="170" x2="660" y2="500" stroke="#c2710c" stroke-width="1" stroke-dasharray="2,3" opacity="0.5"/>
+  <text x="660" y="515" text-anchor="middle" font-size="10" fill="#c2710c" font-weight="600">Tier 4</text>
+  <text x="660" y="528" text-anchor="middle" font-size="10" fill="#c2710c">late-2027 (+~28 mo)</text>
+
+  <!-- Time-lag header below threshold crossings -->
+  <text x="370" y="494" text-anchor="middle" font-size="11" fill="#333" font-weight="700">
+    Months for each tier to reach the 80% threshold:
   </text>
-  <text x="630" y="200" text-anchor="end" font-size="11" fill="#c2710c" font-weight="600">
-    on-device still trails
-  </text>
 
-  <!-- Legend -->
-  <rect x="100" y="358" width="245" height="72" fill="#ffffff" stroke="#ddd" stroke-width="1" rx="4"/>
-  <text x="110" y="376" font-size="11" font-weight="700" fill="#333">Model tier</text>
+  <!-- Define arrowhead markers -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#666"/>
+    </marker>
+  </defs>
 
-  <line x1="110" y1="388" x2="130" y2="388" stroke="#3a5a7a" stroke-width="2.5"/>
-  <circle cx="120" cy="388" r="3" fill="#3a5a7a"/>
-  <text x="135" y="392" font-size="10.5" fill="#333">1 — AI API (Claude · Gemini · GPT)</text>
+  <!-- Legend in upper-right of plot -->
+  <rect x="495" y="240" width="160" height="68" fill="#ffffff" stroke="#ddd" stroke-width="1" rx="4" opacity="0.95"/>
+  <text x="503" y="256" font-size="10" font-weight="700" fill="#333">Model tier</text>
 
-  <line x1="110" y1="400" x2="130" y2="400" stroke="#7a3a5a" stroke-width="2.5"/>
-  <circle cx="120" cy="400" r="3" fill="#7a3a5a"/>
-  <text x="135" y="404" font-size="10.5" fill="#333">2 — Server (UCPH GPU: DeepSeek V4 Pro)</text>
+  <line x1="503" y1="268" x2="518" y2="268" stroke="#3a5a7a" stroke-width="2.5"/>
+  <text x="522" y="271" font-size="10" fill="#333">1 — AI API (cloud)</text>
 
-  <line x1="110" y1="412" x2="130" y2="412" stroke="#2d7d3a" stroke-width="2.5"/>
-  <circle cx="120" cy="412" r="3" fill="#2d7d3a"/>
-  <text x="135" y="416" font-size="10.5" fill="#333">3 — Server-local (128 GB Mac: Qwen / Gemma 4)</text>
+  <line x1="503" y1="280" x2="518" y2="280" stroke="#7a3a5a" stroke-width="2.5"/>
+  <text x="522" y="283" font-size="10" fill="#333">2 — Server (cluster)</text>
 
-  <line x1="110" y1="424" x2="130" y2="424" stroke="#c2710c" stroke-width="2.5"/>
-  <circle cx="120" cy="424" r="3" fill="#c2710c"/>
-  <text x="135" y="428" font-size="10.5" fill="#333">4 — On-device (Phi · Apple Intelligence)</text>
+  <line x1="503" y1="292" x2="518" y2="292" stroke="#2d7d3a" stroke-width="2.5"/>
+  <text x="522" y="295" font-size="10" fill="#333">3 — Server-local (workstation)</text>
+
+  <line x1="503" y1="304" x2="518" y2="304" stroke="#c2710c" stroke-width="2.5"/>
+  <text x="522" y="307" font-size="10" fill="#333">4 — On-device (phone / laptop)</text>
 
 </svg>

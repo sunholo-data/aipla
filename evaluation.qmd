@@ -13,7 +13,13 @@ For each task class in the STX physics setting, identify the smallest and cheape
 
 For each task we run, we set a **minimum score threshold** the AI must hit to be useful. We then watch how each model tier — frontier cloud, capable open-weight, small/on-device — tracks against that threshold over time. When a tier crosses the threshold, that's our estimated migration date for routing the task to that tier.
 
-![Illustrative plot of AI capability by model tier over time, with an AIPLA threshold at 80%](assets/capability-over-time.svg){fig-alt="Three rising curves over 2023–2027 showing frontier cloud, open-weight, and small/on-device model capability; a horizontal red dashed line marks the AIPLA threshold; frontier crossed mid-2024, open-weight crosses late 2026."}
+![Plot of AI capability by tier over time, with time-lag annotations showing when each tier crosses an 80% capability threshold](assets/capability-over-time.svg){fig-alt="Four rising curves over 2023–2027 for the four tiers (AI API, server, server-local, on-device) against an 80% horizontal threshold. Vertical drop-lines mark when each tier crosses, with months-of-lag labelled: Tier 1 mid-2025, Tier 2 Q1 2026 (~8 months later), Tier 3 early 2026 (~12 months later), Tier 4 late 2027 (~28 months later)."}
+
+**Catch-up timelines — what waiting buys you.** Each tier reaches today's frontier on a different cadence:
+
+- **Tier 2 (server) lags Tier 1 by ~8 months** on hard reasoning. Efficient MoE architectures (DeepSeek V4) have collapsed the dense-model gap that used to be larger. Wait two release cycles, get a comparable open-weight model.
+- **Tier 3 (server-local) lags by ~12 months.** The constraint is what fits on a single workstation; aggressive quantisation and smaller capable architectures (Qwen 3.5 27B at 85.5%, Gemma 4 31B at 84.3%) keep narrowing this. Wait a year, run frontier-equivalent on a 128 GB Mac.
+- **Tier 4 (on-device) currently lags by ~24–28 months** on hard reasoning — but the lag is partly self-imposed, not hardware-bound. Apple Intelligence and Gemini Nano deliberately cap parameter counts at ~3 B for battery and latency. Modern iPhones (15 Pro+) and Pixels have headroom for 7–14 B models with int4 quantisation; the constraint is increasingly software / product choice, not silicon. Expect on-device to compress faster than the projection suggests as Apple and Google revise their on-device model strategies.
 
 Three things this plot makes concrete:
 
