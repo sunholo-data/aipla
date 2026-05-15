@@ -61,6 +61,7 @@ Pink-bordered subgraph is platform-provided. ADRs below cover each box. The dash
 | 009 | AILANG usage in production stack | Pending — JB conversation | — |
 | 010 | Student auth / identity model | Pending | — |
 | 011 | Strand A built on Multivac | Decided | M, [JB TBC] |
+| 012 | Document parsing via AILANG Parse | Decided | M |
 
 ---
 
@@ -229,3 +230,55 @@ Until resolved, default to using AILANG for docparse and the eval runner (alread
 - **UCPH self-host implications.** Several Multivac components (Firestore for some session data, Firebase Auth for non-LOCAL_MODE) don't have direct UCPH-on-prem equivalents. The [self-hosting](self-hosting.qmd) page needs to expand to cover these. UCPH IT conversation needs to be informed by Multivac's specific dependencies, not a generic GCP stack.
 - **Handover surface.** P2 and successors need to understand Multivac's structure to maintain AIPLA. Multivac's own documentation and the `LOCAL_MODE` workshop story help here — successors can spin up the platform locally without cloud credentials and learn it without risk.
 - **Update cadence.** Multivac evolves on Aitana's roadmap. AIPLA will need to track upstream changes. Acceptable risk during the contract (M is the maintainer); needs an explicit version-pinning + upstream-tracking strategy in the handover package.
+
+---
+
+## ADR-012 — Document parsing via AILANG Parse
+
+**Context.** AIPLA bots ingest teacher and student documents: lesson plans (DOCX), worksheets, sensor exports (CSV/XLSX), email threads (EML), presentation slides (PPTX), lab reports (PDF), photos of hand-drawn diagrams (PNG/JPG). The naive approach — pass every upload to a multimodal LLM for extraction — is wasteful in tokens, slow, and substantially weaker on the GDPR/privacy axis than is necessary.
+
+**What [AILANG Parse](https://github.com/sunholo-data/ailang-parse) (Apache 2.0) provides.**
+
+```{mermaid}
+flowchart LR
+    Upload[Uploaded document]
+    Parse{AILANG Parse}
+    Det["Deterministic XML parse<br/>13 formats · zero LLM tokens<br/>DOCX · PPTX · XLSX · ODT · ODP · ODS<br/>HTML · MD · CSV · EPUB · EML · MBOX · TEX"]
+    AI["AI multimodal extraction<br/>2 formats · routed via model router<br/>PDF · images"]
+    Out["Structured blocks<br/>+ markdown"]
+
+    Upload --> Parse
+    Parse --> Det
+    Parse --> AI
+    Det --> Out
+    AI --> Out
+
+    style Det fill:#e8f5e9,stroke:#2d7d3a
+    style AI fill:#fce7e8,stroke:#901a1e
+    style Parse fill:#f5f5f5,stroke:#333,stroke-width:2px
+```
+
+The deterministic path is the load-bearing one for privacy: a Word document or Excel sheet uploaded by a teacher is parsed by reading the file's XML directly. **The content never reaches an LLM.** That covers the majority of formats used in Danish stx physics teaching: lesson materials, problem sets, lab data exports, email correspondence.
+
+The AI path is only invoked for genuinely image-shaped content — scanned PDFs, photos of hand-drawn diagrams. Those go through the same [capability-floor eval](evaluation.qmd)–driven model router as chat tasks, with the same option to route to a local Ollama model when on-prem deployment matures.
+
+**Decision.** Document upload pipeline routes through AILANG Parse first. Office and structured formats take the deterministic path. PDF and image extraction routes through the Multivac model router; the capability-floor eval determines which model handles which kind of PDF/image task.
+
+**Why this is a strong GDPR move.**
+
+| Format | What gets parsed | Where the content goes |
+|---|---|---|
+| DOCX, PPTX, XLSX, ODT, ODP, ODS | Lesson plans, slides, worksheets, exports | Local parsing — no external call |
+| CSV, EML, MBOX, HTML, MD, TEX, EPUB | Tabular data, email, structured text | Local parsing — no external call |
+| PDF, JPG, PNG | Scans, hand-drawn diagrams, screenshots | Multimodal LLM via model router (EU region; local Ollama future) |
+
+For a UCPH data-protection review, "13 of 15 supported formats never leave the trust boundary" is a stronger story than any single-vendor multimodal approach.
+
+**Disclosure.** AILANG Parse is part of the AILANG ecosystem ([ADR-009](#adr-009-ailang-in-production-stack)) — same disclosure considerations apply. It is published as a standalone Apache 2.0 library with Python, JavaScript, and Go SDKs and is used by projects beyond AIPLA. Multivac integrates it natively.
+
+**Consequences.**
+
+- **Cost.** Substantially fewer LLM tokens consumed on document ingest. The capability-floor eval will quantify by how much.
+- **Latency.** Deterministic XML parsing is sub-second; multimodal extraction is multi-second. Most uploads land instantly.
+- **UCPH self-host friendliness.** AILANG Parse runs anywhere — CLI binary, Python SDK, or local service. No cloud dependency. Integrates cleanly with the [self-hosting](self-hosting.qmd) migration path.
+- **Calibration tracking.** Extraction quality is part of the capability-floor benchmark: for PDF/image tasks (T5 — worksheet OCR, T6 — tabular data interpretation), comparing AILANG-Parse-via-Gemini, AILANG-Parse-via-local-Ollama, and the underlying alternatives is exactly what the eval is designed for.
