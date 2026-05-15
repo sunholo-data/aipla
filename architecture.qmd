@@ -5,16 +5,27 @@ subtitle: "ADRs for Strand A — pedagogical bot infrastructure"
 
 Working document. One section per decision, ADR-style: context → options → decision → consequences. Decisions are revisable; flag any change with date and reason. The **Sign-off** column is the handover ownership track — every architectural decision needs a second signature before it's considered settled.
 
+## Platform foundation
+
+Strand A is built on **[Multivac](https://github.com/sunholo-data/ai-protocol-platform)**, a protocol-native Python + Google ADK template (Apache 2.0). Multivac provides AG-UI streaming, A2UI declarative rendering, MCP tool integration, A2A agent discovery, multi-provider model routing, OpenTelemetry observability, and a `LOCAL_MODE` workshop path that runs end-to-end without cloud credentials. Aitana (a commercial product) is the first consumer of Multivac; AIPLA is a second.
+
+AIPLA-specific work is the configuration *on top* of Multivac: physics skill packs, the [capability-floor router](evaluation.qmd) wiring, short-code session join (ADR-010), EU-region pinning, and the [UCPH self-host migration path](self-hosting.qmd). See [ADR-011](#adr-011-strand-a-built-on-multivac) for the rationale and scope discipline.
+
 ## System view
 
 ```{mermaid}
 flowchart LR
     User["Student / Teacher<br/>(browser, short-code session join)"]
-    Front["Frontend<br/>web app"]
-    Back["Backend<br/>Cloud Run · Python/FastAPI"]
-    DB[("Postgres + pgvector<br/>logs · RAG vectors · identity")]
-    Storage[("Cloud Storage<br/>uploaded resources")]
-    Router["Model router<br/>capability-floor driven"]
+
+    subgraph Multivac["Multivac platform"]
+        direction LR
+        Front["Frontend<br/>Next.js + AG-UI"]
+        Back["Backend<br/>FastAPI + Google ADK"]
+        Router["Model router<br/>capability-floor driven"]
+    end
+
+    DB[("Postgres + pgvector<br/>logs · RAG · identity")]
+    Storage[("Cloud Storage<br/>uploads")]
     Vertex["Vertex AI Gemini<br/>EU region · prototype default"]
     Ollama["Local Ollama<br/>UCPH on-prem · migration target"]
 
@@ -27,12 +38,13 @@ flowchart LR
     Router -.future.-> Ollama
 
     style User fill:#fff,stroke:#666
+    style Multivac fill:#fff8f8,stroke:#901a1e,stroke-width:2px
     style Vertex fill:#fce7e8,stroke:#901a1e
     style Ollama fill:#fff,stroke:#901a1e,stroke-dasharray:5
     style Router fill:#f5f5f5,stroke:#333,stroke-width:2px
 ```
 
-ADRs below cover each box in the diagram. The dashed Ollama path is the long-term [self-hosting](self-hosting.qmd) target; the prototype runs entirely against Vertex AI in an EU region.
+Pink-bordered subgraph is platform-provided. ADRs below cover each box. The dashed Ollama path is the long-term [self-hosting](self-hosting.qmd) target; the prototype runs entirely against Vertex AI in an EU region.
 
 ## Index
 
@@ -48,6 +60,7 @@ ADRs below cover each box in the diagram. The dashed Ollama path is the long-ter
 | 008 | Multimodal input handling | Pending | — |
 | 009 | AILANG usage in production stack | Pending — JB conversation | — |
 | 010 | Student auth / identity model | Pending | — |
+| 011 | Strand A built on Multivac | Decided | M, [JB TBC] |
 
 ---
 
@@ -161,3 +174,58 @@ Until resolved, default to using AILANG for docparse and the eval runner (alread
 **Context.** Brief: "students/teachers don't need their own accounts or subscriptions." Project bills usage centrally. But chat logs must be researcher-retrievable per-session, per-class — so some session identity is needed.
 
 **Pending.** Working assumption: short-code session join (teacher generates code, students join with code + first name or pseudonym). No persistent accounts. Per-class, per-session identity is enough for the research data, and minimises PII surface.
+
+---
+
+## ADR-011 — Strand A built on Multivac
+
+**Context.** Building Strand A's pedagogical bot infrastructure from scratch within the four-month contract is feasible but tight: GDPR-grade auth, multi-provider model routing, log capture with anonymisation, multimodal upload handling, teacher-facing skill configuration, and the supporting telemetry are each multi-week tracks. [Multivac](https://github.com/sunholo-data/ai-protocol-platform) (Apache 2.0, public repo on the `sunholo-data` org) is a protocol-native Python + Google ADK template that already solves most of these. It was designed by M to serve a class of projects including AIPLA — Aitana is its first consumer; AIPLA would be the second.
+
+**What Multivac provides off the shelf:**
+
+- **Protocols** — AG-UI streaming, A2UI declarative rendering, MCP tool integration, A2A agent discovery
+- **Orchestration** — Google ADK with sessions, memory, artifacts, evaluation
+- **Multi-provider model routing** — Gemini, Claude, OpenAI through one interface
+- **Observability** — OpenTelemetry → Cloud Trace + Cloud Logging + BigQuery, all internal-trust-boundary
+- **`LOCAL_MODE`** — clone-to-working-chat-UI in under 30 minutes, no cloud credentials required. Critical for postdoc-2 onboarding and for any teacher dialogue session where we want a portable demo.
+- **Skills wizard** — non-developer skill creation, matching the brief's "teacher bot configuration" requirement
+- **LaTeX rendering** — already supported via the ailang-parse integration (relevant for physics formulae output)
+
+**Options considered.**
+
+- Build Strand A bot infrastructure from scratch in Python/FastAPI on Cloud Run (originally implied by ADR-001)
+- Adopt LangChain or a similar open-source framework as the base
+- Adopt Multivac as the platform foundation and add AIPLA-specific configuration on top
+
+**Decision.** Adopt Multivac. AIPLA work is the configuration, skill packs, EU-region pinning, short-code session join, and self-host migration path on top of an already-mature template.
+
+**Scope discipline.** Multivac has more surface area than AIPLA needs in four months. The risk is that *because* features exist, we feel obliged to use them. Explicit opt-in list for AIPLA v1:
+
+| Feature | AIPLA v1 | Notes |
+|---|---|---|
+| Web frontend + AG-UI streaming | ✅ Use | Core teacher/student UI |
+| Skills wizard + skill configuration | ✅ Use | Matches brief requirement directly |
+| Multi-provider model routing | ✅ Use | Wired to capability-floor eval |
+| LOCAL_MODE | ✅ Use | Postdoc-2 onboarding, portable demos |
+| Anonymised chat-log capture | ✅ Use | Core research data requirement |
+| LaTeX rendering | ✅ Use | Physics formula output |
+| A2UI declarative components | ✅ Use sparingly | For structured outputs (problem-set hints, etc.) |
+| MCP tool integration | ✅ Use selectively | Code execution sandbox for geometry/arithmetic |
+| MCP Apps (sandboxed iframes) | 🟡 Strand B target | Holds the simulation/game artefacts cleanly |
+| A2A agent discovery | ❌ Skip v1 | Useful long-term, not required for the pilot |
+| Telegram / Email / WhatsApp channels | ❌ Skip v1 | Available; not needed for STX teacher pilot |
+| Vertex AI Search | ❌ Skip v1 | pgvector covers AIPLA's RAG needs per ADR-005 |
+| Real-time collaboration features | ❌ Skip v1 | Out of brief scope |
+
+**Disclosure (handover & conflict of interest).** Multivac is M's own work. This is parallel to the AILANG disclosure in [ADR-009](#adr-009-ailang-in-production-stack) and needs the same explicit visibility with JB. Three mitigating points:
+
+- Multivac is Apache 2.0 licensed and the repo is public; AIPLA's open-source-at-end-of-project goal is fully compatible
+- Multivac is multi-tenant — designed for a class of projects, not AIPLA-specific. AILANG itself is not required to use Multivac (it's used internally for LaTeX parsing and capability benchmarks, but the platform supports plain Python stacks)
+- M's architectural authority on AIPLA (per JB's brief) covers this kind of choice, but the choice should be *named* rather than implicit
+
+**Consequences.**
+
+- **Build-time saving.** What would otherwise be ~6 of the 9 Strand A build weeks is absorbed by Multivac. Frees time for physics-specific extensions, the capability-floor eval, and the teacher pilot.
+- **UCPH self-host implications.** Several Multivac components (Firestore for some session data, Firebase Auth for non-LOCAL_MODE) don't have direct UCPH-on-prem equivalents. The [self-hosting](self-hosting.qmd) page needs to expand to cover these. UCPH IT conversation needs to be informed by Multivac's specific dependencies, not a generic GCP stack.
+- **Handover surface.** P2 and successors need to understand Multivac's structure to maintain AIPLA. Multivac's own documentation and the `LOCAL_MODE` workshop story help here — successors can spin up the platform locally without cloud credentials and learn it without risk.
+- **Update cadence.** Multivac evolves on Aitana's roadmap. AIPLA will need to track upstream changes. Acceptable risk during the contract (M is the maintainer); needs an explicit version-pinning + upstream-tracking strategy in the handover package.
