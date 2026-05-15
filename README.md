@@ -2,7 +2,7 @@
 
 Technical documentation for the AIPLA project at the Center for Digital Education, University of Copenhagen. AIPLA investigates how generative AI can be meaningfully integrated into upper-secondary (stx) physics education in Denmark.
 
-Site: <https://sunholo-data.github.io/aipla>
+Site: <https://www.sunholo.com/aipla/>
 
 ## What's in this repo
 

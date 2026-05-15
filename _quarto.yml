@@ -17,7 +17,7 @@ project:
 website:
   title: "AIPLA"
   description: "AI in Physics Learning and Assessment — generative AI integration in upper-secondary physics education at the University of Copenhagen"
-  site-url: https://sunholo-data.github.io/aipla
+  site-url: https://www.sunholo.com/aipla/
   repo-url: https://github.com/sunholo-data/aipla
   repo-actions: [edit, issue]
   favicon: "assets/favicon.svg"
