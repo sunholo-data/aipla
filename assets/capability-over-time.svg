@@ -89,15 +89,12 @@
   <circle cx="500" cy="234" r="4" fill="#c2710c"/>
   <circle cx="640" cy="185" r="4" fill="#c2710c"/>
 
-  <!-- Threshold crossing annotations -->
-  <text x="320" y="122" text-anchor="middle" font-size="10" fill="#3a5a7a" font-weight="600">
-    AI API crossed mid-2025
+  <!-- Crossing band annotation -->
+  <text x="430" y="100" text-anchor="middle" font-size="11" fill="#333" font-weight="600">
+    All 3 cloud + open-weight tiers clear 80% by mid-2026
   </text>
-  <text x="425" y="172" text-anchor="middle" font-size="10" fill="#7a3a5a" font-weight="600">
-    Server crossed early 2026
-  </text>
-  <text x="475" y="148" text-anchor="middle" font-size="10" fill="#2d7d3a" font-weight="600">
-    Server-local crossed mid-2026
+  <text x="630" y="200" text-anchor="end" font-size="11" fill="#c2710c" font-weight="600">
+    on-device still trails
   </text>
 
   <!-- Legend -->

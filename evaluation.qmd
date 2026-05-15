@@ -68,12 +68,10 @@ GPQA Diamond is a *graduate-level* science benchmark — Tier 4 models aren't de
 
 **Implication for the UCPH self-host migration timeline.** *"Cloud now, on-prem someday"* is too conservative. A more accurate framing for AIPLA:
 
-- **For tasks needing 80%+ capability:** UCPH-hosted Qwen 3.5 27B or Gemma 4 31B (Tier 3, single machine) is viable today.
-- **For tasks needing 88–92% capability:** UCPH IT-hosted DeepSeek V4 Pro (Tier 2, GPU cluster) sits at 90.1% — viable today if the cluster exists.
-- **For tasks needing 93%+ capability:** Cloud API is still the answer in 2026, but the gap narrows every release cycle.
-- **For light tasks:** Tier 4 (on-device) is already operational for what it's designed for.
-
-Llama is intentionally not in any of these lists — current open-source workloads are dominated by DeepSeek, Qwen, and Gemma generations per [OpenRouter usage rankings](https://openrouter.ai/rankings).
+- **For tasks needing 80%+ capability:** Tier 3 (Qwen 3.5 27B / Gemma 4 31B on a single machine) is viable today.
+- **For tasks needing 88–92% capability:** Tier 2 (DeepSeek V4 Pro on a UCPH GPU cluster) sits at 90.1% — viable today if the cluster exists.
+- **For tasks needing 93%+ capability:** Tier 1 (cloud API) is still the answer in 2026; the gap narrows every release cycle.
+- **For light tasks:** Tier 4 is already operational for what it's designed for.
 
 **Where this populates from going forward.** AIPLA's own capability-floor report (a periodic deliverable, refreshed as new models release) will include current scores across the full model panel for *each* AIPLA task class — not just GPQA Diamond, which is a proxy. The eval composes published benchmark trajectories with AIPLA's STX-physics-specific task definitions.
 
@@ -114,15 +112,7 @@ Each task class needs ~20–50 graded items to be statistically meaningful. Init
 
 ## Model panel
 
-Start small, grow as benchmarks justify.
-
-**Frontier closed (ceiling reference).** Claude 4.7, Gemini 2.5 Pro, GPT-class. Used to define what "good enough" looks like relative to current best.
-
-**Capable hosted-EU (likely production candidates).** Vertex AI Gemini 2.5 Pro / Flash (europe-west); Mistral Large (La Plateforme, EU).
-
-**Open-weight local-runnable (migration targets).** DeepSeek V4 family (Pro for highest capability, Flash for cost-efficient routing; both MoE with 1M context); Qwen 3.5 27B (text + multimodal); Gemma 4 31B (multimodal, strong physics/math). Smaller on-device candidates: Phi-4 14B, Gemma 3-small, Apple Intelligence, Gemini Nano. **Llama is intentionally not in the current panel** — OpenRouter usage rankings show open-source workloads are now dominated by the DeepSeek / Qwen / Gemma 4 generation.
-
-Panel updates as AILANG benchmarks publish new results.
+The full panel of models tracked is the four-tier table above. The eval composes published benchmark trajectories (GPQA, MMLU, MMMU, MATH, AILANG's own runs) with AIPLA's STX-physics-specific task definitions. Panel updates as new models release.
 
 ## KPIs
 

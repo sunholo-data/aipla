@@ -195,11 +195,10 @@ Concrete model selection per task is driven by capability-floor eval results —
 
 **Consequences.**
 
-- The [router](#adr-008-model-abstraction-routing-layer) handles all four tiers behind one interface. On-device adds a thin client-side adapter.
-- **The Claude/Vertex split inside Tier 1** is a strategic hedge: Claude is cloud-agnostic (Anthropic / Bedrock / Vertex), so moving off GCP would change only auth endpoints, not providers. Gemini stays Vertex-EU for the multimodal-native path.
-- Tiers 2 and 3 are both Ollama-runnable open-weight — the difference is **whether the model fits on a workstation (Tier 3) or requires a GPU cluster (Tier 2)**. Server tier is the path to using the *best* open-weight models (DeepSeek V4 Pro class); server-local is for everything else open-weight.
-- Cost mix: cheapest cloud tier on light text, frontier reserved for tasks the eval shows benefit from, open-weight (server or server-local) for anything where the threshold is reached. On-device tasks cost nothing.
-- Migration trajectory: as the eval's local-readiness fraction rises per task class, traffic shifts from Tier 1 toward Tiers 2–4. Router falls back tier 4 → 3 → 2 → 1 when a higher-privacy tier is unavailable for the device or task.
+- The [router](#adr-008-model-abstraction-routing-layer) handles all four tiers behind one interface; on-device adds a thin client-side adapter.
+- **Claude cloud-agnosticism is the GCP hedge** — moving off GCP would change only auth endpoints, not providers. Gemini stays Vertex-EU for multimodal.
+- Tiers 2 and 3 are both Ollama-runnable open-weight; the distinction is **GPU cluster (Tier 2: DeepSeek V4 Pro class) vs single workstation (Tier 3: Qwen / Gemma 4 class)**.
+- Migration trajectory: as the eval's local-readiness fraction rises per task class, traffic shifts from Tier 1 toward Tiers 2–4. Router falls back tier 4 → 3 → 2 → 1 when a higher-privacy tier is unavailable.
 
 ---
 
