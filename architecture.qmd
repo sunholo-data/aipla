@@ -178,28 +178,28 @@ The brief also notes the typical configuration: one shared phone per three stude
 
 ---
 
-## ADR-003 — LLM provider mix (Claude · Gemini · Ollama)
+## ADR-003 — LLM provider mix (4 tiers: AI API / Server / Server-local / On-device)
 
-**Context.** AIPLA needs strong text reasoning for problem-set hints and conceptual dialogue, strong multimodal for worksheet photos and diagram interpretation, EU data residency for student-facing use, and a credible path to self-hosted models for the [UCPH on-prem](self-hosting.qmd) migration target. No single provider gives the best answer across all three.
+**Context.** AIPLA needs strong text reasoning for problem-set hints, strong multimodal for worksheet photos, EU data residency for student-facing use, and a credible path to self-hosted models for the [UCPH on-prem](self-hosting.qmd) migration target. No single tier gives the best answer across all of these — the strategy is to **route per task class** via the [capability-floor eval](evaluation.qmd).
 
-**Decision.** Four-tier model mix, routed **case-by-case per task class** via the [capability-floor eval](evaluation.qmd):
+**Decision.** Four tiers, distinguished by where the model runs and what hardware is required:
 
-| Tier | Provider | Used for | Why |
-|---|---|---|---|
-| 1 — Cloud, cloud-agnostic | **Anthropic Claude** (Sonnet 4.6 / Haiku 4.5 / Opus 4.7) | Text reasoning — problem-set hints, conceptual dialogue, Socratic scaffolding, presentation critique | Strong reasoning; available via direct Anthropic API, AWS Bedrock, and GCP Vertex AI Model Garden — reduces single-cloud lock-in. |
-| 2 — Cloud, EU-resident | **Google Gemini** (Vertex AI, EU region) | Multimodal — photos of free-body diagrams, Tracker screenshots, CSV / tabular reasoning | Best-in-class multimodal at price point; native EU residency. |
-| 3 — Server-local | **Self-hosted Ollama** running DeepSeek V4 / Qwen 3.5 / Gemma 4 (UCPH GPU server, or M's 128GB Mac during prototyping) | Per-task-class adoption — but the gap to cloud frontier has nearly closed: DeepSeek V4 Pro is at ~90% on GPQA Diamond. Server-local is viable for the bulk of AIPLA tasks *today*, not in some future migration. | Privacy-positive, zero API spend, no data crossing the institutional boundary. Adoption is **case-by-case**, not all-or-nothing. |
-| 4 — On-device | **Apple Intelligence**, **Gemini Nano**, WebLLM / Transformers.js, or llama.cpp running on the student's device | Tasks the device can handle without help (light Q&A, summarisation, formatting), and offline scenarios | Gold standard for privacy — data literally never leaves the device. Also enables offline use, which is relevant for playground / lab / poor-WiFi settings mentioned in JB's brief. Constrained by device capability; included as a routing tier where it fits. |
+| Tier | Where it runs | Hardware needed | Example models | Why this tier exists |
+|---|---|---|---|---|
+| 1 — **AI API** | Cloud-hosted service | None on our side — API call | Claude Opus 4.7 (cloud-agnostic via Anthropic / Bedrock / Vertex); Gemini 2.5 / 3.1 Pro (Vertex AI, EU regions); GPT-5.5 | Highest current capability; fastest path to working prototype; EU residency available |
+| 2 — **Self-hosted server** | UCPH GPU cluster (or equivalent) | 4–8× H100 / H200 / B200 (~280–800+ GB VRAM total, NVLink) | DeepSeek V4 Pro (1.6T MoE, 49B active); DeepSeek V4 Flash (284B MoE, 13B active); future large open-weight | Open-weight at near-frontier capability — DeepSeek V4 Pro is at ~90% on GPQA Diamond. Full institutional data sovereignty; zero API spend. |
+| 3 — **Server-local** | Single workstation or small server (M's 128 GB Mac during proto, or a single H100/A100) | ~30–60 GB unified memory or single high-end GPU | Qwen 3.5 27B; Gemma 4 31B; Phi-4 14B; smaller DeepSeek distills | Mid-size open-weight that fits without cluster hardware. Good for development, demos, smaller departmental deployments, and `LOCAL_MODE` portability. |
+| 4 — **On-device** | Student device (phone, tablet, laptop) | iPhone 15 Pro+, Pixel 8+, Samsung S24+, modern laptop with NPU | Apple Intelligence (~3B); Gemini Nano (3.25 B); WebLLM browser models; small Phi / Gemma variants | Gold-standard privacy — data never leaves the device. Also enables offline use (playground, poor-WiFi labs). Constrained to lighter tasks: summarisation, formatting, light Q&A. |
 
 Concrete model selection per task is driven by capability-floor eval results — see [Evaluation](evaluation.qmd).
 
 **Consequences.**
 
 - The [router](#adr-008-model-abstraction-routing-layer) handles all four tiers behind one interface. On-device adds a thin client-side adapter.
-- **Cloud-agnosticism on the Claude path** is a strategic hedge: moving off GCP would only change auth endpoints, not providers.
-- Cost mix: Haiku-class on cheap text, Gemini Flash on cheap multimodal, larger models only where the eval shows benefit. On-device tasks cost nothing.
-- Migration trajectory: as the local-readiness fraction rises, tiers 3 and 4 grow and the cloud share shrinks.
-- **On-device viability is per-device**: an iPad with Apple Intelligence has tier 4 available; a basic Chromebook doesn't. Router falls back tier 4 → 3 → 2 → 1 as needed.
+- **The Claude/Vertex split inside Tier 1** is a strategic hedge: Claude is cloud-agnostic (Anthropic / Bedrock / Vertex), so moving off GCP would change only auth endpoints, not providers. Gemini stays Vertex-EU for the multimodal-native path.
+- Tiers 2 and 3 are both Ollama-runnable open-weight — the difference is **whether the model fits on a workstation (Tier 3) or requires a GPU cluster (Tier 2)**. Server tier is the path to using the *best* open-weight models (DeepSeek V4 Pro class); server-local is for everything else open-weight.
+- Cost mix: cheapest cloud tier on light text, frontier reserved for tasks the eval shows benefit from, open-weight (server or server-local) for anything where the threshold is reached. On-device tasks cost nothing.
+- Migration trajectory: as the eval's local-readiness fraction rises per task class, traffic shifts from Tier 1 toward Tiers 2–4. Router falls back tier 4 → 3 → 2 → 1 when a higher-privacy tier is unavailable for the device or task.
 
 ---
 

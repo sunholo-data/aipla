@@ -43,27 +43,37 @@ External benchmarks calibrate the model panel; the AIPLA eval adds physics-speci
 
 GPQA Diamond is graduate-level physics, chemistry, and biology — the closest public benchmark to upper-secondary physics reasoning, and harder than most STX physics tasks will require. A snapshot of current scores (verified 2026-05-15) across the four tiers:
 
-| Tier | Model | GPQA Diamond | Source |
-|---|---|---|---|
-| 1 — Frontier cloud | Gemini 3.1 Pro Preview | **94.1%** | [Artificial Analysis](https://artificialanalysis.ai/evaluations/gpqa-diamond) |
-| 1 — Frontier cloud | Claude Opus 4.7 | **94.2%** | [Vellum leaderboard](https://www.vellum.ai/llm-leaderboard) |
-| 1 — Frontier cloud | GPT-5.5 (xhigh) | **93.5%** | Artificial Analysis |
-| 1 — Frontier cloud | Gemini 3 Pro | **91.9%** | Vellum leaderboard |
-| 2 — Cloud (EU) | Gemini 2.5 Pro | ~85–86% | Google model card |
-| 3 — Open-weight (server-local) | **DeepSeek V4 Pro** | **90.1%** | [Framia / Macaron benchmark roundups](https://framia.pro/page/en-US/news/deepseek-v4-benchmarks) |
-| 3 — Open-weight (server-local) | **Qwen 3.5 27B** | **85.5%** | [Awesome Agents comparison](https://awesomeagents.ai/tools/qwen-3-5-27b-vs-gemma-3-27b/) |
-| 3 — Open-weight (server-local) | **Gemma 4 31B** | **84.3%** | [ai.rs benchmark roundup](https://ai.rs/ai-developer/gemma-4-vs-qwen-3-5-vs-llama-4-compared) |
-| 3 — Open-weight (server-local) | DeepSeek V4 Flash | 79.0% | [Codersera deep-dive](https://codersera.com/blog/deepseek-v4-flash-deep-dive/) — top open-weight by OpenRouter usage |
-| 4 — Small / on-device | Phi-4 (14B) | 56.1% | [TokenMix Phi-4 review](https://tokenmix.ai/blog/phi-4-review-microsoft-small-model-2026) |
-| 4 — Small / on-device | Gemma 3 27B | 42.4% | Awesome Agents comparison |
+| Tier | Model | Hardware needed | GPQA Diamond | Source |
+|---|---|---|---|---|
+| 1 — AI API | Claude Opus 4.7 | None (API; cloud-agnostic — Anthropic / Bedrock / Vertex) | **94.2%** | [Vellum leaderboard](https://www.vellum.ai/llm-leaderboard) |
+| 1 — AI API | Gemini 3.1 Pro Preview | None (Vertex AI, EU regions available) | **94.1%** | [Artificial Analysis](https://artificialanalysis.ai/evaluations/gpqa-diamond) |
+| 1 — AI API | GPT-5.5 (xhigh) | None (OpenAI / Azure) | **93.5%** | Artificial Analysis |
+| 1 — AI API | Gemini 2.5 Pro | None (Vertex AI EU — prototype default) | ~85–86% | Google model card |
+| 2 — Self-hosted server | **DeepSeek V4 Pro** (1.6T MoE / 49B active) | Cluster: 8× H100 / 4× H200 (~800+ GB VRAM at Q4_K_M; NVLink) | **90.1%** | [Framia benchmarks](https://framia.pro/page/en-US/news/deepseek-v4-benchmarks) |
+| 2 — Self-hosted server | DeepSeek V4 Flash (284B MoE / 13B active) | ~4× H100 (~280 GB VRAM at FP8); top open-weight by OpenRouter usage | 79.0% | [Codersera deep-dive](https://codersera.com/blog/deepseek-v4-flash-deep-dive/) |
+| 3 — Server-local | **Qwen 3.5 27B** | ~30 GB at Q6 — fits on 128 GB Mac or single H100/A100 | **85.5%** | [Awesome Agents](https://awesomeagents.ai/tools/qwen-3-5-27b-vs-gemma-3-27b/) |
+| 3 — Server-local | **Gemma 4 31B** | ~32 GB at Q6 — fits on 128 GB Mac or single H100 | **84.3%** | [ai.rs roundup](https://ai.rs/ai-developer/gemma-4-vs-qwen-3-5-vs-llama-4-compared) |
+| 3 — Server-local | Phi-4 (14B) | ~14 GB FP8 — single consumer GPU (RTX 4090) or high-end laptop | 56.1% | [TokenMix](https://tokenmix.ai/blog/phi-4-review-microsoft-small-model-2026) |
+| 4 — On-device | Apple Intelligence (~3B) | iPhone 15 Pro+, iPad M-series, Apple Silicon Mac | n/a (not GPQA-benchmarked) | Apple |
+| 4 — On-device | Gemini Nano (3.25B) | Pixel 8+, Samsung S24+, supporting Chromebooks | n/a (not GPQA-benchmarked) | Google |
 
-**Three observations:**
+GPQA Diamond is a *graduate-level* science benchmark — Tier 4 models aren't designed for that level of reasoning, which is why they don't have published scores on it. They serve light text tasks (summarisation, formatting, short Q&A), which is what gets routed to them in practice.
 
-1. **Open-weight has closed the gap.** **DeepSeek V4 Pro at 90.1% is within 4 percentage points of cloud frontier.** Qwen 3.5 27B and Gemma 4 31B both clear 84%. The conventional "open-weight catches up in 2027" framing is already obsolete — server-local hosting is competitive today for everything except the very hardest reasoning tasks.
-2. **Tier 4 (on-device) is the remaining gap.** Smaller models (Phi-4 14B, Gemma 3 27B) sit at 42–56%, which still trails. The migration to true on-device for serious physics reasoning is a 2027+ story, but on-device for *light* tasks (summary, formatting, short Q&A) is already viable.
-3. **GPQA Diamond is an *upper bound* on what AIPLA tasks need.** It's graduate-level. STX physics is upper-secondary. Whatever per-task threshold AIPLA sets will generally be *below* the 80% bar on the plot above, which means more models clear more thresholds in practice than this benchmark suggests.
+**Four observations:**
 
-**Implication for the UCPH self-host migration timeline.** *"Cloud now, on-prem someday"* is too conservative. A more accurate framing: **UCPH-hosted DeepSeek V4 Pro, Qwen 3.5 27B, or Gemma 4 31B is viable *today* for the bulk of AIPLA's likely task classes.** We use cloud for the hardest reasoning tasks (and during the prototype phase, where cloud is operationally simpler), then progressively shift to UCPH as the eval confirms which tier handles which task class. Llama is not in this list deliberately — current open-source workloads are dominated by DeepSeek, Qwen, and Gemma generations.
+1. **The cloud frontier sits at ~94% on graduate science.** Whatever threshold AIPLA picks for its hardest tasks, Tier 1 already clears it.
+2. **Tier 2 (UCPH-hosted server) is within 4 points of frontier.** DeepSeek V4 Pro at 90.1% is essentially equivalent to cloud for AIPLA purposes. With UCPH IT providing GPU cluster hosting, AIPLA can serve near-frontier capability **without sending any data to a cloud provider at all**.
+3. **Tier 3 (server-local workstation) clears 80% comfortably.** Qwen 3.5 27B and Gemma 4 31B both land at 84–86%. A 128 GB Mac, a single H100, or a small departmental server runs these. No GPU cluster needed.
+4. **Tier 4 (on-device) is the remaining gap.** Smaller models trail at 40–56% on this benchmark and the truly tiny on-device models (Apple Intelligence, Gemini Nano) aren't designed for graduate science at all. They serve light tasks, which is what gets routed to them.
+
+**Implication for the UCPH self-host migration timeline.** *"Cloud now, on-prem someday"* is too conservative. A more accurate framing for AIPLA:
+
+- **For tasks needing 80%+ capability:** UCPH-hosted Qwen 3.5 27B or Gemma 4 31B (Tier 3, single machine) is viable today.
+- **For tasks needing 88–92% capability:** UCPH IT-hosted DeepSeek V4 Pro (Tier 2, GPU cluster) sits at 90.1% — viable today if the cluster exists.
+- **For tasks needing 93%+ capability:** Cloud API is still the answer in 2026, but the gap narrows every release cycle.
+- **For light tasks:** Tier 4 (on-device) is already operational for what it's designed for.
+
+Llama is intentionally not in any of these lists — current open-source workloads are dominated by DeepSeek, Qwen, and Gemma generations per [OpenRouter usage rankings](https://openrouter.ai/rankings).
 
 **Where this populates from going forward.** AIPLA's own capability-floor report (a periodic deliverable, refreshed as new models release) will include current scores across the full model panel for *each* AIPLA task class — not just GPQA Diamond, which is a proxy. The eval composes published benchmark trajectories with AIPLA's STX-physics-specific task definitions.
 
