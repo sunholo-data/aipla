@@ -109,6 +109,8 @@ Concrete skills that will sit on top of the Strand A infrastructure. Designed *w
 
 **Vetted artefact library** lives on **GitHub** for portability — survives any future hosting move (UCPH IT, alternate provider). Approved artefacts skip the [content-review pipeline](architecture.qmd#adr-013-artefact-safety-content-review-pipeline) on each use; new artefacts pass through it.
 
+**Budget controls.** All skill invocations bill against the AIPLA project's centrally-managed keys — students and teachers never see or provide an API key. Per-group and per-class budget caps enforced at the model router ([ADR-014](architecture.qmd#adr-014-per-group-per-class-budget-enforcement)) so one class can't drain another's allocation. Teacher dashboard surfaces current usage and time-to-reset.
+
 ---
 
 ## Strand A — Pedagogical bot infrastructure

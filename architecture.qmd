@@ -92,6 +92,7 @@ This separation matters for three reasons: successors can add new plugins withou
 | 011 | Multimodal input handling | Decided · via AILANG Parse (swappable backends) | M |
 | 012 | AILANG ecosystem in AIPLA (utilities, not runtime) | Decided | M, [JB to be informed] |
 | 013 | Artefact safety / content-review pipeline | Decided | M |
+| 014 | Per-group / per-class budget enforcement | Decided | M |
 
 ---
 
@@ -467,3 +468,27 @@ Generated HTML is untrusted by default — the model can be prompted, accidental
 - ~1–2s added latency between bot output and student-visible render. Acceptable.
 - Teacher-preview-before-publish becomes a UX requirement, not optional.
 - The pipeline is one MCP server — successors can extend the rules without touching the backend.
+
+---
+
+## ADR-014 — Per-group / per-class budget enforcement
+
+**Context.** The brief requires central billing (no per-user keys, no per-user Anthropic accounts). That solves *who pays*; it doesn't solve *how much each cohort can spend*. Without per-group / per-class budgets, one class running heavy multimodal queries could drain the project's monthly cap and block others. AIPLA's centralised API-key model (no user-provided keys per [ADR-013](#adr-013-artefact-safety-content-review-pipeline)) is itself a security feature — but only if AIPLA can also bound the spend it enables.
+
+**Decision.** Budgets enforced at the [model router](#adr-008-model-abstraction-routing-layer) at two levels, with skill-specific multipliers:
+
+| Scope | Default budget (placeholder — calibrate post-eval) | Behaviour |
+|---|---|---|
+| Per group ID (anonymous, per [ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids)) | ~€2 / week | Soft warning at 80%; hard block at 100% |
+| Per class | ~€50 / month | Same — applies across all groups in the class |
+| Per skill (multiplier) | Image gen ≈ 5×, multimodal ≈ 3×, text ≈ 1× | Multiplies the group/class counter per request |
+
+Counters derive from the OpenTelemetry usage stream already in [ADR-005](#adr-005-chat-log-storage) — no separate counter store needed for v1. Teacher dashboard exposes current usage and time-to-reset; admin can raise/lower limits per class.
+
+**Consequences.**
+
+- Predictable cost per cohort. JB can tell teachers "your class gets X € / month" with confidence.
+- One badly-prompted skill or runaway loop in one class doesn't drain another's budget.
+- The numbers above are placeholders; real usage data from the eval calibrates them post-Jutland.
+- JB's GCP billing alert (1000 DKK / month) remains the outermost ceiling — these per-cohort caps sit inside it.
+- **Selling point for UCPH data-protection:** no PII to API providers, no per-user keys, predictable spend, no surprise bills.
