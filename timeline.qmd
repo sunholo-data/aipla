@@ -4,7 +4,8 @@ subtitle: "17 weeks, three overlapping tracks, handover woven through"
 ---
 
 **Contract:** ~17 weeks, 2026-05-15 → ~2026-09-15
-**Mid-point review:** week 9 (~2026-07-17), before JB's summer holiday
+**Mid-point review:** week 6 (~2026-06-26), before both M and JB go on holiday
+**Holiday window:** ~early-to-mid July — JB on Danish summer break; M at Croatia workshop
 **Teacher pilot starts:** week 13 (~2026-08-14), when Danish teachers return from summer
 
 ## At a glance
@@ -19,20 +20,20 @@ gantt
     section Strand A
     Setup & ADRs              :a1, 2026-05-15, 14d
     Build core                :a2, after a1, 28d
-    Internal iteration        :a3, after a2, 21d
-    Teacher pilot             :a4, 2026-08-14, 28d
+    Internal iteration        :a3, 2026-07-15, 30d
+    Teacher pilot             :a4, 2026-08-14, 32d
 
     section Strand B
-    Build                     :b1, 2026-07-17, 28d
+    Build                     :b1, 2026-07-15, 28d
     Pilot                     :b2, after b1, 14d
 
     section Strand C
-    Scoping kickoff           :c1, 2026-07-17, 21d
+    Scoping kickoff           :c1, 2026-07-15, 21d
     Scoping draft             :c2, after c1, 21d
 
     section Milestones
-    Mid-point review (JB)     :milestone, m1, 2026-07-17, 0d
-    JB summer holiday         :crit, 2026-07-17, 21d
+    Mid-point review          :milestone, m1, 2026-06-26, 0d
+    M + JB holiday            :crit, 2026-07-01, 14d
     Final handover            :milestone, m2, 2026-09-15, 0d
 ```
 
@@ -40,14 +41,14 @@ gantt
 
 | Phase | Weeks | Date range | Focus |
 |---|---|---|---|
-| 1. Decide & set up | 1–2 | May 15 – May 29 | ADRs, GCP EU project, talk to UCPH IT, AILANG conversation with JB |
+| 1. Decide & set up | 1–2 | May 15 – May 29 | ADRs done; GCP projects (`aipla-dev/test/prod-2026`) live; template bootstrapped |
 | 2. Build (Strand A core) | 3–6 | May 29 – Jun 26 | Vertical slice → RAG → multimodal → teacher bot config |
-| 3. Internal iteration | 6–9 | Jun 26 – Jul 17 | First eval run; iterate with AR / JB / DS / ZL (teachers still on holiday) |
-| **Mid-point review** | 9 | Jul 17 | Live demo to JB before he leaves; decide Strand C investment, adjust plan |
-| JB on summer holiday | 10–12 | Jul 17 – Aug 7 | Continue internal iteration + Strand B start; no teacher input yet |
-| 4. Teacher pilot iteration | 13–14 | Aug 7 – Aug 21 | Real teachers (10 Danish + K) engage; capability-floor eval refresh |
-| 5. Strand C scoping draft | 14–15 | Aug 14 – Aug 28 | 5–10pp scoping note: beyond-LLMs, beyond-chat, student models |
-| 6. Handover-intensive | 15–17 | Aug 21 – Sep 15 | Final docs, deep-dive sessions, sign-offs |
+| **Mid-point review** | 6 | ~Jun 26 | Live demo + scope review **before holidays** |
+| Both on holiday (M + JB) | 7–8 | ~Jul 1 – Jul 15 | Code freeze. JB on Danish summer break; M at Croatia workshop |
+| 3. Internal iteration | 9–12 | Jul 15 – Aug 14 | First eval run; iterate Strand A; Strand B build; Strand C scoping kickoff |
+| 4. Teacher pilot | 13–14 | Aug 14 – Aug 28 | Real teachers (10 Danish + K) engage; capability-floor eval refresh |
+| 5. Strand C scoping draft | 14–16 | Aug 19 – Sep 9 | 5–10pp scoping note: beyond-LLMs, beyond-chat, student models |
+| 6. Handover-intensive | 16–17 | Sep 2 – Sep 15 | Final docs, deep-dive sessions, sign-offs |
 
 ## Handover fan-out (parallel, not sequential)
 
@@ -79,8 +80,9 @@ Handover starts **week 4**, not week 13. Each artefact is explicitly co-owned wi
 
 - **Teacher feedback window is narrow.** Real teachers active only weeks 13–17 (post-summer). Don't over-engineer pre-summer iteration on internal feedback alone — leave headroom to respond to teacher input.
 - **P2 hire timing unknown.** If they arrive late, their onboarding compresses. Pre-document everything assuming they may only have 2–3 weeks of overlap.
-- **JB's holiday window (weeks 10–12)** means no major direction-setting during that period. Mid-point review at week 9 needs to leave M with enough scope clarity to operate three weeks autonomously.
-- **GDPR / consent forms** — JB owns these but they gate any teacher-facing deployment. Confirm by week 10 at latest.
+- **Both M and JB on holiday weeks 7–8** (early-to-mid July). The mid-point review at week 6 needs to leave M with enough scope clarity *and* enough demo material for JB to take into the break. No major direction-setting during the holiday window.
+- **Build phase is 4 weeks pre-holiday, not 6.** Strand A core needs the minimum viable vertical slice ready by ~Jun 26 — RAG and multimodal can layer on post-holiday if needed.
+- **GDPR / consent forms** — JB owns these but they gate any teacher-facing deployment. Confirm by early August at latest.
 
 ## Definition of "done" at week 17
 

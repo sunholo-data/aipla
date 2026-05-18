@@ -21,23 +21,25 @@ gantt
     todayMarker off
 
     section A — Bots
-    Build & iterate           :a1, 2026-05-15, 63d
-    Teacher pilot             :a2, after a1, 35d
+    Build core                :a1, 2026-05-15, 42d
+    Post-holiday iterate      :a2, 2026-07-15, 30d
+    Teacher pilot             :a3, 2026-08-14, 32d
 
     section B — Sims/games
-    Build                     :b1, 2026-07-17, 28d
+    Build                     :b1, 2026-07-15, 28d
     Pilot                     :b2, after b1, 14d
 
     section C — Scoping
-    Investigation             :c1, 2026-07-17, 21d
+    Investigation             :c1, 2026-07-15, 21d
     Scoping note              :c2, after c1, 21d
 
     section Gates
-    Mid-point review          :milestone, m1, 2026-07-17, 0d
+    Mid-point review          :milestone, m1, 2026-06-26, 0d
+    M + JB holiday            :crit, 2026-07-01, 14d
     Final handover            :milestone, m2, 2026-09-15, 0d
 ```
 
-Strand A dominates the first nine weeks. Strand B kicks off after the mid-point review. Strand C scoping happens in the back half, drawing on what A and B reveal.
+Strand A's core build runs through to the **mid-point review on 26 June**, before M and JB both go on holiday. Strands B and C kick off on return (mid-July). Teacher pilot starts when Danish teachers return mid-August.
 
 ## How the strands relate
 
