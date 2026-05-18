@@ -8,6 +8,7 @@ project:
     - "index.qmd"
     - "about.qmd"
     - "strands.qmd"
+    - "examples.qmd"
     - "timeline.qmd"
     - "architecture.qmd"
     - "evaluation.qmd"
@@ -39,6 +40,8 @@ website:
         text: About
       - href: strands.qmd
         text: Strands
+      - href: examples.qmd
+        text: Examples
       - href: timeline.qmd
         text: Timeline
       - href: architecture.qmd

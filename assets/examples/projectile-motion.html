@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projectile Motion – Interactive Physics Simulation</title>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       STYLES
+       All styling is inline so the file works completely offline.
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <style>
+    /* ── CSS custom properties (easy to re-theme) ── */
+    :root {
+      --blue:       #1a56a0;
+      --blue-light: #4a90d9;
+      --red:        #e53e3e;
+      --green:      #2e7d32;
+      --orange:     #e67e22;
+      --bg:         #f0f4f8;
+      --card:       #ffffff;
+      --border:     #d0dce8;
+      --text:       #1a1a2e;
+      --muted:      #5a6a7a;
+      --h-color:    #0055ff;   /* horizontal component – blue */
+      --v-color:    #ff2200;   /* vertical component   – red  */
+      --r-color:    #00aa00;   /* resultant velocity   – green */
+      --ball-color: #e67e22;
+      --trail-color:rgba(230,126,34,0.35);
+    }
+
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+
+    /* ── Typography helpers ── */
+    h1 { font-size: clamp(1.25rem, 3vw, 1.75rem); font-weight: 700; }
+    h2 { font-size: clamp(1rem, 2.5vw, 1.2rem); font-weight: 600; }
+    h3 { font-size: 0.95rem; font-weight: 600; }
+    p  { font-size: 0.92rem; }
+
+    /* ── Page header ── */
+    .page-header {
+      background: linear-gradient(135deg, var(--blue) 0%, #0e3460 100%);
+      color: #fff;
+      padding: 1.5rem 1.5rem 1.2rem;
+      text-align: center;
+    }
+    .page-header h1 { color: #fff; margin-bottom: 0.4rem; }
+    .page-header p  { color: #b8d4f8; font-size: 0.9rem; max-width: 750px; margin: 0 auto; }
+
+    /* ── Misconception banner ── */
+    .misconception-banner {
+      background: #e8f5e9;
+      border-left: 5px solid var(--green);
+      padding: 0.9rem 1.2rem;
+      margin: 0.8rem 1rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+    }
+    .misconception-banner strong { color: var(--green); }
+
+    /* ── Main layout (two column on wide screens) ── */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
+      padding: 0.8rem 1rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    @media (min-width: 900px) {
+      .main-layout {
+        grid-template-columns: minmax(0,1.6fr) minmax(0,1fr);
+      }
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .card-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--blue);
+      margin-bottom: 0.7rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    /* ── Canvas wrapper ── */
+    .canvas-wrapper {
+      position: relative;
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0a0a1a;
+      border: 1px solid var(--border);
+    }
+    #simCanvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* ── Canvas overlay labels ── */
+    .canvas-overlay {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      pointer-events: none;
+    }
+    .overlay-badge {
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 3px 7px;
+      border-radius: 4px;
+      font-family: monospace;
+      white-space: nowrap;
+    }
+
+    /* ── Sliders & controls ── */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.7rem 1rem;
+    }
+    @media (max-width: 500px) {
+      .controls-grid { grid-template-columns: 1fr; }
+    }
+    .slider-group label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 3px;
+      color: var(--text);
+    }
+    .slider-group label span {
+      color: var(--blue);
+      font-weight: 700;
+    }
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+    .slider-desc {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── Buttons ── */
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.8rem;
+    }
+    button {
+      padding: 0.45rem 1.1rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    button:active { transform: scale(0.97); }
+    .btn-launch  { background: var(--blue);  color: #fff; }
+    .btn-reset   { background: #e2e8f0;      color: var(--text); }
+    .btn-pause   { background: var(--orange); color: #fff; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Live readouts ── */
+    .readouts {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.7rem;
+    }
+    .readout-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      text-align: center;
+    }
+    .readout-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .readout-value {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      font-family: monospace;
+    }
+    .readout-unit {
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      margin-top: 0.6rem;
+      font-size: 0.8rem;
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot  {
+      width: 14px; height: 4px; border-radius: 2px; flex-shrink: 0;
+    }
+
+    /* ── Split component panel ── */
+    .component-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-top: 0.6rem;
+    }
+    @media (max-width: 400px) {
+      .component-panel { grid-template-columns: 1fr; }
+    }
+    .comp-box {
+      border-radius: 8px;
+      padding: 0.6rem;
+      text-align: center;
+    }
+    .comp-box.horiz { background: #e8f0ff; border: 1px solid #b0c8ff; }
+    .comp-box.vert  { background: #fff0ef; border: 1px solid #ffb8b0; }
+    .comp-title { font-size: 0.78rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .comp-box.horiz .comp-title { color: var(--h-color); }
+    .comp-box.vert  .comp-title { color: var(--v-color); }
+    .comp-mini-canvas { display: block; width: 100%; border-radius: 4px; }
+    .comp-fact { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; }
+
+    /* ── Graph area ── */
+    .graphs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-top: 0.4rem;
+    }
+    @media (max-width: 400px) {
+      .graphs-grid { grid-template-columns: 1fr; }
+    }
+    .graph-wrap { position: relative; }
+    .graph-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 3px;
+    }
+    canvas.graph { display: block; width: 100%; border-radius: 6px; border: 1px solid var(--border); }
+
+    /* ── Equation reference ── */
+    .eq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+    .eq-card {
+      background: var(--bg);
+      border-radius: 6px;
+      padding: 0.4rem 0.7rem;
+      font-size: 0.82rem;
+      border-left: 3px solid var(--blue);
+    }
+    .eq-label { color: var(--muted); font-size: 0.72rem; font-weight: 600; }
+    .eq-formula { font-family: 'Courier New', monospace; font-weight: 700; color: var(--text); }
+
+    /* ── Footer ── */
+    .page-footer {
+      text-align: center;
+      padding: 0.8rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      margin-top: 0.5rem;
+    }
+
+    /* ── Responsive: stack everything on mobile ── */
+    @media (max-width: 600px) {
+      .page-header { padding: 1rem; }
+      .main-layout  { padding: 0.5rem; gap: 0.5rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PAGE HEADER
+════════════════════════════════════════════════════════════════════════════ -->
+<header class="page-header">
+  <h1>🎯 Projectile Motion — Interactive Physics Simulation</h1>
+  <p>
+    Explore launch angle, initial speed, range, maximum height, and time of flight.
+    Watch how the trajectory is built from <em>two completely independent motions</em>
+    acting simultaneously.
+  </p>
+</header>
+
+<!-- Misconception callout -->
+<div class="misconception-banner">
+  <strong>⚡ Common Misconception — and the Truth:</strong>
+  Many students think that moving horizontally somehow changes how fast something falls, or that the
+  horizontal speed slows down because of gravity. This simulation proves otherwise:
+  the <span style="color:var(--h-color);font-weight:700;">blue (horizontal)</span> arrow stays
+  <em>exactly the same length</em> throughout the entire flight, while the
+  <span style="color:var(--v-color);font-weight:700;">red (vertical)</span> arrow grows steadily
+  downward. Gravity affects <em>only</em> the vertical component — the two motions are
+  <strong>completely independent</strong>.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MAIN LAYOUT
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="main-layout">
+
+  <!-- ── LEFT COLUMN: simulation canvas + controls ── -->
+  <div style="display:flex;flex-direction:column;gap:0.8rem;">
+
+    <!-- Simulation canvas -->
+    <div class="card" style="padding:0.7rem;">
+      <div class="card-title">Simulation</div>
+      <div class="canvas-wrapper">
+        <!-- Main simulation canvas. Width/height set by JS for crisp pixels. -->
+        <canvas id="simCanvas"></canvas>
+        <!-- Overlay: live numeric readouts drawn on top of the canvas -->
+        <div class="canvas-overlay" id="overlayBadges">
+          <div class="overlay-badge" id="badge-t">t = 0.00 s</div>
+          <div class="overlay-badge" id="badge-h">H = 0.00 m</div>
+          <div class="overlay-badge" id="badge-r">R = 0.00 m</div>
+          <div class="overlay-badge" style="color:#88bbff">vx = — m/s</div>
+          <div class="overlay-badge" id="badge-vx" style="color:#88bbff">vx = — m/s</div>
+          <div class="overlay-badge" id="badge-vy" style="color:#ff9988">vy = — m/s</div>
+          <div class="overlay-badge" id="badge-v"  style="color:#88dd88">|v| = — m/s</div>
+        </div>
+      </div>
+
+      <!-- Colour legend -->
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--h-color)"></div>Horizontal velocity (vₓ — constant)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--v-color)"></div>Vertical velocity (v_y — changes)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--r-color)"></div>Resultant velocity</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--ball-color);height:10px;width:10px;border-radius:50%;"></div>Projectile &amp; trail</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#9b59b6;height:10px;width:10px;border-radius:50%;"></div>Dropped ball (same height)</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="card">
+      <div class="card-title">Controls</div>
+      <div class="controls-grid">
+
+        <!-- Launch speed -->
+        <div class="slider-group">
+          <label>Initial Speed <span id="lbl-speed">20 m/s</span></label>
+          <input type="range" id="sl-speed" min="5" max="50" step="1" value="20" />
+          <div class="slider-desc">v₀ — total launch speed</div>
+        </div>
+
+        <!-- Launch angle -->
+        <div class="slider-group">
+          <label>Launch Angle <span id="lbl-angle">45°</span></label>
+          <input type="range" id="sl-angle" min="5" max="85" step="1" value="45" />
+          <div class="slider-desc">θ — angle above horizontal</div>
+        </div>
+
+        <!-- Gravity -->
+        <div class="slider-group">
+          <label>Gravity <span id="lbl-gravity">9.81 m/s²</span></label>
+          <input type="range" id="sl-gravity" min="1.0" max="25" step="0.1" value="9.81" />
+          <div class="slider-desc">g — try Moon (1.6) or Mars (3.7)!</div>
+        </div>
+
+        <!-- Height offset -->
+        <div class="slider-group">
+          <label>Launch Height <span id="lbl-height">0 m</span></label>
+          <input type="range" id="sl-launchH" min="0" max="30" step="1" value="0" />
+          <div class="slider-desc">y₀ — height above ground</div>
+        </div>
+
+      </div>
+
+      <!-- Buttons -->
+      <div class="btn-row">
+        <button class="btn-launch" id="btn-launch">▶ Launch</button>
+        <button class="btn-pause"  id="btn-pause"  disabled>⏸ Pause</button>
+        <button class="btn-reset"  id="btn-reset">↺ Reset</button>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;cursor:pointer;">
+          <input type="checkbox" id="chk-drop" checked style="accent-color:var(--blue);" />
+          Show dropped ball
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;cursor:pointer;">
+          <input type="checkbox" id="chk-slowmo" style="accent-color:var(--blue);" />
+          Slow motion (½ speed)
+        </label>
+      </div>
+
+      <!-- Live readouts -->
+      <div class="readouts">
+        <div class="readout-box">
+          <div class="readout-label">Time</div>
+          <div class="readout-value" id="ro-t">0.00</div>
+          <div class="readout-unit">seconds</div>
+        </div>
+        <div class="readout-box">
+          <div class="readout-label">Max Height</div>
+          <div class="readout-value" id="ro-h">—</div>
+          <div class="readout-unit">metres</div>
+        </div>
+        <div class="readout-box">
+          <div class="readout-label">Range</div>
+          <div class="readout-value" id="ro-r">—</div>
+          <div class="readout-unit">metres</div>
+        </div>
+        <div class="readout-box">
+          <div class="readout-label">vₓ (horiz.)</div>
+          <div class="readout-value" id="ro-vx" style="color:var(--h-color)">—</div>
+          <div class="readout-unit">m/s  (constant!)</div>
+        </div>
+        <div class="readout-box">
+          <div class="readout-label">v_y (vert.)</div>
+          <div class="readout-value" id="ro-vy" style="color:var(--v-color)">—</div>
+          <div class="readout-unit">m/s</div>
+        </div>
+        <div class="readout-box">
+          <div class="readout-label">Speed |v|</div>
+          <div class="readout-value" id="ro-v" style="color:var(--r-color)">—</div>
+          <div class="readout-unit">m/s</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end left column -->
+
+  <!-- ── RIGHT COLUMN: component visualiser + graphs + equations ── -->
+  <div style="display:flex;flex-direction:column;gap:0.8rem;">
+
+    <!-- Independence visual -->
+    <div class="card">
+      <div class="card-title">Independence of Motion — Side by Side</div>
+      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem;">
+        Each mini-view shows <em>only one component</em> of the projectile's motion. Notice how
+        the horizontal position grows <strong>at a constant rate</strong> while the vertical
+        position follows a curved (accelerated) path. Neither panel knows about the other.
+      </p>
+      <div class="component-panel">
+        <div class="comp-box horiz">
+          <div class="comp-title">🔵 Horizontal (x)</div>
+          <!-- Mini canvas showing ball moving horizontally at constant speed -->
+          <canvas id="cHoriz" class="comp-mini-canvas" height="90"></canvas>
+          <div class="comp-fact">No force → constant speed → uniform motion</div>
+        </div>
+        <div class="comp-box vert">
+          <div class="comp-title">🔴 Vertical (y)</div>
+          <!-- Mini canvas showing ball falling under gravity -->
+          <canvas id="cVert" class="comp-mini-canvas" height="90"></canvas>
+          <div class="comp-fact">Gravity → increasing speed → accelerated motion</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphs -->
+    <div class="card">
+      <div class="card-title">Live Graphs</div>
+      <div class="graphs-grid">
+        <div class="graph-wrap">
+          <div class="graph-title">x-position vs time</div>
+          <canvas id="gX" class="graph" height="110"></canvas>
+        </div>
+        <div class="graph-wrap">
+          <div class="graph-title">y-position vs time</div>
+          <canvas id="gY" class="graph" height="110"></canvas>
+        </div>
+        <div class="graph-wrap">
+          <div class="graph-title">vₓ vs time (horizontal)</div>
+          <canvas id="gVx" class="graph" height="110"></canvas>
+        </div>
+        <div class="graph-wrap">
+          <div class="graph-title">v_y vs time (vertical)</div>
+          <canvas id="gVy" class="graph" height="110"></canvas>
+        </div>
+      </div>
+      <p style="font-size:0.75rem;color:var(--muted);margin-top:0.5rem;">
+        The vₓ graph is a flat horizontal line (constant). The v_y graph is a straight downward
+        slope (uniform acceleration = g). This is the independence of motion made visible.
+      </p>
+    </div>
+
+    <!-- Equations -->
+    <div class="card">
+      <div class="card-title">Key Equations</div>
+      <div class="eq-grid">
+        <div class="eq-card">
+          <div class="eq-label">Horizontal velocity</div>
+          <div class="eq-formula">vₓ = v₀ cosθ</div>
+        </div>
+        <div class="eq-card">
+          <div class="eq-label">Vertical velocity</div>
+          <div class="eq-formula">v_y = v₀ sinθ − g·t</div>
+        </div>
+        <div class="eq-card">
+          <div class="eq-label">Horizontal position</div>
+          <div class="eq-formula">x = vₓ · t</div>
+        </div>
+        <div class="eq-card">
+          <div class="eq-label">Vertical position</div>
+          <div class="eq-formula">y = y₀ + v₀sinθ·t − ½g·t²</div>
+        </div>
+        <div class="eq-card">
+          <div class="eq-label">Time of flight (y₀=0)</div>
+          <div class="eq-formula">T = 2v₀sinθ / g</div>
+        </div>
+        <div class="eq-card">
+          <div class="eq-label">Maximum height</div>
+          <div class="eq-formula">H = (v₀sinθ)² / (2g)</div>
+        </div>
+        <div class="eq-card">
+          <div class="eq-label">Range (y₀=0)</div>
+          <div class="eq-formula">R = v₀² sin(2θ) / g</div>
+        </div>
+        <div class="eq-card">
+          <div class="eq-label">Speed at any time</div>
+          <div class="eq-formula">|v| = √(vₓ²+v_y²)</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end right column -->
+
+</div><!-- end main layout -->
+
+<footer class="page-footer">
+  Interactive Physics Simulation — Projectile Motion | Works fully offline | No external dependencies
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     JAVASCRIPT — Physics engine, animation loop, graphs
+════════════════════════════════════════════════════════════════════════════ -->
+<script>
+"use strict";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION A: Simulation state
+   All physical quantities are stored here. SI units throughout.
+───────────────────────────────────────────────────────────────────────────── */
+const SIM = {
+  // Parameters (read from sliders)
+  v0:       20,      // Initial speed (m/s)
+  angle:    45,      // Launch angle (degrees)
+  g:        9.81,    // Gravitational acceleration (m/s²)
+  y0:       0,       // Launch height above ground (m)
+  slowmo:   false,   // Half-speed mode
+
+  // State
+  running:  false,
+  landed:   false,
+  t:        0,       // Elapsed time (s)
+  x:        0,       // Horizontal position (m)
+  y:        0,       // Vertical position (m)
+  vx:       0,       // Horizontal velocity (m/s) — constant
+  vy:       0,       // Vertical velocity (m/s) — varies
+
+  // Recorded extremes / outcomes
+  maxH:     null,    // Maximum height reached (m)
+  finalR:   null,    // Final range when landed (m)
+  finalT:   null,    // Total time of flight (s)
+
+  // Trail (array of {x, y} in metres, physical coords)
+  trail:    [],
+
+  // History for graphs (sampled every frame)
+  history: { t:[], x:[], y:[], vx:[], vy:[] },
+
+  // Previous timestamp for delta-time calculation
+  lastTS:   null,
+
+  // rAF handle
+  rafId:    null,
+};
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION B: Canvas setup
+   The simulation canvas uses a fixed logical resolution (800×450) scaled
+   to fit its CSS width, giving crisp pixels on all screen densities.
+───────────────────────────────────────────────────────────────────────────── */
+const simCanvas = document.getElementById('simCanvas');
+const simCtx    = simCanvas.getContext('2d');
+
+// Logical resolution of the main canvas
+const SIM_W = 800;
+const SIM_H = 450;
+simCanvas.width  = SIM_W;
+simCanvas.height = SIM_H;
+
+// Graph canvases (each 300×110 logical pixels)
+const GRAPH_W = 300, GRAPH_H = 110;
+const gX  = setupGraph('gX');
+const gY  = setupGraph('gY');
+const gVx = setupGraph('gVx');
+const gVy = setupGraph('gVy');
+
+// Mini component canvases
+const cHoriz = document.getElementById('cHoriz');
+const cVert  = document.getElementById('cVert');
+cHoriz.width = 150; cHoriz.height = 90;
+cVert.width  = 150; cVert.height  = 90;
+
+function setupGraph(id) {
+  const c = document.getElementById(id);
+  c.width  = GRAPH_W;
+  c.height = GRAPH_H;
+  return c;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION C: World → Canvas coordinate mapping
+   Physical world: x goes right, y goes up (standard physics convention).
+   Canvas: x goes right, y goes DOWN. We flip y when drawing.
+───────────────────────────────────────────────────────────────────────────── */
+
+// The "world view" defines how many metres fit in the canvas
+// We compute this dynamically based on expected max range and height.
+let worldView = { xMin:0, xMax:80, yMin:0, yMax:45 };
+
+function computeWorldView() {
+  // Maximum theoretical range: v0² / g  (at θ=45° from y0=0)
+  const maxRange = (SIM.v0 * SIM.v0) / SIM.g;
+  // Maximum theoretical height: y0 + (v0 sinθ)² / (2g)
+  const vySin = SIM.v0;  // worst case sinθ=1
+  const maxHt = SIM.y0 + (vySin * vySin) / (2 * SIM.g);
+
+  // Add 20% margin
+  worldView.xMax = Math.max(10, maxRange * 1.25);
+  worldView.yMax = Math.max(10, Math.max(SIM.y0, maxHt) * 1.4);
+  worldView.yMin = -1;  // slight below ground
+  worldView.xMin = -2;
+}
+
+function wx(x) {
+  // World x → canvas x
+  return (x - worldView.xMin) / (worldView.xMax - worldView.xMin) * SIM_W;
+}
+function wy(y) {
+  // World y → canvas y (flipped)
+  return SIM_H - (y - worldView.yMin) / (worldView.yMax - worldView.yMin) * SIM_H;
+}
+// Scale a distance in metres to canvas pixels
+function wScale(d, axis) {
+  if (axis === 'x') return d / (worldView.xMax - worldView.xMin) * SIM_W;
+  return d / (worldView.yMax - worldView.yMin) * SIM_H;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION D: Drawing helpers
+───────────────────────────────────────────────────────────────────────────── */
+
+// Draw an arrow from (x1,y1) to (x2,y2) in CANVAS coordinates
+function drawArrow(ctx, x1, y1, x2, y2, color, lineW=2.5, headSize=10) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.sqrt(dx*dx + dy*dy);
+  if (len < 2) return;  // too short to draw
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle   = color;
+  ctx.lineWidth   = lineW;
+  ctx.lineCap     = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  // Arrowhead
+  const angle = Math.atan2(dy, dx);
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - headSize * Math.cos(angle - 0.45),
+             y2 - headSize * Math.sin(angle - 0.45));
+  ctx.lineTo(x2 - headSize * Math.cos(angle + 0.45),
+             y2 - headSize * Math.sin(angle + 0.45));
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+// Draw the grid / axes on the simulation canvas
+function drawBackground() {
+  const ctx = simCtx;
+
+  // Sky gradient
+  const sky = ctx.createLinearGradient(0, 0, 0, wy(0));
+  sky.addColorStop(0,   '#0a0a2e');
+  sky.addColorStop(0.7, '#0d1b4a');
+  sky.addColorStop(1,   '#1a3566');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, SIM_W, wy(0));
+
+  // Ground
+  ctx.fillStyle = '#1a3a1a';
+  ctx.fillRect(0, wy(0), SIM_W, SIM_H - wy(0));
+  ctx.fillStyle = '#2d5a1e';
+  ctx.fillRect(0, wy(0), SIM_W, 6);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+  ctx.lineWidth = 0.8;
+  // Vertical grid
+  for (let xW = 0; xW <= worldView.xMax; xW += gridStep(worldView.xMax)) {
+    const cx = wx(xW);
+    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, wy(0)); ctx.stroke();
+    // Label
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.font = '10px Arial';
+    ctx.fillText(xW.toFixed(0), cx + 2, wy(0) - 4);
+  }
+  // Horizontal grid
+  for (let yW = 0; yW <= worldView.yMax; yW += gridStep(worldView.yMax)) {
+    const cy = wy(yW);
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(SIM_W, cy); ctx.stroke();
+    if (yW > 0) {
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.font = '10px Arial';
+      ctx.fillText(yW.toFixed(0)+'m', 3, cy - 2);
+    }
+  }
+
+  // Axis labels
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.font = '11px Arial';
+  ctx.fillText('x (metres) →', SIM_W - 85, wy(0) - 10);
+  ctx.save();
+  ctx.translate(12, wy(worldView.yMax * 0.5));
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('y (metres) ↑', 0, 0);
+  ctx.restore();
+}
+
+function gridStep(maxVal) {
+  // Pick a nice round grid interval
+  if (maxVal <= 20)  return 5;
+  if (maxVal <= 60)  return 10;
+  if (maxVal <= 150) return 20;
+  return 50;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION E: Main render function
+   Called every animation frame. Draws everything on the simulation canvas.
+───────────────────────────────────────────────────────────────────────────── */
+function render() {
+  const ctx = simCtx;
+  ctx.clearRect(0, 0, SIM_W, SIM_H);
+
+  drawBackground();
+
+  // ── Trajectory trail ──
+  if (SIM.trail.length > 1) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(230,126,34,0.5)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(wx(SIM.trail[0].x), wy(SIM.trail[0].y));
+    for (let i = 1; i < SIM.trail.length; i++) {
+      ctx.lineTo(wx(SIM.trail[i].x), wy(SIM.trail[i].y));
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── Dropped ball (purple) ──
+  if (document.getElementById('chk-drop').checked && SIM.t > 0) {
+    const dropY = Math.max(0, SIM.y0 - 0.5 * SIM.g * SIM.t * SIM.t);
+    const dropX = wx(0);  // stays at x=0
+    const dropCY = wy(dropY);
+    const br = wScale(0.4, 'x');
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(dropX, dropCY, Math.max(4, br), 0, Math.PI*2);
+    ctx.fillStyle = '#9b59b6';
+    ctx.fill();
+    ctx.strokeStyle = '#c39bd3';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+    // Label
+    ctx.fillStyle = '#c39bd3';
+    ctx.font = '10px Arial';
+    ctx.fillText('dropped', dropX + Math.max(5,br) + 2, dropCY - 2);
+  }
+
+  // ── Projectile ball ──
+  if (SIM.t > 0 || !SIM.running) {
+    const cx = wx(SIM.x);
+    const cy = wy(Math.max(0, SIM.y));
+    const ballR = Math.max(5, wScale(0.5, 'x'));
+
+    // Ball shadow
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(cx, wy(0) + 4, ballR * 1.2, ballR * 0.4, 0, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fill();
+    ctx.restore();
+
+    // Ball
+    ctx.save();
+    const ballGrad = ctx.createRadialGradient(cx - ballR*0.3, cy - ballR*0.3, 1, cx, cy, ballR);
+    ballGrad.addColorStop(0, '#f39c12');
+    ballGrad.addColorStop(1, '#c0392b');
+    ctx.beginPath();
+    ctx.arc(cx, cy, ballR, 0, Math.PI*2);
+    ctx.fillStyle = ballGrad;
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+
+    // ── Velocity arrows (only while airborne) ──
+    if (!SIM.landed && SIM.running) {
+      // Scale arrows: 1 m/s = some canvas pixels, capped so they fit
+      const scale = Math.min(4, SIM_W * 0.08 / (SIM.v0 + 0.1));
+
+      // Horizontal velocity arrow (blue) — always same length
+      const hx2 = cx + SIM.vx * scale;
+      drawArrow(ctx, cx, cy, hx2, cy, '#3399ff', 3, 10);
+      // Label
+      ctx.fillStyle = '#3399ff';
+      ctx.font = 'bold 11px Arial';
+      ctx.fillText('vₓ='+Math.abs(SIM.vx).toFixed(1), Math.min(hx2+4, SIM_W-50), cy - 6);
+
+      // Vertical velocity arrow (red)
+      const vy2 = cy - SIM.vy * scale;  // note: vy positive = up = smaller canvas y
+      drawArrow(ctx, cx, cy, cx, vy2, '#ff4444', 3, 10);
+      // Label
+      ctx.fillStyle = '#ff4444';
+      ctx.font = 'bold 11px Arial';
+      ctx.fillText('vy='+SIM.vy.toFixed(1), cx + 6, (cy + vy2)/2);
+
+      // Resultant arrow (green)
+      drawArrow(ctx, cx, cy, hx2, vy2, '#00cc66', 2, 9);
+    }
+
+    // ── Landing annotation ──
+    if (SIM.landed) {
+      ctx.save();
+      ctx.strokeStyle = '#ffdd44';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(wx(SIM.finalR), wy(0));
+      ctx.lineTo(wx(SIM.finalR), wy(0) - 20);
+      ctx.stroke();
+      ctx.fillStyle = '#ffdd44';
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText('R = '+SIM.finalR.toFixed(2)+' m', wx(SIM.finalR)+4, wy(0)-8);
+      ctx.restore();
+    }
+  }
+
+  // ── Max height dashed line ──
+  if (SIM.maxH !== null && SIM.maxH > 0.5) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,100,0.4)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(0, wy(SIM.maxH));
+    ctx.lineTo(SIM_W * 0.7, wy(SIM.maxH));
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,100,0.8)';
+    ctx.font = '11px Arial';
+    ctx.fillText('H_max = '+SIM.maxH.toFixed(2)+' m', 4, wy(SIM.maxH) - 3);
+    ctx.restore();
+  }
+
+  // ── Status text (centre) ──
+  if (!SIM.running && !SIM.landed) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Press ▶ Launch to start', SIM_W/2, SIM_H * 0.45);
+    ctx.font = '13px Arial';
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.fillText('Adjust sliders, then launch. Reset to try again.', SIM_W/2, SIM_H * 0.45 + 22);
+    ctx.restore();
+  }
+  if (SIM.landed) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,230,50,0.85)';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    const summary = `Landed!  R = ${SIM.finalR.toFixed(2)} m  |  H = ${SIM.maxH.toFixed(2)} m  |  T = ${SIM.finalT.toFixed(2)} s`;
+    ctx.fillText(summary, SIM_W/2, wy(0) - 25);
+    ctx.restore();
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION F: Mini component canvases
+   Each shows only one dimension of motion as a simple moving-ball animation.
+───────────────────────────────────────────────────────────────────────────── */
+function renderComponents() {
+  // Horizontal mini canvas (ball slides left→right at constant speed)
+  const chCtx = cHoriz.getContext('2d');
+  const W = cHoriz.width, H = cHoriz.height;
+
+  // Normalise position 0→1 over total expected time of flight
+  const T = SIM.finalT || expectedTimeOfFlight();
+  const frac = Math.min(1, SIM.t / T);
+
+  // Horizontal
+  chCtx.clearRect(0, 0, W, H);
+  chCtx.fillStyle = '#d0e8ff';
+  chCtx.fillRect(0, 0, W, H);
+  // Ground line
+  chCtx.fillStyle = '#aaccff';
+  chCtx.fillRect(0, H-10, W, 10);
+  // Track line
+  chCtx.strokeStyle = '#7aabff';
+  chCtx.lineWidth = 1;
+  chCtx.beginPath();
+  chCtx.moveTo(10, H/2); chCtx.lineTo(W-10, H/2);
+  chCtx.stroke();
+  // Arrow showing vx
+  drawArrow(chCtx, 20, H/2, W-20, H/2, '#0055ff', 2.5, 8);
+  chCtx.fillStyle = '#0055ff';
+  chCtx.font = 'bold 10px Arial';
+  chCtx.textAlign = 'center';
+  chCtx.fillText('vₓ = '+SIM.vx.toFixed(2)+' m/s', W/2, H/2 - 8);
+  // Ball position
+  const bx = 10 + frac * (W - 20);
+  chCtx.beginPath();
+  chCtx.arc(bx, H/2, 8, 0, Math.PI*2);
+  chCtx.fillStyle = '#1a56a0';
+  chCtx.fill();
+
+  // Vertical
+  const cvCtx = cVert.getContext('2d');
+  cvCtx.clearRect(0, 0, W, H);
+  cvCtx.fillStyle = '#ffe8e8';
+  cvCtx.fillRect(0, 0, W, H);
+  // Ground
+  cvCtx.fillStyle = '#ffaaaa';
+  cvCtx.fillRect(0, H-10, W, 10);
+  // Ball falls: y decreases after peak
+  const currentY = SIM.y;
+  const maxPossible = SIM.y0 + expectedMaxHeight();
+  const vFrac = 1 - Math.max(0, Math.min(1, currentY / Math.max(1, maxPossible)));
+  const by = 8 + vFrac * (H - 26);
+  // Arrow showing vy (direction and magnitude)
+  const arrowDir = SIM.vy >= 0 ? -1 : 1;  // up = negative canvas direction
+  const arrowLen = Math.min(30, Math.abs(SIM.vy) * 2);
+  drawArrow(cvCtx, W/2, by, W/2, by + arrowDir * -arrowLen, '#ff4444', 2.5, 8);
+  cvCtx.fillStyle = '#cc0000';
+  cvCtx.font = 'bold 10px Arial';
+  cvCtx.textAlign = 'center';
+  cvCtx.fillText('vy = '+SIM.vy.toFixed(2), W/2, H - 13);
+  // Ball
+  cvCtx.beginPath();
+  cvCtx.arc(W/2, by, 8, 0, Math.PI*2);
+  cvCtx.fillStyle = '#cc3300';
+  cvCtx.fill();
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION G: Graph rendering
+   Four time-series graphs with labelled axes.
+───────────────────────────────────────────────────────────────────────────── */
+function renderGraphs() {
+  const hist = SIM.history;
+  if (hist.t.length < 2) {
+    // Just draw empty axes
+    ['gX','gY','gVx','gVy'].forEach(id => {
+      const ctx = document.getElementById(id).getContext('2d');
+      drawEmptyGraph(ctx, document.getElementById(id));
+    });
+    return;
+  }
+
+  drawTimeSeries(gX,  hist.t, hist.x,  '#3399ff', 'x (m)',   0, null, false);
+  drawTimeSeries(gY,  hist.t, hist.y,  '#ff9900', 'y (m)',   0, null, false);
+  drawTimeSeries(gVx, hist.t, hist.vx, '#0055ff', 'vₓ (m/s)', null, null, false);
+  drawTimeSeries(gVy, hist.t, hist.vy, '#ff3300', 'vy (m/s)', null, null, false);
+}
+
+function drawEmptyGraph(ctx, canvas) {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#f8f9fa';
+  ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle = '#dee2e6';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(30,5); ctx.lineTo(30,H-20); ctx.lineTo(W-5,H-20); ctx.stroke();
+  ctx.fillStyle = '#aaa'; ctx.font = '10px Arial'; ctx.textAlign = 'center';
+  ctx.fillText('Launch to see graph', W/2, H/2);
+}
+
+function drawTimeSeries(canvas, ts, vals, color, yLabel, yMin, yMax, skipNeg) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const PAD_L = 34, PAD_B = 20, PAD_T = 6, PAD_R = 6;
+  const plotW = W - PAD_L - PAD_R;
+  const plotH = H - PAD_B - PAD_T;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#f8f9fa';
+  ctx.fillRect(0,0,W,H);
+
+  // Compute ranges
+  const tMax = ts[ts.length-1] || 1;
+  let vLo = yMin !== null ? yMin : Math.min(...vals);
+  let vHi = yMax !== null ? yMax : Math.max(...vals);
+  if (vHi - vLo < 0.5) { vHi += 0.5; vLo -= 0.5; }
+  const vRange = vHi - vLo;
+
+  // Helper: data → canvas
+  const cx = t  => PAD_L + (t / tMax) * plotW;
+  const cy = v  => PAD_T + (1 - (v - vLo) / vRange) * plotH;
+
+  // Grid
+  ctx.strokeStyle = '#e0e0e0';
+  ctx.lineWidth = 0.7;
+  // Horizontal grid lines (4)
+  for (let i=0; i<=4; i++) {
+    const v = vLo + (vRange * i/4);
+    const y = cy(v);
+    ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(PAD_L+plotW, y); ctx.stroke();
+    ctx.fillStyle = '#999'; ctx.font = '8px Arial'; ctx.textAlign = 'right';
+    ctx.fillText(v.toFixed(1), PAD_L-2, y+3);
+  }
+
+  // Zero line (if in range)
+  if (vLo < 0 && vHi > 0) {
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(PAD_L, cy(0)); ctx.lineTo(PAD_L+plotW, cy(0)); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Axes
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(PAD_L, PAD_T); ctx.lineTo(PAD_L, PAD_T+plotH);
+  ctx.lineTo(PAD_L+plotW, PAD_T+plotH);
+  ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle = '#555'; ctx.font = '9px Arial'; ctx.textAlign = 'center';
+  ctx.fillText('t (s)', PAD_L + plotW/2, H - 4);
+  ctx.save(); ctx.translate(9, PAD_T + plotH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText(yLabel, 0, 0); ctx.restore();
+
+  // t-axis tick labels
+  ctx.fillStyle = '#888'; ctx.font = '8px Arial'; ctx.textAlign = 'center';
+  for (let i=0; i<=4; i++) {
+    const t = tMax * i/4;
+    ctx.fillText(t.toFixed(1), cx(t), PAD_T+plotH+12);
+  }
+
+  // Data line
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx(ts[0]), cy(vals[0]));
+  for (let i=1; i<ts.length; i++) {
+    ctx.lineTo(cx(ts[i]), cy(vals[i]));
+  }
+  ctx.stroke();
+
+  // Current position dot
+  const last = ts.length-1;
+  ctx.beginPath();
+  ctx.arc(cx(ts[last]), cy(vals[last]), 3.5, 0, Math.PI*2);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION H: Physics calculations
+───────────────────────────────────────────────────────────────────────────── */
+function radians(deg) { return deg * Math.PI / 180; }
+
+function expectedTimeOfFlight() {
+  // T = [v0 sinθ + sqrt((v0 sinθ)² + 2g·y0)] / g
+  const vy0 = SIM.v0 * Math.sin(radians(SIM.angle));
+  return (vy0 + Math.sqrt(vy0*vy0 + 2*SIM.g*SIM.y0)) / SIM.g;
+}
+function expectedRange() {
+  const T = expectedTimeOfFlight();
+  return SIM.v0 * Math.cos(radians(SIM.angle)) * T;
+}
+function expectedMaxHeight() {
+  const vy0 = SIM.v0 * Math.sin(radians(SIM.angle));
+  return SIM.y0 + (vy0*vy0) / (2*SIM.g);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION I: Animation loop
+───────────────────────────────────────────────────────────────────────────── */
+function animationLoop(timestamp) {
+  if (!SIM.running) return;
+
+  // Compute delta time (in seconds), cap at 50ms to avoid spiral-of-death
+  if (SIM.lastTS === null) SIM.lastTS = timestamp;
+  let dt = (timestamp - SIM.lastTS) / 1000;
+  SIM.lastTS = timestamp;
+  dt = Math.min(dt, 0.05);
+  if (SIM.slowmo) dt *= 0.5;
+
+  // ── Physics integration (Euler, fine for this purpose) ──
+  // Horizontal: constant velocity (no force)
+  SIM.x  += SIM.vx * dt;
+  // Vertical: uniformly accelerated downward
+  SIM.vy -= SIM.g * dt;   // vy decreases (gravity pulls down)
+  SIM.y  += SIM.vy * dt;
+
+  SIM.t += dt;
+
+  // Track max height
+  if (SIM.maxH === null || SIM.y > SIM.maxH) SIM.maxH = SIM.y;
+
+  // Store trail point (every ~0.05s or so)
+  const lastTrail = SIM.trail[SIM.trail.length-1];
+  if (!lastTrail || Math.abs(SIM.x - lastTrail.x) > 0.3 || Math.abs(SIM.y - lastTrail.y) > 0.3) {
+    SIM.trail.push({ x: SIM.x, y: SIM.y });
+  }
+
+  // Store history for graphs (every frame, capped at 500 points)
+  if (SIM.history.t.length < 500) {
+    SIM.history.t.push(SIM.t);
+    SIM.history.x.push(SIM.x);
+    SIM.history.y.push(Math.max(0, SIM.y));
+    SIM.history.vx.push(SIM.vx);
+    SIM.history.vy.push(SIM.vy);
+  }
+
+  // Check landing (y ≤ 0)
+  if (SIM.y <= 0) {
+    SIM.y      = 0;
+    SIM.landed = true;
+    SIM.running= false;
+    SIM.finalR = SIM.x;
+    SIM.finalT = SIM.t;
+    updateButtons();
+  }
+
+  // Update overlay badges and readout boxes
+  updateReadouts();
+
+  // Render
+  render();
+  renderComponents();
+  renderGraphs();
+
+  if (SIM.running) {
+    SIM.rafId = requestAnimationFrame(animationLoop);
+  } else {
+    // One final render after landing
+    render();
+    renderComponents();
+    renderGraphs();
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION J: UI update helpers
+───────────────────────────────────────────────────────────────────────────── */
+function updateReadouts() {
+  // Canvas overlay badges
+  document.getElementById('badge-t').textContent  = 't = '+SIM.t.toFixed(2)+' s';
+  document.getElementById('badge-h').textContent  = 'H = '+(SIM.maxH||0).toFixed(2)+' m';
+  document.getElementById('badge-r').textContent  = 'R = '+SIM.x.toFixed(2)+' m';
+  document.getElementById('badge-vx').textContent = 'vx = '+SIM.vx.toFixed(2)+' m/s';
+  document.getElementById('badge-vy').textContent = 'vy = '+SIM.vy.toFixed(2)+' m/s';
+  const speed = Math.sqrt(SIM.vx*SIM.vx + SIM.vy*SIM.vy);
+  document.getElementById('badge-v').textContent  = '|v| = '+speed.toFixed(2)+' m/s';
+
+  // Info boxes below controls
+  document.getElementById('ro-t').textContent  = SIM.t.toFixed(2);
+  document.getElementById('ro-h').textContent  = SIM.maxH !== null ? SIM.maxH.toFixed(2) : '—';
+  document.getElementById('ro-r').textContent  = SIM.landed ? SIM.finalR.toFixed(2) : SIM.x.toFixed(2);
+  document.getElementById('ro-vx').textContent = SIM.vx.toFixed(2);
+  document.getElementById('ro-vy').textContent = SIM.vy.toFixed(2);
+  document.getElementById('ro-v').textContent  = speed.toFixed(2);
+}
+
+function updateButtons() {
+  document.getElementById('btn-launch').disabled = SIM.running || SIM.landed;
+  document.getElementById('btn-pause').disabled  = !SIM.running;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION K: Slider wiring
+   Each slider updates SIM parameters and the label text.
+───────────────────────────────────────────────────────────────────────────── */
+function wireSlider(id, labelId, fmt, prop) {
+  const el = document.getElementById(id);
+  const lb = document.getElementById(labelId);
+  el.addEventListener('input', () => {
+    SIM[prop] = parseFloat(el.value);
+    lb.textContent = fmt(SIM[prop]);
+    if (!SIM.running && !SIM.landed) {
+      // Update world view and re-draw the "ready" state
+      computeWorldView();
+      SIM.vx = SIM.v0 * Math.cos(radians(SIM.angle));
+      SIM.vy = SIM.v0 * Math.sin(radians(SIM.angle));
+      SIM.x  = 0;
+      SIM.y  = SIM.y0;
+      render();
+      renderComponents();
+    }
+  });
+}
+
+wireSlider('sl-speed',   'lbl-speed',   v => v+' m/s',   'v0');
+wireSlider('sl-angle',   'lbl-angle',   v => v+'°',       'angle');
+wireSlider('sl-gravity', 'lbl-gravity', v => v+' m/s²',  'g');
+wireSlider('sl-launchH', 'lbl-height',  v => v+' m',     'y0');
+
+document.getElementById('chk-slowmo').addEventListener('change', e => {
+  SIM.slowmo = e.target.checked;
+});
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION L: Button handlers
+───────────────────────────────────────────────────────────────────────────── */
+
+// LAUNCH button: start the simulation from rest
+document.getElementById('btn-launch').addEventListener('click', () => {
+  if (SIM.running || SIM.landed) return;
+
+  // Read parameters
+  SIM.v0    = parseFloat(document.getElementById('sl-speed').value);
+  SIM.angle = parseFloat(document.getElementById('sl-angle').value);
+  SIM.g     = parseFloat(document.getElementById('sl-gravity').value);
+  SIM.y0    = parseFloat(document.getElementById('sl-launchH').value);
+  SIM.slowmo= document.getElementById('chk-slowmo').checked;
+
+  // Decompose initial velocity into components
+  SIM.vx    = SIM.v0 * Math.cos(radians(SIM.angle));  // constant throughout
+  SIM.vy    = SIM.v0 * Math.sin(radians(SIM.angle));  // will change
+
+  // Reset position and state
+  SIM.x     = 0;
+  SIM.y     = SIM.y0;
+  SIM.t     = 0;
+  SIM.maxH  = SIM.y0;
+  SIM.finalR= null;
+  SIM.finalT= null;
+  SIM.landed= false;
+  SIM.running= true;
+  SIM.trail  = [{ x: 0, y: SIM.y0 }];
+  SIM.history = { t:[], x:[], y:[], vx:[], vy:[] };
+  SIM.lastTS  = null;
+
+  computeWorldView();
+  updateButtons();
+  SIM.rafId = requestAnimationFrame(animationLoop);
+});
+
+// PAUSE / RESUME button
+document.getElementById('btn-pause').addEventListener('click', () => {
+  if (SIM.running) {
+    SIM.running = false;
+    cancelAnimationFrame(SIM.rafId);
+    document.getElementById('btn-pause').textContent = '▶ Resume';
+    document.getElementById('btn-launch').disabled = true;
+  } else {
+    SIM.running = true;
+    SIM.lastTS  = null;
+    document.getElementById('btn-pause').textContent = '⏸ Pause';
+    SIM.rafId = requestAnimationFrame(animationLoop);
+  }
+  updateButtons();
+  document.getElementById('btn-pause').disabled = false;
+});
+
+// RESET button: clear everything and return to ready state
+document.getElementById('btn-reset').addEventListener('click', () => {
+  SIM.running = false;
+  SIM.landed  = false;
+  cancelAnimationFrame(SIM.rafId);
+
+  SIM.t       = 0;
+  SIM.x       = 0;
+  SIM.y       = SIM.y0;
+  SIM.vx      = SIM.v0 * Math.cos(radians(SIM.angle));
+  SIM.vy      = SIM.v0 * Math.sin(radians(SIM.angle));
+  SIM.maxH    = null;
+  SIM.finalR  = null;
+  SIM.finalT  = null;
+  SIM.trail   = [];
+  SIM.history = { t:[], x:[], y:[], vx:[], vy:[] };
+  SIM.lastTS  = null;
+
+  document.getElementById('btn-pause').textContent = '⏸ Pause';
+  document.getElementById('ro-t').textContent  = '0.00';
+  document.getElementById('ro-h').textContent  = '—';
+  document.getElementById('ro-r').textContent  = '—';
+  document.getElementById('ro-vx').textContent = '—';
+  document.getElementById('ro-vy').textContent = '—';
+  document.getElementById('ro-v').textContent  = '—';
+  document.getElementById('badge-t').textContent  = 't = 0.00 s';
+  document.getElementById('badge-h').textContent  = 'H = 0.00 m';
+  document.getElementById('badge-r').textContent  = 'R = 0.00 m';
+  document.getElementById('badge-vx').textContent = 'vx = — m/s';
+  document.getElementById('badge-vy').textContent = 'vy = — m/s';
+  document.getElementById('badge-v').textContent  = '|v| = — m/s';
+
+  computeWorldView();
+  updateButtons();
+  render();
+
+  // Reset component mini-canvases
+  SIM.vy = 0; SIM.vx = 0;
+  renderComponents();
+  renderGraphs();
+
+  // Restore correct initial component values for display
+  SIM.vx = SIM.v0 * Math.cos(radians(SIM.angle));
+  SIM.vy = SIM.v0 * Math.sin(radians(SIM.angle));
+});
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION M: Initialisation
+   Set up the initial "ready" view when the page loads.
+───────────────────────────────────────────────────────────────────────────── */
+(function init() {
+  SIM.y = SIM.y0;
+  SIM.vx = SIM.v0 * Math.cos(radians(SIM.angle));
+  SIM.vy = SIM.v0 * Math.sin(radians(SIM.angle));
+  computeWorldView();
+  render();
+  renderComponents();
+  renderGraphs();
+  updateButtons();
+})();
+</script>
+
+</body>
+</html>
