@@ -4,8 +4,9 @@ subtitle: "17 weeks, three overlapping tracks, handover woven through"
 ---
 
 **Contract:** ~17 weeks, 2026-05-15 → ~2026-09-15
-**Mid-point review:** week 6 (~2026-06-26), before both M and JB go on holiday
-**Holiday window:** ~early-to-mid July — JB on Danish summer break; M at Croatia workshop
+**Jutland demo:** Wed 27 – Fri 29 May — JB + Aswin visit teachers; v0.1 demo URL by then
+**Mid-point review:** week 6 (Fri 26 June), before both M and JB go on holiday
+**Holiday window:** Week 27 (Mon 29 June – Sun 5 July) — JB on Danish summer break; M at Croatia workshop
 **Teacher pilot starts:** week 13 (~2026-08-14), when Danish teachers return from summer
 
 ## At a glance
@@ -18,22 +19,24 @@ gantt
     todayMarker off
 
     section Strand A
-    Setup & ADRs              :a1, 2026-05-15, 14d
-    Build core                :a2, after a1, 28d
-    Internal iteration        :a3, 2026-07-15, 30d
-    Teacher pilot             :a4, 2026-08-14, 32d
+    Setup & ADRs              :a1, 2026-05-15, 7d
+    Jutland demo prep         :a2, 2026-05-22, 5d
+    Build core (post-demo)    :a3, 2026-05-27, 30d
+    Post-holiday iterate      :a4, 2026-07-06, 39d
+    Teacher pilot             :a5, 2026-08-14, 32d
 
     section Strand B
-    Build                     :b1, 2026-07-15, 28d
+    Build                     :b1, 2026-07-06, 28d
     Pilot                     :b2, after b1, 14d
 
     section Strand C
-    Scoping kickoff           :c1, 2026-07-15, 21d
+    Scoping kickoff           :c1, 2026-07-06, 21d
     Scoping draft             :c2, after c1, 21d
 
     section Milestones
+    Jutland demo (v0.1)       :milestone, m0, 2026-05-27, 0d
     Mid-point review          :milestone, m1, 2026-06-26, 0d
-    M + JB holiday            :crit, 2026-07-01, 14d
+    M + JB holiday (wk 27)    :crit, 2026-06-29, 7d
     Final handover            :milestone, m2, 2026-09-15, 0d
 ```
 
@@ -41,14 +44,15 @@ gantt
 
 | Phase | Weeks | Date range | Focus |
 |---|---|---|---|
-| 1. Decide & set up | 1–2 | May 15 – May 29 | ADRs done; GCP projects (`aipla-dev/test/prod-2026`) live; template bootstrapped |
-| 2. Build (Strand A core) | 3–6 | May 29 – Jun 26 | Vertical slice → RAG → multimodal → teacher bot config |
-| **Mid-point review** | 6 | ~Jun 26 | Live demo + scope review **before holidays** |
-| Both on holiday (M + JB) | 7–8 | ~Jul 1 – Jul 15 | Code freeze. JB on Danish summer break; M at Croatia workshop |
-| 3. Internal iteration | 9–12 | Jul 15 – Aug 14 | First eval run; iterate Strand A; Strand B build; Strand C scoping kickoff |
-| 4. Teacher pilot | 13–14 | Aug 14 – Aug 28 | Real teachers (10 Danish + K) engage; capability-floor eval refresh |
-| 5. Strand C scoping draft | 14–16 | Aug 19 – Sep 9 | 5–10pp scoping note: beyond-LLMs, beyond-chat, student models |
-| 6. Handover-intensive | 16–17 | Sep 2 – Sep 15 | Final docs, deep-dive sessions, sign-offs |
+| 0. Decide & set up | 1 | May 15 – May 22 | ADRs done; GCP projects (`aipla-dev/test/prod-2026`) live |
+| **0.5. Jutland demo (v0.1)** | 2 | May 22 – May 27 | Bootstrap template; minimum chat URL with one physics-tutor skill; group-ID join. **JB + Aswin to Jutland 27–29 May.** |
+| 1. Build (Strand A core) | 3–6 | May 27 – Jun 26 | Layer on RAG → multimodal → teacher bot configuration UI |
+| **Mid-point review** | 6 | Fri Jun 26 | Live demo + scope review **before holidays** |
+| Both on holiday (M + JB) | 7 (wk 27) | Jun 29 – Jul 5 | Code freeze. JB on Danish summer break; M at Croatia workshop |
+| 2. Internal iteration | 8–12 | Jul 6 – Aug 14 | First eval run; iterate Strand A; Strand B build; Strand C scoping kickoff |
+| 3. Teacher pilot | 13–14 | Aug 14 – Aug 28 | Real teachers (10 Danish + K) engage; capability-floor eval refresh |
+| 4. Strand C scoping draft | 14–16 | Aug 19 – Sep 9 | 5–10pp scoping note: beyond-LLMs, beyond-chat, student models |
+| 5. Handover-intensive | 16–17 | Sep 2 – Sep 15 | Final docs, deep-dive sessions, sign-offs |
 
 ## Handover fan-out (parallel, not sequential)
 
