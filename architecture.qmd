@@ -523,3 +523,19 @@ Counters derive from the OpenTelemetry usage stream already in [ADR-005](#adr-00
 - Teacher experience is conversational, not page-based. For teachers who want a more traditional layout, a `dashboard-view` skill can return a multi-panel A2UI block — still inside the chat surface, visually richer.
 - Mobile-friendly by default — same UI on phone or laptop.
 - Significant v1 scope reduction: one auth path, one UI deploy, one set of components to test.
+
+### Live updates without new chat messages
+
+Both [A2UI](https://a2ui.org/) and [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview) support **server-pushed updates to existing rendered components** — the teacher does not need to re-send a query to refresh a panel.
+
+- **A2UI** binds data values to component paths. The agent emits a `dataModelUpdate` event (e.g., `/class/budget_used = 42`) and the client patches the affected component only ([Agentic UI architecture write-up](https://dev.to/tahmidbintaslim/agentic-ui-a2ui-ag-ui-build-uis-your-agent-can-update-in-real-time-274n))
+- **MCP Apps** receive `ui/toolResult` messages over `postMessage` whenever the host's tool data changes, and can call `tools/call` back through the host bridge ([MCP Apps spec](https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/))
+
+Practical pattern for AIPLA: which skills benefit from live updates vs one-shot:
+
+| Pattern | Skills | Why |
+|---|---|---|
+| **Live-update** (data-bound, server pushes patches) | `class-status`, `review-artefacts`, `chat-log-search` | Background state changes as students use the system — teacher shouldn't have to refresh |
+| **One-shot** (generate → render → done) | `physics-sim-builder`, `illustration-builder`, `manage-class`, `misconception-pair` | Single user action completes a discrete task |
+
+For live-update skills, the rendered component **persists in chat history at the position it was invoked** and continues receiving updates. The teacher can pin or scroll back to it; the data stays current.
