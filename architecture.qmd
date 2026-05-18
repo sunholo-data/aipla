@@ -91,6 +91,7 @@ This separation matters for three reasons: successors can add new plugins withou
 | 010 | RAG store | Lean: pgvector · graph DB for C3 stretch | — |
 | 011 | Multimodal input handling | Decided · via AILANG Parse (swappable backends) | M |
 | 012 | AILANG ecosystem in AIPLA (utilities, not runtime) | Decided | M, [JB to be informed] |
+| 013 | Artefact safety / content-review pipeline | Decided | M |
 
 ---
 
@@ -155,9 +156,9 @@ The brief also notes the typical configuration: one shared phone per three stude
 | LOCAL_MODE | ✅ Use | Postdoc-2 onboarding, portable demos |
 | Anonymised chat-log capture | ✅ Use | Core research data requirement |
 | LaTeX rendering | ✅ Use | Physics formula output |
-| A2UI declarative components | ✅ Use sparingly | For structured outputs (problem-set hints, etc.) |
-| MCP tool integration | ✅ Use selectively | Code execution sandbox for geometry/arithmetic |
-| MCP Apps (sandboxed iframes) | 🟡 Strand B target | Holds the simulation/game artefacts cleanly |
+| A2UI declarative components | ✅ Use | Problem-set hint cards, LaTeX formula blocks, structured feedback, teacher-config forms |
+| MCP tool integration | ✅ Use | Code-exec sandbox, document parsing, artefact rendering, RAG retrieval |
+| MCP Apps (sandboxed iframes) | ✅ Use | **Hosts teacher-generated interactive artefacts** (HTML simulations, problem workbenches) in chat. Gated by [ADR-013](#adr-013-artefact-safety-content-review-pipeline) safety pipeline. Pattern based on AR's existing GenAI trials. |
 | A2A agent discovery | ❌ Skip v1 | Useful long-term, not required for the pilot |
 | Telegram / Email / WhatsApp channels | ❌ Skip v1 | Available; not needed for STX teacher pilot |
 | Vertex AI Search | ❌ Skip v1 | pgvector covers AIPLA's RAG needs per [ADR-010](#adr-010-rag-store) |
@@ -430,3 +431,39 @@ The AI-backend layer is **swappable**: AILANG Parse currently calls cloud multim
 - Successors maintain AIPLA in Python — no AILANG fluency required
 - Each AILANG-built MCP server is swappable (AILANG Parse could be replaced by Docling or MarkItDown, though none currently match its deterministic-XML privacy)
 - The eval framework is AIPLA's own; AILANG's benchmarks are a starting reference, not a dependency
+
+---
+
+## ADR-013 — Artefact safety: content-review pipeline for generated HTML
+
+**Context.** AIPLA bots generate two kinds of artefacts that get rendered in front of students:
+
+1. **Static illustrations** (SVG, PNG) — embedded inline via [A2UI](#core-vs-extensions)
+2. **Interactive HTML simulations** — embedded via [MCP Apps](#core-vs-extensions) in sandboxed iframes (form factor anchored on AR's existing GenAI trials — see `notes/2026-05-18-aswin-trials-analysis.md`)
+
+Generated HTML is untrusted by default — the model can be prompted, accidentally or intentionally, into emitting external `<script src=…>`, `fetch()` calls, or unsafe DOM. A naive "model outputs HTML → iframe renders it" pipeline fails the GDPR/safety bar AIPLA must hold.
+
+**Decision.** All generated artefacts pass through a **server-side review pipeline** before they reach the student-facing iframe. Pipeline runs as an MCP server (`physics-artefact-render`, swappable).
+
+| Check | What it catches |
+|---|---|
+| HTML parse + tag allow-list | No `<script src=…>`; only inline scripts permitted |
+| Static analysis on inline JS | No `fetch(`, `XMLHttpRequest`, `WebSocket`, `eval`, no external URLs in string literals |
+| Subresource scanning | No `<img src="http*://...">`, no external CSS/font imports |
+| Size limits | Max ~200 KB per artefact; oversized payloads rejected |
+| Headless render preview | Confirms the artefact actually displays without runtime errors |
+
+**Iframe-side defence in depth:**
+
+- `sandbox="allow-scripts"` only — explicitly **no** `allow-same-origin`, `allow-top-navigation`, `allow-popups`
+- Content Security Policy: `default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'`
+- All AI communication via `postMessage` to the parent frame, never directly from iframe to a model API
+- Resource limits: max DOM size, runtime budget before iframe gets killed
+
+**Library bypass.** The [vetted artefact library](strands.qmd#skills-planned-for-v1) (GitHub-hosted for portability) holds teacher-reviewed starting points. Artefacts pulled from the library skip the pipeline once they've been approved into it.
+
+**Consequences.**
+
+- ~1–2s added latency between bot output and student-visible render. Acceptable.
+- Teacher-preview-before-publish becomes a UX requirement, not optional.
+- The pipeline is one MCP server — successors can extend the rules without touching the backend.

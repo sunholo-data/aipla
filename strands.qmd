@@ -76,11 +76,44 @@ flowchart TB
 
 Strand B reuses Strand A's plumbing — the load-bearing decision that makes both pilots achievable in the contract window. Strand C may produce a concrete prototype (the Plaud-like interface) that bridges back into Strand A.
 
+## Skills planned for v1
+
+Concrete skills that will sit on top of the Strand A infrastructure. Designed *with* AR; refined as the teacher pilot reveals what actually gets used.
+
+### Teacher-facing (primary)
+
+| Skill | What it does | Artefact / surface |
+|---|---|---|
+| `physics-sim-builder` | Generates a self-contained HTML simulation from a topic prompt | MCP App (sandboxed iframe) |
+| `illustration-builder` | Generates SVG/PNG illustrations for student materials | A2UI inline image |
+| `misconception-pair` | Generates a *correct* illustration **and** a textbook-distractor wrong variant — pulls on the pedagogical pattern AR is already using to mine instructive AI failure modes | A2UI side-by-side |
+| `problem-set-helper` (teacher config) | Configures a student-facing tutor for a given problem set with hint structure | Skill template |
+| `concept-dialogue` (teacher config) | Configures a Socratic conceptual-exploration tutor for a topic | Skill template |
+| `lab-troubleshoot` (teacher config) | Configures a tutor that helps students debug experimental data (CSV / Tracker / photos) | Skill template + AILANG Parse for uploads |
+
+### Student-facing (consumes teacher configurations)
+
+| Skill | What it does |
+|---|---|
+| Problem-set hints | Chat-based step hints; never solves the problem fully |
+| Conceptual exploration | Socratic dialogue on a topic the teacher pre-configured |
+| Lab data troubleshooting | Photo / CSV / Tracker uploads + analysis |
+
+### Stretch (post-Jutland, possibly post-summer)
+
+| Skill | What it does | Notes |
+|---|---|---|
+| `student-as-creator` (Strand B) | Lets students generate their own simulations with AI assistance | Same machinery as `physics-sim-builder`; different skill prompts and review gates |
+| `video-analysis-feedback` | Analyses recorded video of a student working through a task and gives formative feedback on progress | New from JB; multimodal; depends on Gemini's video capabilities and on the safety/privacy posture for student video |
+| `student-model-tracker` | Maintains and updates a per-group concept network ([C3](#c3-student-models)) | The most speculative item; gated by the Strand C scoping recommendation |
+
+**Vetted artefact library** lives on **GitHub** for portability — survives any future hosting move (UCPH IT, alternate provider). Approved artefacts skip the [content-review pipeline](architecture.qmd#adr-013-artefact-safety-content-review-pipeline) on each use; new artefacts pass through it.
+
 ---
 
 ## Strand A — Pedagogical bot infrastructure
 
-**Goal.** Deploy purpose-configured chatbots ("pedagogical bots") that teachers can use with their stx physics classes during the project.
+**Goal.** Deploy purpose-configured chatbots ("pedagogical bots") that teachers can use with their stx physics classes — *and* support **teacher-generated interactive artefacts** (HTML simulations, illustrations, problem workbenches) rendered safely in chat. Pattern anchored on AR's existing GenAI trials, where AI is used as much for content generation as for tutoring.
 
 **Requirements** (from the brief):
 
@@ -98,15 +131,15 @@ Strand B reuses Strand A's plumbing — the load-bearing decision that makes bot
 
 ---
 
-## Strand B — Simulation and game creation
+## Strand B — Student-as-creator
 
-**Goal.** A setup for students and teachers to produce simulations and games themselves, with AI assistance. Similar infrastructure requirements to Strand A (GDPR, project-side billing, log access).
+**Goal.** Extend Strand A's teacher-creates-artefacts pattern to **students creating their own simulations and games** with AI assistance. Same MCP-App + safety-pipeline machinery as Strand A; the change is in the skills exposed to students.
 
-**One concrete option:** couple this to a GitHub-based workflow so artefacts are versioned and inspectable — students get exposure to a real engineering workflow, researchers get a complete history of how each artefact evolved.
+**GitHub-based workflow** is the working assumption for the artefact library — versioned, inspectable, portable across hosting (matters because UCPH-IT-takeover is on the [self-hosting](self-hosting.qmd) horizon). Students get exposure to a real engineering workflow; researchers get a complete edit history.
 
 **Deliverable.** A working pilot similar to Strand A.
 
-**Timeline.** Kickoff after the mid-July review (week 10), pilot-ready by weeks 14–15. Strand A's infrastructure (auth, billing, log access, model routing) should be reused — Strand B is largely a different front-end and a different prompt strategy on top of the same plumbing, not a separate stack.
+**Timeline.** Kickoff after the mid-point review (week 7+). Pilot-ready by weeks 14–15. Less new infrastructure than the original framing suggested — most of the heavy lifting is already done by Strand A's artefact machinery.
 
 ---
 
