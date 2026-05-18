@@ -93,7 +93,7 @@ This separation matters for three reasons: successors can add new plugins withou
 | 012 | AILANG ecosystem in AIPLA (utilities, not runtime) | Decided | M, [JB to be informed] |
 | 013 | Artefact safety / content-review pipeline | Decided | M |
 | 014 | Per-group / per-class budget enforcement | Decided | M |
-| 015 | Unified chat UI — no separate teacher dashboard | Decided | M |
+| 015 | Unified multi-surface UI — AI directs the layout | Decided | M |
 
 ---
 
@@ -496,46 +496,65 @@ Counters derive from the OpenTelemetry usage stream already in [ADR-005](#adr-00
 
 ---
 
-## ADR-015 — Unified chat UI: no separate teacher dashboard
+## ADR-015 — Unified multi-surface UI: AI directs the layout
 
-**Context.** Teachers and students have different needs from AIPLA — teachers configure skills, review artefacts, monitor budgets and chat logs; students engage with tutors and consume artefacts. The reflex is to build a separate teacher dashboard alongside the student chat. The reflex would double the v1 surface area.
+**Context.** Teachers and students have different needs from AIPLA — teachers configure skills, review artefacts, monitor budgets; students engage with tutors and consume artefacts. The reflex is to build a separate teacher dashboard alongside the student chat. Both that reflex *and* the opposite reflex ("just stuff everything inline in a scrolling chat") are wrong:
 
-**Decision.** Use **the same chat UI** for both audiences. Role differentiation happens via the **skills exposed** to each role, not via separate routes. Teacher-role skills emit A2UI dashboard components or MCP App previews directly into the chat conversation — the conversation **is** the dashboard.
+- Separate apps doubles the v1 surface area
+- Chat-as-prime-driver makes dashboards scroll away into history; teachers lose context
 
-| Teacher task | Skill | Surface |
+**Decision.** Use **a single UI app composed of multiple named surfaces**. The AI directs which surface each output goes to. Chat is one surface among several — a conversational signal channel, not the primary UX driver.
+
+A2UI's [`surfaceId` mechanism](https://a2ui.org/) is built for this: a surface is *"a canvas for components (dialog, sidebar, main view)"* with its own component tree and data model. The agent targets a surface by name; updates flow there independently of other surfaces.
+
+**AIPLA surface layout (v1):**
+
+| Surface | Role | Typical occupants |
 |---|---|---|
-| See current class usage + budget | `class-status` | A2UI dashboard block |
-| Generate a physics simulation | `physics-sim-builder` | MCP App preview |
-| Review and publish pending artefacts | `review-artefacts` | A2UI list with inline preview + approve/reject |
-| Create class / generate group IDs | `manage-class` | A2UI form |
-| Search anonymised chat logs | `chat-log-search` | A2UI search results |
-| Configure a problem-set helper bot | `problem-set-helper-config` | A2UI configuration form |
+| `chat` | Conversational channel | User input, agent text responses, transient acknowledgements |
+| `workspace` | Primary work area — current active view | Live dashboards (`class-status`), open artefact (`physics-sim-builder` MCP App), search results |
+| `sidebar` | Persistent context | Current class, current group, quick-switch, available skills |
+| `modal` | Blocking focused task | Artefact-approval review, confirm-class-deletion, login |
+
+**Mapping skills to surfaces:**
+
+| Teacher task | Skill | Target surface |
+|---|---|---|
+| See current class usage + budget | `class-status` | `workspace` (live A2UI dashboard) |
+| Generate a physics simulation | `physics-sim-builder` | `workspace` (MCP App) |
+| Review and publish pending artefacts | `review-artefacts` | `modal` (focus on approval) |
+| Create class / generate group IDs | `manage-class` | `workspace` |
+| Search anonymised chat logs | `chat-log-search` | `workspace` |
+| Configure a problem-set helper bot | `problem-set-helper-config` | `workspace` |
+| Switch between classes | (sidebar component) | `sidebar` |
 
 **Why this works:**
 
-- **One UI surface to maintain.** No `/teacher` routes, no separate auth flow, no second deploy target.
-- **Aligns with the [AI Protocol Platform template](#platform-foundation) philosophy** — everything is a skill; skills emit rich UI via A2UI / MCP Apps. Building a separate dashboard would go against the grain.
-- **Auth-driven role filtering.** UCPH SSO sessions get teacher-role skills; anonymous group-ID sessions (per [ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids)) get student-role skills. The skill registry filters by role.
-- **Discoverability** via a curated starter set of skills each role sees on open — effectively a personalised "home" for each audience without a custom page.
+- **One UI app to maintain.** No `/teacher` routes, no separate auth flow, no second deploy target.
+- **Dashboards don't scroll away.** A teacher's `class-status` lives in `workspace` and updates live; the chat conversation continues in `chat` without burying it.
+- **Aligns with the [AI Protocol Platform template](#platform-foundation) philosophy** — skills emit rich UI via A2UI / MCP Apps. Multi-surface is what A2UI was designed for.
+- **Auth-driven role filtering.** UCPH SSO sessions get teacher-role skills; anonymous group-ID sessions (per [ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids)) get student-role skills. The skill registry filters by role and the AI picks the appropriate target surface per skill.
+- **Mobile-friendly.** Renderer collapses surfaces sensibly on small screens (workspace foregrounded, chat as a tab); A2UI doesn't care about layout — that's the renderer's job.
 
 **Consequences.**
 
-- Teacher experience is conversational, not page-based. For teachers who want a more traditional layout, a `dashboard-view` skill can return a multi-panel A2UI block — still inside the chat surface, visually richer.
-- Mobile-friendly by default — same UI on phone or laptop.
 - Significant v1 scope reduction: one auth path, one UI deploy, one set of components to test.
+- The agent must learn to pick the right surface per skill — surface choice is part of skill metadata, defaulted in the skill template, overridable by the agent if context demands (e.g., a small ack goes to `chat`, the full result goes to `workspace`).
+- Renderer (frontend) must support the four surfaces and route components from A2UI's `surfaceId` to the right region. The AI Protocol Platform template's reference frontend may need extension here — to verify during the build phase.
+- Mobile renderer collapses surfaces gracefully.
 
 ### Live updates without new chat messages
 
-Both [A2UI](https://a2ui.org/) and [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview) support **server-pushed updates to existing rendered components** — the teacher does not need to re-send a query to refresh a panel.
+Both [A2UI](https://a2ui.org/) and [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview) support **server-pushed updates to existing rendered components** — and updates flow to the target surface independently of the chat surface.
 
-- **A2UI** binds data values to component paths. The agent emits a `dataModelUpdate` event (e.g., `/class/budget_used = 42`) and the client patches the affected component only ([Agentic UI architecture write-up](https://dev.to/tahmidbintaslim/agentic-ui-a2ui-ag-ui-build-uis-your-agent-can-update-in-real-time-274n))
-- **MCP Apps** receive `ui/toolResult` messages over `postMessage` whenever the host's tool data changes, and can call `tools/call` back through the host bridge ([MCP Apps spec](https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/))
+- **A2UI** binds data values to component paths. The agent emits a `dataModelUpdate` event (e.g., `surfaceId: "workspace"`, path `/class/budget_used = 42`) and only the affected component patches ([Agentic UI write-up](https://dev.to/tahmidbintaslim/agentic-ui-a2ui-ag-ui-build-uis-your-agent-can-update-in-real-time-274n))
+- **MCP Apps** receive `ui/toolResult` messages over `postMessage` whenever the host's tool data changes ([MCP Apps spec](https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/))
 
-Practical pattern for AIPLA: which skills benefit from live updates vs one-shot:
+Practical pattern for AIPLA — which skills benefit from live updates vs one-shot:
 
 | Pattern | Skills | Why |
 |---|---|---|
-| **Live-update** (data-bound, server pushes patches) | `class-status`, `review-artefacts`, `chat-log-search` | Background state changes as students use the system — teacher shouldn't have to refresh |
-| **One-shot** (generate → render → done) | `physics-sim-builder`, `illustration-builder`, `manage-class`, `misconception-pair` | Single user action completes a discrete task |
+| **Live-update on `workspace`** (data-bound, server pushes patches) | `class-status`, `review-artefacts`, `chat-log-search` | Background state changes as students use the system — teacher shouldn't have to refresh |
+| **One-shot on `workspace`** (generate → render → publish) | `physics-sim-builder`, `illustration-builder`, `manage-class`, `misconception-pair` | Single user action completes a discrete task |
 
-For live-update skills, the rendered component **persists in chat history at the position it was invoked** and continues receiving updates. The teacher can pin or scroll back to it; the data stays current.
+For live-update skills the rendered component **stays in `workspace`** and continues receiving patches; the `chat` surface continues underneath without burying it. The teacher's view of class status is always at hand, not scrolled away.

@@ -82,7 +82,7 @@ Concrete skills that will sit on top of the Strand A infrastructure. Designed *w
 
 ### Teacher-facing (primary)
 
-All teacher tasks happen in the **same chat UI** as students — different skills, different rich UI components emitted, no separate teacher app (see [ADR-015](architecture.qmd#adr-015-unified-chat-ui-no-separate-teacher-dashboard)).
+All teacher tasks happen in the **same UI app** as students — a single multi-surface frontend where the AI directs which surface each output goes to (`chat` for conversation, `workspace` for active views like dashboards and artefacts, `sidebar` for persistent context, `modal` for focused approval flows). See [ADR-015](architecture.qmd#adr-015-unified-multi-surface-ui-ai-directs-the-layout).
 
 **Content creation**
 
