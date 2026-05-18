@@ -93,6 +93,7 @@ This separation matters for three reasons: successors can add new plugins withou
 | 012 | AILANG ecosystem in AIPLA (utilities, not runtime) | Decided | M, [JB to be informed] |
 | 013 | Artefact safety / content-review pipeline | Decided | M |
 | 014 | Per-group / per-class budget enforcement | Decided | M |
+| 015 | Unified chat UI — no separate teacher dashboard | Decided | M |
 
 ---
 
@@ -492,3 +493,33 @@ Counters derive from the OpenTelemetry usage stream already in [ADR-005](#adr-00
 - The numbers above are placeholders; real usage data from the eval calibrates them post-Jutland.
 - JB's GCP billing alert (1000 DKK / month) remains the outermost ceiling — these per-cohort caps sit inside it.
 - **Selling point for UCPH data-protection:** no PII to API providers, no per-user keys, predictable spend, no surprise bills.
+
+---
+
+## ADR-015 — Unified chat UI: no separate teacher dashboard
+
+**Context.** Teachers and students have different needs from AIPLA — teachers configure skills, review artefacts, monitor budgets and chat logs; students engage with tutors and consume artefacts. The reflex is to build a separate teacher dashboard alongside the student chat. The reflex would double the v1 surface area.
+
+**Decision.** Use **the same chat UI** for both audiences. Role differentiation happens via the **skills exposed** to each role, not via separate routes. Teacher-role skills emit A2UI dashboard components or MCP App previews directly into the chat conversation — the conversation **is** the dashboard.
+
+| Teacher task | Skill | Surface |
+|---|---|---|
+| See current class usage + budget | `class-status` | A2UI dashboard block |
+| Generate a physics simulation | `physics-sim-builder` | MCP App preview |
+| Review and publish pending artefacts | `review-artefacts` | A2UI list with inline preview + approve/reject |
+| Create class / generate group IDs | `manage-class` | A2UI form |
+| Search anonymised chat logs | `chat-log-search` | A2UI search results |
+| Configure a problem-set helper bot | `problem-set-helper-config` | A2UI configuration form |
+
+**Why this works:**
+
+- **One UI surface to maintain.** No `/teacher` routes, no separate auth flow, no second deploy target.
+- **Aligns with the [AI Protocol Platform template](#platform-foundation) philosophy** — everything is a skill; skills emit rich UI via A2UI / MCP Apps. Building a separate dashboard would go against the grain.
+- **Auth-driven role filtering.** UCPH SSO sessions get teacher-role skills; anonymous group-ID sessions (per [ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids)) get student-role skills. The skill registry filters by role.
+- **Discoverability** via a curated starter set of skills each role sees on open — effectively a personalised "home" for each audience without a custom page.
+
+**Consequences.**
+
+- Teacher experience is conversational, not page-based. For teachers who want a more traditional layout, a `dashboard-view` skill can return a multi-panel A2UI block — still inside the chat surface, visually richer.
+- Mobile-friendly by default — same UI on phone or laptop.
+- Significant v1 scope reduction: one auth path, one UI deploy, one set of components to test.

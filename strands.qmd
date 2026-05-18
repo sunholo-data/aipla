@@ -82,14 +82,32 @@ Concrete skills that will sit on top of the Strand A infrastructure. Designed *w
 
 ### Teacher-facing (primary)
 
-| Skill | What it does | Artefact / surface |
+All teacher tasks happen in the **same chat UI** as students — different skills, different rich UI components emitted, no separate teacher app (see [ADR-015](architecture.qmd#adr-015-unified-chat-ui-no-separate-teacher-dashboard)).
+
+**Content creation**
+
+| Skill | What it does | Surface |
 |---|---|---|
 | `physics-sim-builder` | Generates a self-contained HTML simulation from a topic prompt | MCP App (sandboxed iframe) |
 | `illustration-builder` | Generates SVG/PNG illustrations for student materials | A2UI inline image |
 | `misconception-pair` | Generates a *correct* illustration **and** a textbook-distractor wrong variant — pulls on the pedagogical pattern AR is already using to mine instructive AI failure modes | A2UI side-by-side |
-| `problem-set-helper` (teacher config) | Configures a student-facing tutor for a given problem set with hint structure | Skill template |
-| `concept-dialogue` (teacher config) | Configures a Socratic conceptual-exploration tutor for a topic | Skill template |
-| `lab-troubleshoot` (teacher config) | Configures a tutor that helps students debug experimental data (CSV / Tracker / photos) | Skill template + AILANG Parse for uploads |
+
+**Bot configuration**
+
+| Skill | What it does | Surface |
+|---|---|---|
+| `problem-set-helper-config` | Configures a student-facing tutor for a given problem set with hint structure | A2UI configuration form |
+| `concept-dialogue-config` | Configures a Socratic conceptual-exploration tutor for a topic | A2UI configuration form |
+| `lab-troubleshoot-config` | Configures a tutor that helps students debug experimental data | A2UI form + AILANG Parse for uploads |
+
+**Dashboard / management**
+
+| Skill | What it does | Surface |
+|---|---|---|
+| `class-status` | Current class usage, budget remaining, time-to-reset, active groups | A2UI dashboard block |
+| `manage-class` | Create class, generate group IDs, list students-by-group | A2UI form |
+| `review-artefacts` | Pending generated artefacts awaiting teacher approval before students see them | A2UI list with inline preview + approve/reject |
+| `chat-log-search` | Search this teacher's anonymised class chat logs | A2UI search results |
 
 ### Student-facing (consumes teacher configurations)
 
