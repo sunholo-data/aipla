@@ -79,12 +79,12 @@ This separation matters for three reasons: successors can add new plugins withou
 
 | # | Decision | Status | Sign-off |
 |---|---|---|---|
-| 001 | Student identity: no auth, anonymous group IDs | Decided | M, [JB TBC] |
-| 002 | Strand A built on the AI Protocol Platform | Decided | M, [JB TBC] |
+| 001 | Student identity: no auth, anonymous group IDs | Decided | M, JB ✓ (2026-05-18) |
+| 002 | Strand A built on the AI Protocol Platform | Decided | M, JB ✓ (2026-05-18) |
 | 003 | LLM provider mix (Claude · Gemini · Ollama · on-device) | Decided | M |
 | 004 | Document parsing via AILANG Parse | Decided | M |
 | 005 | Chat log storage | Decided (pending consent details) | M |
-| 006 | Cloud provider for prototype: GCP EU via Multivac | Decided | M, [JB TBC] |
+| 006 | Cloud provider for prototype: GCP EU via Multivac | Decided | M, JB ✓ (2026-05-18) |
 | 007 | Cloud region: europe-north1 (Finland) | Decided | M, [JB / UCPH IT TBC] |
 | 008 | Model abstraction / routing layer | Decided (via template) | M |
 | 009 | Backend stack | Decided (via template) | M |
