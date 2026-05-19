@@ -45,7 +45,7 @@ gantt
 | Phase | Weeks | Date range | Focus |
 |---|---|---|---|
 | 0. Decide & set up | 1 | May 15 – May 22 | ADRs done; GCP projects (`aipla-dev/test/prod-2026`) live; **platform feature work kicked off upstream** (group-ID auth, `tenant_id` span hook, budget enforcement, artefact review pipeline — see notes) |
-| **0.5. Jutland demo (v0.1)** | 2 | May 22 – May 27 | **Group-ID auth lands upstream by Tue 26 May.** Fork the updated platform; configure for AIPLA; minimum chat URL + one physics-tutor skill + group-ID join. **JB + Aswin to Jutland 27–29 May.** |
+| **0.5. Jutland demo (v0.1)** | 2 | May 22 – May 27 | **Group-ID auth lands upstream by Tue 26 May.** Fork the updated platform into `sunholo-data/cphu-aipla-app`; configure for AIPLA; minimum chat URL + one physics-tutor skill + group-ID join. **JB + Aswin to Jutland 27–29 May.** |
 | 1. Build (Strand A core) | 3–6 | May 27 – Jun 26 | Layer on RAG → multimodal → teacher bot configuration UI |
 | **Mid-point review** | 6 | Fri Jun 26 | Live demo + scope review **before holidays** |
 | Both on holiday (M + JB) | 7 (wk 27) | Jun 29 – Jul 5 | Code freeze. JB on Danish summer break; M at Croatia workshop |
