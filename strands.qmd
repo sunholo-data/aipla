@@ -100,7 +100,7 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 
 | Skill | What it does | Surface | Scope |
 |---|---|---|---|
-| `physics-sim-builder` | Generates a self-contained HTML simulation **plus** a paired Socratic-tutor system prompt referencing the simulation's specific UI. Output is consumed by a tutor-config skill (canonical: `problem-set-helper-config`) for the matching student-facing tutor. AR's preferred pattern. | MCP App (sim) + tutor-prompt feed into a config skill | Year-2 |
+| `physics-sim-builder` | Generates a paired sim+tutor unit. **Structured inputs:** *Topic* (full scope) + *Student Difficulty* (emphasis). Anti-reduction discipline: address the misconception inside the complete topic, never collapse to it. **Output structure:** HTML simulation + Predict→Explore→Reflect→Summarize learning flow + paired Socratic tutor referencing the sim's UI. Modelled on AR's iteratively refined prompt (`sources/aswin-trials/prompt-aswin.txt`). | MCP App (sim) + tutor-prompt feed into a config skill | Year-2 |
 | `illustration-builder` | Generates SVG/PNG illustrations for student materials | A2UI inline image | Year-2 |
 | `misconception-pair` | Generates a *correct* illustration **and** a textbook-distractor wrong variant — pulls on the pedagogical pattern AR is already using to mine instructive AI failure modes | A2UI side-by-side | Year-2 |
 
