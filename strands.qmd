@@ -104,7 +104,7 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 | `illustration-builder` | Generates SVG/PNG illustrations for student materials | A2UI inline image | Year-2 |
 | `misconception-pair` | Generates a *correct* illustration **and** a textbook-distractor wrong variant — pulls on the pedagogical pattern AR is already using to mine instructive AI failure modes | A2UI side-by-side | Year-2 |
 
-*v1 alternative — a **hand-curated library of paired sim+tutor units** (built with AR) covers content needs without on-the-fly generation. Each unit is a sim plus its specific paired tutor prompt. The skills above ship when the artefact generation pipeline is mature.*
+*v1 alternative — a **hand-curated library of paired sim+tutor units**, plus **[PhET](https://phet.colorado.edu/) sims paired with AIPLA-authored tutors** for topics PhET already covers well. PhET sims are iframe-embeddable and pre-translated; AIPLA hosts a Socratic tutor whose prompt references the specific PhET sim's UI. Same paired-unit pattern as AR's; we just don't author the sim ourselves for these. The AI-generation skills above ship when the artefact-generation pipeline is mature.*
 
 **Bot configuration**
 
@@ -136,6 +136,7 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 | Skill | What it does | Notes |
 |---|---|---|
 | `student-as-creator` (Strand B) | Lets students generate their own simulations with AI assistance | Same machinery as `physics-sim-builder`; different skill prompts and review gates |
+| `physics-sandbox-tool` (Strand B) | Interactive 2D physics sandbox embedded as an MCP App — drag-and-drop objects, run simulations, query state via MCP tools. The "Algodoo-but-with-API" direction discussed in the 18 May meeting. | Build on [Matter.js](https://brm.io/matter-js/) or [Planck.js](https://piqnt.com/planck.js/) (MIT-licensed JS 2D physics). Algodoo itself is desktop-only with no external API; this stretch goal would give AIPLA an interactive scene-building surface that fits the MCP App architecture natively. |
 | `video-analysis-feedback` | Analyses recorded video of a student working through a task and gives formative feedback on progress | New from JB; multimodal; depends on Gemini's video capabilities and on the safety/privacy posture for student video |
 | `student-model-tracker` | Maintains and updates a per-group concept network ([C3](#c3-student-models)) | The most speculative item; gated by the Strand C scoping recommendation |
 
@@ -173,11 +174,16 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 
 **Goal.** Extend Strand A's teacher-creates-artefacts pattern to **students creating their own simulations and games** with AI assistance. Same MCP-App + safety-pipeline machinery as Strand A; the change is in the skills exposed to students.
 
+**Two directions inside Strand B:**
+
+- **Generative** — `student-as-creator` skill, AI builds a sim from a student prompt. Same machinery as `physics-sim-builder`; tighter review gates.
+- **Interactive sandbox** — `physics-sandbox-tool`, a Matter.js-based MCP App where students drag-and-drop objects and run physics. This is the *Algodoo-replacement* direction — interactive scene building inside AIPLA, no desktop-software lock-in, MCP-tool-accessible for AI-assisted scene authoring.
+
 **GitHub-based workflow** is the working assumption for the artefact library — versioned, inspectable, portable across hosting (matters because UCPH-IT-takeover is on the [self-hosting](self-hosting.qmd) horizon). Students get exposure to a real engineering workflow; researchers get a complete edit history.
 
 **Deliverable.** A working pilot similar to Strand A.
 
-**Timeline.** Kickoff after the mid-point review (week 7+). Pilot-ready by weeks 14–15. Less new infrastructure than the original framing suggested — most of the heavy lifting is already done by Strand A's artefact machinery.
+**Timeline.** Kickoff after the mid-point review (week 7+). Pilot-ready by weeks 14–15. Less new infrastructure than the original framing suggested — most of the heavy lifting is already done by Strand A's artefact machinery. The interactive sandbox is post-handover stretch unless an early scope opportunity appears.
 
 ---
 
