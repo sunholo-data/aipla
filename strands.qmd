@@ -88,6 +88,10 @@ Strand B reuses Strand A's plumbing — the load-bearing decision that makes bot
 
 Concrete skills that will sit on top of the Strand A infrastructure. Designed *with* AR; refined as the teacher pilot reveals what actually gets used.
 
+::: {.callout-tip appearance="simple"}
+**The canonical pairing.** AR's preferred workflow ([Examples page](examples.qmd)) pairs `physics-sim-builder` with a tutor-config skill (typically `problem-set-helper-config`) — sim + tutor designed together as a unit, with the tutor's prompt referencing the simulation's specific UI elements. Standalone-tutor skills (no paired sim) cover topics like pure conceptual dialogue where there's no UI to reference.
+:::
+
 ### Teacher-facing (primary)
 
 All teacher tasks happen in the **same UI app** as students — a single multi-surface frontend where the AI directs which surface each output goes to (`chat` for conversation, `workspace` for active views like dashboards and artefacts, `sidebar` for persistent context, `modal` for focused approval flows). See [ADR-015](architecture.qmd#adr-015-unified-multi-surface-ui-ai-directs-the-layout).
@@ -96,18 +100,18 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 
 | Skill | What it does | Surface | Scope |
 |---|---|---|---|
-| `physics-sim-builder` | Generates a self-contained HTML simulation from a topic prompt | MCP App (sandboxed iframe) | Year-2 |
+| `physics-sim-builder` | Generates a self-contained HTML simulation **plus** a paired Socratic-tutor system prompt referencing the simulation's specific UI. Output is consumed by a tutor-config skill (canonical: `problem-set-helper-config`) for the matching student-facing tutor. AR's preferred pattern. | MCP App (sim) + tutor-prompt feed into a config skill | Year-2 |
 | `illustration-builder` | Generates SVG/PNG illustrations for student materials | A2UI inline image | Year-2 |
 | `misconception-pair` | Generates a *correct* illustration **and** a textbook-distractor wrong variant — pulls on the pedagogical pattern AR is already using to mine instructive AI failure modes | A2UI side-by-side | Year-2 |
 
-*v1 alternative — a hand-curated sim library (built with AR) covers content needs without on-the-fly generation. The skills above ship when the artefact generation pipeline is mature.*
+*v1 alternative — a **hand-curated library of paired sim+tutor units** (built with AR) covers content needs without on-the-fly generation. Each unit is a sim plus its specific paired tutor prompt. The skills above ship when the artefact generation pipeline is mature.*
 
 **Bot configuration**
 
 | Skill | What it does | Surface | Scope |
 |---|---|---|---|
-| `problem-set-helper-config` | Configures a student-facing tutor for a given problem set with hint structure | A2UI configuration form | v1 |
-| `concept-dialogue-config` | Configures a Socratic conceptual-exploration tutor for a topic | A2UI configuration form | v1 |
+| `problem-set-helper-config` | Configures a student-facing tutor for a problem set or simulation. **When paired with `physics-sim-builder`** the tutor's prompt is generated alongside the sim and references its specific UI; **standalone**, it just structures the hint sequence. | A2UI configuration form | v1 |
+| `concept-dialogue-config` | Configures a standalone Socratic conceptual-exploration tutor for a topic (no paired sim) | A2UI configuration form | v1 |
 | `lab-troubleshoot-config` | Configures a tutor that helps students debug experimental data | A2UI form + AILANG Parse for uploads | Year-2 |
 
 **Dashboard / management**
@@ -145,9 +149,9 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 
 ## Strand A — Pedagogical bot infrastructure
 
-**Goal.** Deploy purpose-configured chatbots ("pedagogical bots") that teachers can use with their stx physics classes. The infrastructure also supports **teacher-rendered interactive artefacts** (HTML simulations, illustrations) in chat — pattern anchored on AR's existing GenAI trials.
+**Goal.** Deploy purpose-configured chatbots ("pedagogical bots") that teachers use with their stx physics classes. The canonical pattern (per AR's existing GenAI trials) is a **paired unit** — a sandboxed HTML simulation in `workspace` plus a Socratic tutor in `chat` whose prompt references that specific simulation's UI. Sim and tutor are designed together; the tutor *is* the simulation's pedagogical scaffold, not a generic physics chatbot.
 
-**v1 commits to** the chat-tutor side plus a hand-curated sim library teachers can hand out. The on-demand AI artefact-generation flow (`physics-sim-builder`, `misconception-pair`) is direction-of-travel for Year-2 — the architecture supports it but v1 ships a curated library instead.
+**v1 commits to** the chat-tutor side plus a hand-curated library of **paired sim+tutor units** teachers can hand out. The on-demand AI generation of new paired units (`physics-sim-builder`, `misconception-pair`) is direction-of-travel for Year-2 — the architecture supports it but v1 ships the curated library.
 
 **Requirements** (from the brief):
 
