@@ -469,6 +469,7 @@ Generated HTML is untrusted by default — the model can be prompted, accidental
 - ~1–2s added latency between bot output and student-visible render. Acceptable.
 - Teacher-preview-before-publish becomes a UX requirement, not optional.
 - The pipeline is one MCP server — successors can extend the rules without touching the backend.
+- **v1 scope:** the pipeline ships when AI-generated artefacts ship. **v1 uses a hand-curated sim library** (built with AR), so the pipeline isn't on the August critical path. It's architectural groundwork for Year-2 when teachers generate artefacts interactively.
 
 ---
 
@@ -493,6 +494,7 @@ Counters derive from the OpenTelemetry usage stream already in [ADR-005](#adr-00
 - The numbers above are placeholders; real usage data from the eval calibrates them post-Jutland.
 - JB's GCP billing alert (1000 DKK / month) remains the outermost ceiling — these per-cohort caps sit inside it.
 - **Selling point for UCPH data-protection:** no PII to API providers, no per-user keys, predictable spend, no surprise bills.
+- **v1 scope:** **per-class enforcement only in v1.** Per-group counters and skill multipliers are Year-2 refinements; v1's simpler model (one cap per class) is enough to ship a safe pilot in August.
 
 ---
 
@@ -540,8 +542,9 @@ A2UI's [`surfaceId` mechanism](https://a2ui.org/) is built for this: a surface i
 
 - Significant v1 scope reduction: one auth path, one UI deploy, one set of components to test.
 - The agent must learn to pick the right surface per skill — surface choice is part of skill metadata, defaulted in the skill template, overridable by the agent if context demands (e.g., a small ack goes to `chat`, the full result goes to `workspace`).
-- Renderer (frontend) must support the four surfaces and route components from A2UI's `surfaceId` to the right region. The AI Protocol Platform template's reference frontend may need extension here — to verify during the build phase.
+- Renderer (frontend) must support the four surfaces and route components from A2UI's `surfaceId` to the right region. The AI Protocol Platform template's reference frontend already ships multi-surface support (`A2UISurfaceMount`, `SurfaceRegistry`) — verified 2026-05-19.
 - Mobile renderer collapses surfaces gracefully.
+- **v1 scope:** **chat-primary with a `workspace` surface for embedded sims.** Full four-surface layout (`sidebar`, `modal`) is Year-2; the architecture supports it but v1 doesn't need it shipped. Over-deliver if time permits.
 
 ### Live updates without new chat messages
 

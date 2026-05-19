@@ -76,7 +76,15 @@ flowchart TB
 
 Strand B reuses Strand A's plumbing — the load-bearing decision that makes both pilots achievable in the contract window. Strand C may produce a concrete prototype (the Plaud-like interface) that bridges back into Strand A.
 
-## Skills planned for v1
+## Skills
+
+::: {.callout-note appearance="simple"}
+**What's committed vs. direction-of-travel.** Each skill below is tagged with a scope marker. We set the v1 deliverable conservatively and over-deliver where we can; the architecture enables all of these but the 4-month contract only commits a focused subset.
+
+- **v0.1** — Jutland teacher demo (Wed 27 May)
+- **v1** — Teacher pilot (mid-August onwards)
+- **Year-2** — Architectural direction; enabled by the platform but not in the 4-month deliverable
+:::
 
 Concrete skills that will sit on top of the Strand A infrastructure. Designed *with* AR; refined as the teacher pilot reveals what actually gets used.
 
@@ -86,44 +94,48 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 
 **Content creation**
 
-| Skill | What it does | Surface |
-|---|---|---|
-| `physics-sim-builder` | Generates a self-contained HTML simulation from a topic prompt | MCP App (sandboxed iframe) |
-| `illustration-builder` | Generates SVG/PNG illustrations for student materials | A2UI inline image |
-| `misconception-pair` | Generates a *correct* illustration **and** a textbook-distractor wrong variant — pulls on the pedagogical pattern AR is already using to mine instructive AI failure modes | A2UI side-by-side |
+| Skill | What it does | Surface | Scope |
+|---|---|---|---|
+| `physics-sim-builder` | Generates a self-contained HTML simulation from a topic prompt | MCP App (sandboxed iframe) | Year-2 |
+| `illustration-builder` | Generates SVG/PNG illustrations for student materials | A2UI inline image | Year-2 |
+| `misconception-pair` | Generates a *correct* illustration **and** a textbook-distractor wrong variant — pulls on the pedagogical pattern AR is already using to mine instructive AI failure modes | A2UI side-by-side | Year-2 |
+
+*v1 alternative — a hand-curated sim library (built with AR) covers content needs without on-the-fly generation. The skills above ship when the artefact generation pipeline is mature.*
 
 **Bot configuration**
 
-| Skill | What it does | Surface |
-|---|---|---|
-| `problem-set-helper-config` | Configures a student-facing tutor for a given problem set with hint structure | A2UI configuration form |
-| `concept-dialogue-config` | Configures a Socratic conceptual-exploration tutor for a topic | A2UI configuration form |
-| `lab-troubleshoot-config` | Configures a tutor that helps students debug experimental data | A2UI form + AILANG Parse for uploads |
+| Skill | What it does | Surface | Scope |
+|---|---|---|---|
+| `problem-set-helper-config` | Configures a student-facing tutor for a given problem set with hint structure | A2UI configuration form | v1 |
+| `concept-dialogue-config` | Configures a Socratic conceptual-exploration tutor for a topic | A2UI configuration form | v1 |
+| `lab-troubleshoot-config` | Configures a tutor that helps students debug experimental data | A2UI form + AILANG Parse for uploads | Year-2 |
 
 **Dashboard / management**
 
-| Skill | What it does | Surface |
-|---|---|---|
-| `class-status` | Current class usage, budget remaining, time-to-reset, active groups | A2UI dashboard block |
-| `manage-class` | Create class, generate group IDs, list students-by-group | A2UI form |
-| `review-artefacts` | Pending generated artefacts awaiting teacher approval before students see them | A2UI list with inline preview + approve/reject |
-| `chat-log-search` | Search this teacher's anonymised class chat logs | A2UI search results |
+| Skill | What it does | Surface | Scope |
+|---|---|---|---|
+| `class-status` | Current class usage, budget remaining, time-to-reset, active groups | A2UI dashboard block | Year-2 |
+| `manage-class` | Create class, generate group IDs, list students-by-group | A2UI form | v1 (minimum: code generation) |
+| `review-artefacts` | Pending generated artefacts awaiting teacher approval before students see them | A2UI list with inline preview + approve/reject | Year-2 |
+| `chat-log-search` | Search this teacher's anonymised class chat logs | A2UI search results | Year-2 (BigQuery direct for v1) |
 
 ### Student-facing (consumes teacher configurations)
 
-| Skill | What it does |
-|---|---|
-| Problem-set hints | Chat-based step hints; never solves the problem fully |
-| Conceptual exploration | Socratic dialogue on a topic the teacher pre-configured |
-| Lab data troubleshooting | Photo / CSV / Tracker uploads + analysis |
+| Skill | What it does | Scope |
+|---|---|---|
+| Problem-set hints | Chat-based step hints; never solves the problem fully | **v0.1** (Jutland demo) + v1 |
+| Conceptual exploration | Socratic dialogue on a topic the teacher pre-configured | v1 |
+| Lab data troubleshooting | Photo / CSV / Tracker uploads + analysis | Year-2 (multimodal upload not in v1) |
 
-### Stretch (post-Jutland, possibly post-summer)
+### Stretch (Year-2 / post-handover)
 
 | Skill | What it does | Notes |
 |---|---|---|
 | `student-as-creator` (Strand B) | Lets students generate their own simulations with AI assistance | Same machinery as `physics-sim-builder`; different skill prompts and review gates |
 | `video-analysis-feedback` | Analyses recorded video of a student working through a task and gives formative feedback on progress | New from JB; multimodal; depends on Gemini's video capabilities and on the safety/privacy posture for student video |
 | `student-model-tracker` | Maintains and updates a per-group concept network ([C3](#c3-student-models)) | The most speculative item; gated by the Strand C scoping recommendation |
+
+**Net v1 commitment.** Out of the skills above, **v1 ships five**: `problem-set-helper-config`, `concept-dialogue-config`, `manage-class` (code generation only), and the two student-facing chat skills (problem-set hints, conceptual exploration). Plus the hand-curated sim library teachers can hand out. Everything else is the architecture's *direction-of-travel*, not the 4-month deliverable.
 
 **Vetted artefact library** lives on **GitHub** for portability — survives any future hosting move (UCPH IT, alternate provider). Approved artefacts skip the [content-review pipeline](architecture.qmd#adr-013-artefact-safety-content-review-pipeline) on each use; new artefacts pass through it.
 
@@ -133,7 +145,9 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 
 ## Strand A — Pedagogical bot infrastructure
 
-**Goal.** Deploy purpose-configured chatbots ("pedagogical bots") that teachers can use with their stx physics classes — *and* support **teacher-generated interactive artefacts** (HTML simulations, illustrations, problem workbenches) rendered safely in chat. Pattern anchored on AR's existing GenAI trials, where AI is used as much for content generation as for tutoring.
+**Goal.** Deploy purpose-configured chatbots ("pedagogical bots") that teachers can use with their stx physics classes. The infrastructure also supports **teacher-rendered interactive artefacts** (HTML simulations, illustrations) in chat — pattern anchored on AR's existing GenAI trials.
+
+**v1 commits to** the chat-tutor side plus a hand-curated sim library teachers can hand out. The on-demand AI artefact-generation flow (`physics-sim-builder`, `misconception-pair`) is direction-of-travel for Year-2 — the architecture supports it but v1 ships a curated library instead.
 
 **Requirements** (from the brief):
 
