@@ -196,6 +196,8 @@ The brief also notes the typical configuration: one shared phone per three stude
 
 Concrete model selection per task is driven by capability-floor eval results — see [Evaluation](evaluation.qmd).
 
+**v0.1 active model (2026-05-20):** `gemini-3.5-flash` on Vertex AI global endpoint (GA 2026-05-19). **Cross-provider fallback documented:** Claude Sonnet 4.6. Router-overridable per ADR-008. Choice is provisional — calibrate against the capability-floor eval once it's running on AIPLA tasks.
+
 **Consequences.**
 
 - The [router](#adr-008-model-abstraction-routing-layer) handles all four tiers behind one interface; on-device adds a thin client-side adapter.
@@ -330,7 +332,9 @@ This is the **privacy-by-design** (GDPR Article 25) commitment made concrete. Th
 
 **Frankfurt fallback** is reserved for a specific scenario: if a Vertex AI feature AIPLA needs lands in europe-west3 but not europe-north1 during the contract window, swap is cheap (regional config change, no architectural impact).
 
-**Pending.** Confirm with JB / UCPH IT that europe-north1 has no institutional objection. If UCPH data-protection has a specific preference, defer to it.
+**v0.1 reality (2026-05-20).** **Gemini 3.5 Flash is not GA in europe-north1** at the time of the Jutland deploy. v0.1 uses **Vertex AI `global` endpoint** with a **project-level Data Residency policy** pinning storage and processing to the EU. Same compliance posture; region-config refinement deferred until europe-north1 reaches GA for the chosen model. Cloud Run service itself remains in europe-north1.
+
+**Pending.** Confirm with JB / UCPH IT that this composition (global endpoint + EU Data Residency policy) is acceptable. If UCPH data-protection requires strict regional pinning at the endpoint level, fall back to europe-west3 with whichever Gemini variant is GA there.
 
 ---
 

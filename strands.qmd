@@ -127,7 +127,7 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 
 | Skill | What it does | Scope |
 |---|---|---|
-| Problem-set hints | Chat-based step hints; never solves the problem fully | **v0.1** (Jutland demo) + v1 |
+| Problem-set hints | Chat-based step hints; never solves the problem fully | **✅ v0.1 shipped 2026-05-20** as `problem-set-hints` (Danish stx, Boldkast projectile motion) — live at [aipla-v01-frontend-wgwhd7mspa-lz.a.run.app](https://aipla-v01-frontend-wgwhd7mspa-lz.a.run.app/). + v1 expansion. |
 | Conceptual exploration | Socratic dialogue on a topic the teacher pre-configured | v1 |
 | Lab data troubleshooting | Photo / CSV / Tracker uploads + analysis | Year-2 (multimodal upload not in v1) |
 

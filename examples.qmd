@@ -6,6 +6,10 @@ page-layout: full
 
 These are real artefacts produced by a project teacher using GenAI (ChatGPT, Claude) on their own — before AIPLA's infrastructure exists. They are the form factor AIPLA's [Strand A](strands.qmd#strand-a-pedagogical-bot-infrastructure) is designed to make safe, configurable, and reusable at class scale.
 
+::: {.callout-tip appearance="simple"}
+**v0.1 live now.** The first deployed AIPLA chat is at **[aipla-v01-frontend-wgwhd7mspa-lz.a.run.app](https://aipla-v01-frontend-wgwhd7mspa-lz.a.run.app/)**. Anonymous group-ID join, `problem-set-hints` Danish physics-tutor skill (`Boldkast` projectile-motion problem), KU coat-of-arms branding, KaTeX-rendered formulae. Built 2026-05-19/20; **6 days ahead of the Jutland teacher demo deadline.** v0.1 is intentionally narrow — one skill, one problem — but is the form factor AIPLA's full v1 fans out from.
+:::
+
 ::: {.callout-note appearance="simple"}
 **The canonical workflow** (as the teacher who produced these artefacts described it):
 
