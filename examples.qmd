@@ -7,8 +7,31 @@ page-layout: full
 These are real artefacts produced by a project teacher using GenAI (ChatGPT, Claude) on their own — before AIPLA's infrastructure exists. They are the form factor AIPLA's [Strand A](strands.qmd#strand-a-pedagogical-bot-infrastructure) is designed to make safe, configurable, and reusable at class scale.
 
 ::: {.callout-tip appearance="simple"}
-**v0.1 live now.** The first deployed AIPLA chat is at **[aipla-v01-frontend-wgwhd7mspa-lz.a.run.app](https://aipla-v01-frontend-wgwhd7mspa-lz.a.run.app/)**. Anonymous group-ID join, `problem-set-hints` Danish physics-tutor skill (`Boldkast` projectile-motion problem), KU coat-of-arms branding, KaTeX-rendered formulae. Built 2026-05-19/20; **6 days ahead of the Jutland teacher demo deadline.** v0.1 is intentionally narrow — one skill, one problem — but is the form factor AIPLA's full v1 fans out from.
+**v0.1 live now.** The first deployed AIPLA chat is at **[aipla-v01-frontend-wgwhd7mspa-lz.a.run.app/group](https://aipla-v01-frontend-wgwhd7mspa-lz.a.run.app/group)**. Anonymous group-ID join, `problem-set-hints` Danish physics-tutor skill (`Boldkast` projectile-motion problem) paired with an embedded **interactive simulator on the workbench**, KU coat-of-arms branding, KaTeX-rendered formulae, inline AI-generated SVG diagrams. Built 2026-05-19 through 2026-05-21.
 :::
+
+## v0.1 in production — what students see
+
+The deployed app went through a substantial UX iteration on 2026-05-21: the chat tutor is now paired with an interactive **workbench surface** on the right showing the problem statement, an embedded simulator, and a 4-step self-assessment checklist. The tutor can read the student's workbench state — slider values, which steps they've checked off — and respond accordingly. This is the [multi-surface architecture from ADR-015](architecture.qmd#adr-015-unified-multi-surface-ui-ai-directs-the-layout) in actual production, not just in the design doc.
+
+::: {.column-screen-inset layout-ncol=2}
+![Chat surface (left) showing a paired Socratic tutor with an inline AI-generated SVG diagram explaining horizontal-vertical motion decomposition; workbench surface (right) with the problem statement, "Open Boldkast simulator" button, and a 4-step self-assessment checklist (Fremgang)](assets/aipla-v0.1-chat1.png){fig-alt="Screenshot of the AIPLA v0.1 deployed app showing chat on left with an AI-generated projectile-motion SVG diagram, and workbench on right with the Boldkast problem statement and a Fremgang progress checklist"}
+
+![Same surface model with the simulator opened on the workbench: live interactive controls for v₀, θ, g; gravity presets for Earth/Moon/Mars/Jupiter; Play/Pause/Reset; results panel. The chat tutor reads the workbench state and scaffolds accordingly.](assets/aiplan-v0.1-workbench1.png){fig-alt="Screenshot of the AIPLA v0.1 app showing the projectile simulator running on the workbench surface with sliders and gravity presets"}
+:::
+
+**What's visible in these screenshots:**
+
+- **Chat surface (`chat`):** Danish problem-set-hints tutor, Socratic scaffolding, AI-generated inline SVG diagrams explaining concepts
+- **Workbench surface (`workbench`):** problem statement, interactive Boldkast simulator (sliders for v₀ θ g, gravity presets, trajectory plot, results), self-assessment checklist
+- **Bidirectional state flow:** tutor reads simulator values + student's checked steps, references them in its responses
+- **Group-ID join:** anonymous, no PII (ADR-001); 30-day TTL friendly codes (`bold-kazoo-87`, `ruby-petal-72` etc.); teachers hand codes out
+
+**What's deliberately limited in v0.1:**
+
+- One hard-coded exercise (Boldkast). v1 ships with 3–5 teacher-prepared exercises and student-picks-at-join.
+- One model in active routing (Gemini 3.5 Flash). Capability-floor eval refinements come post-Jutland.
+- No teacher-authoring UI yet. Teachers will use the same app surface to author and monitor — same skills framework, different role-filtered skill set.
 
 ::: {.callout-note appearance="simple"}
 **The canonical workflow** (as the teacher who produced these artefacts described it):
