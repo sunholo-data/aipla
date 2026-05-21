@@ -566,3 +566,11 @@ Practical pattern for AIPLA — which skills benefit from live updates vs one-sh
 | **One-shot on `workspace`** (generate → render → publish) | `physics-sim-builder`, `illustration-builder`, `manage-class`, `misconception-pair` | Single user action completes a discrete task |
 
 For live-update skills the rendered component **stays in `workspace`** and continues receiving patches; the `chat` surface continues underneath without burying it. The teacher's view of class status is always at hand, not scrolled away.
+
+### Workbench → chat narration: "human tool-use cards"
+
+The reverse direction also matters: when a student manipulates a workbench artefact (moves a slider, switches a preset, checks a self-assessment item), the chat surface should reflect that action so the tutor's responses can reference it. This is the inverse of dashboard live-updates — *student-side actions narrated into the conversation*.
+
+The pattern that landed in [v0.1 production](examples.qmd#v01-in-production-what-students-see) (2026-05-21) is **human tool-use cards**: a sandboxed iframe MCP App emits structured `postMessage` events on slider-end and preset-change; the host renders each as a small inline card in chat (e.g., *"Justerede v₀ til 17.5 m/s ✓"*); the agent's prompt actively references those cards plus the current iframe-context state. The iframe-message harness is a standard host-side pattern — any future MCP-App artefact gets this for free, with sandbox auth via `e.source` (not just `origin`) and slider debouncing built in.
+
+**Why this matters:** the workbench is no longer silent to the chat. Student exploration on the sim becomes part of the conversation timeline, and the tutor's Socratic prompts can substantively reference what the student actually did (*"what do you notice about how this much lower gravity on the Moon affects the flight path?"*) — not just respond to questions in the abstract.
