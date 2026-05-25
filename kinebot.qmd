@@ -1,0 +1,41 @@
+---
+title: "KineBot v2"
+subtitle: "Hybrid AI kinematics tutor — NCERT/CBSE Class 11 physics, built by DK"
+page-layout: full
+---
+
+KineBot v2 is a feature-complete AI tutoring system for Class 11 kinematics. It represents a distinct artefact class from AIPLA's physics simulations: a **hybrid AI platform** combining simulations, Socratic chat, adaptive quizzes, and reference material in a single self-contained file.
+
+Built by DK for an Indian student cohort. DK's students (~100s available) are the beta audience for AIPLA's first non-Danish curriculum track.
+
+**What's inside:**
+
+- **7 canvas-based simulations** — 1D uniform motion, uniformly accelerated motion, free fall, projectile motion, circular motion, vector addition, relative velocity; each with parameter sliders and live position/velocity/acceleration readouts
+- **Motion graph plotter** — x-t, v-t, a-t curves; range-vs-angle and max-height plots for projectile motion
+- **Socratic chat tutor** — Claude, warm and encouraging persona, covers all 11 kinematics topics, quick-prompt buttons (requires API key — see note below)
+- **Adaptive quiz** — AI-generated MCQs filtered by current topic (requires API key)
+- **Formula reference** — static lookup by topic
+
+::: {.callout-note appearance="simple"}
+**Chat and quiz require an Anthropic API key** entered in the browser. The seven simulations and graph plotter work without a key. This is the as-shipped form; AIPLA's migration replaces the browser-side key with central key management ([ADR-014](architecture.qmd#adr-014-per-group-per-class-budget-enforcement)) so students never handle API credentials. See the [migration brief](https://github.com/sunholo-data/aipla/blob/main/strand-a-pedagogical-bot/prototypes/kinebot-migration-brief.md) for the full integration spec.
+:::
+
+<iframe src="assets/examples/kinebot-v2.html"
+        sandbox="allow-scripts"
+        style="width:100%; height:1800px; border:1px solid #ddd; border-radius:8px; background:#0f0f1a;"
+        title="KineBot v2 — AI kinematics tutor, NCERT/CBSE Class 11">
+</iframe>
+
+[Open in a new tab](assets/examples/kinebot-v2.html){target="_blank" rel="noopener"} to use chat and quiz with your own API key.
+
+**AIPLA migration summary** (skill 2):
+
+The migration converts KineBot from a browser-side-key artefact to an AIPLA-compliant lesson. Three changes to the source file; everything else stays:
+
+1. Remove three direct `fetch()` calls to `api.anthropic.com` and the API key input UI
+2. Route chat and quiz through AIPLA's backend via `postMessage`
+3. Add state events (topic change, simulation run, graph switch) so the tutor skill reads what the student is doing
+
+This migration doubles as a **reusable intake pattern** — the checklist it produces is the standard process for onboarding any externally-built AI artefact into AIPLA.
+
+← Back to [Examples](examples.qmd)

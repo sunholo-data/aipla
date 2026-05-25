@@ -13,6 +13,8 @@ project:
     - "architecture.qmd"
     - "evaluation.qmd"
     - "self-hosting.qmd"
+    - "led-planck.qmd"
+    - "kinebot.qmd"
   resources:
     - "assets/"
 
