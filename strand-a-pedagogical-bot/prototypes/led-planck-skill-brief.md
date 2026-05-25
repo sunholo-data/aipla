@@ -9,7 +9,7 @@
 
 ---
 
-## What this lesson teaches
+## What this activity teaches
 
 Students determine Planck's constant by measuring the threshold voltage of six differently-coloured LEDs and pairing each with a spectrometer wavelength reading. The calculation is `h = U₀ · e · λ / c`. The pedagogical value is that students must understand *why* this works (photon energy model, E = hf) — the lab computes h for them, but a good tutor makes them derive the formula and interpret the result against the accepted value (6.626 × 10⁻³⁴ J·s).
 
@@ -199,7 +199,7 @@ GRÆNSER:
 - [ ] ADR-013 pipeline scan passes (no external fetches)
 - [ ] postMessage events wired up (steps 2–4 above)
 - [ ] Tutor system prompt loaded into skill config
-- [ ] Skill paired with workbench in lesson config
+- [ ] Skill paired with workbench in activity config
 - [ ] Tested: step-change events fire in parent frame
 - [ ] Tested: measurement events fire after U₀ recording
 - [ ] Tested: LED polarity error event fires

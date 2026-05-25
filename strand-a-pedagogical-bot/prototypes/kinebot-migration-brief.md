@@ -1,12 +1,12 @@
 # Migration brief: KineBot v2 → AIPLA skill 2
 
 **Status:** Ready to plan; implement after LED Planck (skill 3) is live  
-**Migration type:** Existing AI-powered artefact → AIPLA-compliant lesson  
+**Migration type:** Existing AI-powered artefact → AIPLA-compliant activity  
 **Curriculum:** NCERT/CBSE Class 11 Physics — kinematics (11 topics)  
 **Beta cohort:** DK's students (Indian, ~100s of students available)  
 **Source file:** `sources/kinebot_v2 (3).html` (~1707 lines)  
 **Target repo:** `sunholo-data/cphu-aipla-app`  
-**Purpose as migration example:** Stress-test the AIPLA dev skill at taking an external AI artefact and producing a compliant lesson — a reusable migration pattern for future onboarding.
+**Purpose as migration example:** Stress-test the AIPLA dev skill at taking an external AI artefact and producing a compliant activity — a reusable migration pattern for future onboarding.
 
 ---
 
@@ -30,9 +30,9 @@ Full kinematics tutoring system combining four modes in one HTML file:
 
 ---
 
-## Migration goal: AIPLA-compliant lesson
+## Migration goal: AIPLA-compliant activity
 
-The target is a lesson pair:
+The target is a activity pair:
 - **Skill (tutor):** KineBot's system prompt and behaviour, reconfigured as an AIPLA skill that routes through the AIPLA backend (not direct to Anthropic)
 - **Workbench artefact (MCP App):** The 7 simulations + graph plotter as a sandboxed iframe, with postMessage state events so the tutor can read what the student is doing
 
@@ -139,8 +139,8 @@ This migration exercises the full AIPLA onboarding workflow for an externally-bu
 3. **Wire** — add postMessage state events
 4. **Extract** — move system prompt to skill config
 5. **Package** — ADR-013 pipeline scan, sandbox test
-6. **Pair** — create lesson config linking skill + workbench
-7. **Test** — group-ID join → load lesson → tutor reads workbench state → confirms values in chat
+6. **Pair** — create activity config linking skill + workbench
+7. **Test** — group-ID join → load activity → tutor reads workbench state → confirms values in chat
 
 Steps 3–7 should become the standard AIPLA migration checklist for any future onboarding of externally-built AI artefacts.
 
@@ -156,7 +156,7 @@ Steps 3–7 should become the standard AIPLA migration checklist for any future 
 - [ ] System prompt extracted to skill config YAML
 - [ ] ADR-013 pipeline scan passes
 - [ ] Sandbox test: runs in `sandbox="allow-scripts"` iframe
-- [ ] Group-ID join flow: student joins → lesson loads → workbench visible
+- [ ] Group-ID join flow: student joins → activity loads → workbench visible
 - [ ] Tutor reads topic + sim state: references them in chat response
 - [ ] DK confirms curriculum coverage and quiz quality before wide rollout
 - [ ] Log capture: chat messages reach BigQuery sink (ADR-005)

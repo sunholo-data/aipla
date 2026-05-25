@@ -11,29 +11,29 @@ Order is rough priority: privacy and platform foundation first, infrastructure a
 
 A short non-technical pass over the architecture before the implementation details. The diagrams below are what JB and AR will want to walk teachers through; the ADRs and the technical system view below them are the engineering detail underneath.
 
-### What students and teachers see — a **lesson**
+### What students and teachers see — an **activity**
 
-A *lesson* is what a student group works through. It's two pieces designed together, not separately:
+An *activity* is what a student group works through. It's two pieces designed together, not separately:
 
 ```{mermaid}
 flowchart LR
     Tutor["💬 <b>Tutor</b><br/>System prompt + behaviour<br/>(e.g. Socratic projectile-motion tutor,<br/>never gives the answer)"]
     Artefact["🧪 <b>Workbench artefact</b><br/>Interactive piece on the right side<br/>(simulator, dataset, sandbox, ...)"]
-    Lesson["📚 <b>Lesson</b><br/>What a student group works through<br/>(chat + workbench together)"]
+    Activity["📚 <b>Activity</b><br/>What a student group works through<br/>(chat + workbench together)"]
 
-    Tutor --> Lesson
-    Artefact --> Lesson
+    Tutor --> Activity
+    Artefact --> Activity
 
     style Tutor fill:#fff8f8,stroke:#901a1e
     style Artefact fill:#fff8f8,stroke:#901a1e
-    style Lesson fill:#f5f5f5,stroke:#333,stroke-width:2px
+    style Activity fill:#f5f5f5,stroke:#333,stroke-width:2px
 ```
 
 The tutor and the workbench reference each other. The tutor's prompt names specific elements of the workbench ("the blue arrow", "the v_x graph"); the workbench narrates the student's actions back into the chat ("Adjusted v₀ to 17.5 m/s ✓"). Designed together they form a coherent learning experience; bolted together loosely they don't.
 
 > **Terminology bridge.** In engineering language, a tutor is a *skill* and a workbench is an *MCP App*. The rest of this page uses those terms. They mean the same thing as *tutor* and *workbench*.
 
-### Who has access to what — the **teacher → class → group → lesson** hierarchy
+### Who has access to what — the **teacher → class → group → activity** hierarchy
 
 ```{mermaid}
 flowchart LR
@@ -50,7 +50,7 @@ flowchart LR
         Group3["fluffy-goose-56"]
     end
 
-    subgraph Lessons["Lessons"]
+    subgraph Activities["Activities"]
         L1["Boldkast\nprojectile motion"]
         L2["Pendul\nharmonic motion"]
         L3["..."]
@@ -58,18 +58,18 @@ flowchart LR
 
     Teacher --> Classes
     Classes --> Groups
-    Groups --> Lessons
+    Groups --> Activities
 
     style Teacher fill:#fff8f8,stroke:#901a1e
     style Classes fill:#f5f5f5,stroke:#333
     style Groups fill:#f5f5f5,stroke:#333
-    style Lessons fill:#f5f5f5,stroke:#333
+    style Activities fill:#f5f5f5,stroke:#333
 ```
 
 - **Teacher** logs in with UCPH credentials. Owns one or more classes.
 - **Class** is the teacher's roster unit (e.g. "Class 7B Physics A"). Has one or more groups.
 - **Group** is what students actually join — a *short, dictation-friendly code* (`bold-kazoo-87`) the teacher hands out. Three students sharing a phone is the default unit, matching what AR observed in the school visit. Groups are **anonymous**: no names, no emails, no PII (see [ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids)).
-- **Lesson** is what each group can access. The teacher decides which lessons each class can use. A lesson can be reused across classes; a class can have many lessons available at once.
+- **Activity** is what each group can access — a paired tutor + workbench artefact. The teacher decides which activities each class can use. An activity can be reused across classes; a class can have many activities available at once.
 
 ### How the pieces fit together — composable, not monolithic
 
@@ -81,7 +81,7 @@ flowchart TB
         Future["Future fronts:<br/>Telegram, mobile app,<br/>standalone MCP App, ..."]
     end
 
-    Backend["<b>Backend</b><br/>Lessons (skills) · Teacher / class / group auth<br/>Model router · Chat logs · Budget caps · Telemetry"]
+    Backend["<b>Backend</b><br/>Activities (skills) · Teacher / class / group auth<br/>Model router · Chat logs · Budget caps · Telemetry"]
 
     subgraph Plugins["Plugins — any number"]
         Workbenches["🧪 Workbench artefacts<br/>(MCP Apps: simulators,<br/>data viewers, sandboxes)"]
@@ -105,11 +105,11 @@ flowchart TB
 
 Three things this picture says:
 
-1. **The backend is one stable surface.** Lessons, auth, model routing, chat logs, budget caps and telemetry all live there. The same backend serves today's student web app, today's CLI (`aiplatform smoke jutland`), and any future front end — Telegram, an institutional mobile app, anything that speaks the same protocols.
-2. **Front ends are interchangeable.** The student web app is just one consumer. A teacher could in principle interact via CLI; future classroom installations could use a touch-screen kiosk app or a Telegram channel; the lessons and the data don't change.
-3. **Plugins extend the backend without modifying it.** Workbench artefacts (interactive widgets like the Boldkast simulator) and backend tools (RAG search, code execution, document parsing) each plug in through standardised protocols. **A workbench can be used inside a lesson, paired with a tutor — *or* it can be opened standalone** (a teacher could embed the Boldkast simulator alone, no tutor, on a different page or in a different app). The pieces compose.
+1. **The backend is one stable surface.** Activities, auth, model routing, chat logs, budget caps and telemetry all live there. The same backend serves today's student web app, today's CLI (`aiplatform smoke jutland`), and any future front end — Telegram, an institutional mobile app, anything that speaks the same protocols.
+2. **Front ends are interchangeable.** The student web app is just one consumer. A teacher could in principle interact via CLI; future classroom installations could use a touch-screen kiosk app or a Telegram channel; the activities and the data don't change.
+3. **Plugins extend the backend without modifying it.** Workbench artefacts (interactive widgets like the Boldkast simulator) and backend tools (RAG search, code execution, document parsing) each plug in through standardised protocols. **A workbench can be used inside an activity, paired with a tutor — *or* it can be opened standalone** (a teacher could embed the Boldkast simulator alone, no tutor, on a different page or in a different app). The pieces compose.
 
-**Why this composability matters for AIPLA:** lessons that teachers and AR build today become reusable beyond AIPLA. The Boldkast lesson works on AIPLA's web app, in the CLI, and would work in any future front end. The same workbench artefact could be embedded in a textbook publisher's app, or shared with another physics-education project, without rewriting it. The architecture intentionally does not lock anything into a single product surface.
+**Why this composability matters for AIPLA:** activities that teachers and AR build today become reusable beyond AIPLA. The Boldkast activity works on AIPLA's web app, in the CLI, and would work in any future front end. The same workbench artefact could be embedded in a textbook publisher's app, or shared with another physics-education project, without rewriting it. The architecture intentionally does not lock anything into a single product surface.
 
 ---
 
@@ -209,7 +209,7 @@ This separation matters for three reasons: successors can add new plugins withou
 
 The brief also notes the typical configuration: one shared phone per three students. The natural unit of analysis is therefore the **group**, not the individual student. Research outcomes are interpreted at the group / class level, not per-student.
 
-**Decision.** **No student authentication.** Students join sessions by entering a **system-assigned anonymous group ID** (e.g., `grp-7B-3`, or a short opaque token). The teacher generates group IDs when setting up a lesson; each group enters its ID on the shared device to join. Chat logs key on group ID. Nothing personally identifying about any student is captured anywhere in the system.
+**Decision.** **No student authentication.** Students join sessions by entering a **system-assigned anonymous group ID** (e.g., `grp-7B-3`, or a short opaque token). The teacher generates group IDs when setting up an activity; each group enters its ID on the shared device to join. Chat logs key on group ID. Nothing personally identifying about any student is captured anywhere in the system.
 
 **Teacher auth** is separate and minimal: required only for admin functions (creating a class session, generating group IDs, uploading lesson materials, viewing aggregated research data). Use **UCPH institutional SSO** where available (Firebase Auth federated with UCPH IDP, or whatever JB's preferred path is). Teachers are existing institutional users; this is the cheapest GDPR posture for the teacher side.
 

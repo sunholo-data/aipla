@@ -30,7 +30,7 @@ Built by DK for an Indian student cohort. DK's students (~100s available) are th
 
 **AIPLA migration summary** (skill 2):
 
-The migration converts KineBot from a browser-side-key artefact to an AIPLA-compliant lesson. Three changes to the source file; everything else stays:
+The migration converts KineBot from a browser-side-key artefact to an AIPLA-compliant activity. Three changes to the source file; everything else stays:
 
 1. Remove three direct `fetch()` calls to `api.anthropic.com` and the API key input UI
 2. Route chat and quiz through AIPLA's backend via `postMessage`
