@@ -9,7 +9,7 @@ Order is rough priority: privacy and platform foundation first, infrastructure a
 
 ## Overview
 
-A short non-technical pass over the architecture before the implementation details. The diagrams below are what Jesper and Aswin will want to walk teachers through; the ADRs and the technical system view below them are the engineering detail underneath.
+A short non-technical pass over the architecture before the implementation details. The diagrams below are what JB and AR will want to walk teachers through; the ADRs and the technical system view below them are the engineering detail underneath.
 
 ### What students and teachers see — a **lesson**
 
@@ -36,26 +36,23 @@ The tutor and the workbench reference each other. The tutor's prompt names speci
 ### Who has access to what — the **teacher → class → group → lesson** hierarchy
 
 ```{mermaid}
-flowchart TB
-    Teacher["👤 <b>Teacher</b><br/>Logs in with UCPH credentials"]
+flowchart LR
+    Teacher["👤 Teacher\nUCPH login"]
 
-    subgraph Classes["Classes (a teacher has many)"]
-        direction LR
-        ClassA["Class 7B<br/>Physics A"]
-        ClassB["Class 8A<br/>Physics A"]
+    subgraph Classes["Classes"]
+        ClassA["7B Physics A"]
+        ClassB["8A Physics A"]
     end
 
-    subgraph Groups["Groups (anonymous; a class has many)"]
-        direction LR
-        Group1["bold-kazoo-87<br/>(3 students<br/>share a phone)"]
-        Group2["ruby-petal-72<br/>(3 students<br/>share a phone)"]
-        Group3["fluffy-goose-56<br/>..."]
+    subgraph Groups["Groups (anonymous)"]
+        Group1["bold-kazoo-87"]
+        Group2["ruby-petal-72"]
+        Group3["fluffy-goose-56"]
     end
 
-    subgraph Lessons["Lessons (a group has access to specific ones)"]
-        direction LR
-        L1["Boldkast<br/>projectile motion"]
-        L2["Pendul<br/>simple harmonic motion"]
+    subgraph Lessons["Lessons"]
+        L1["Boldkast\nprojectile motion"]
+        L2["Pendul\nharmonic motion"]
         L3["..."]
     end
 
@@ -71,7 +68,7 @@ flowchart TB
 
 - **Teacher** logs in with UCPH credentials. Owns one or more classes.
 - **Class** is the teacher's roster unit (e.g. "Class 7B Physics A"). Has one or more groups.
-- **Group** is what students actually join — a *short, dictation-friendly code* (`bold-kazoo-87`) the teacher hands out. Three students sharing a phone is the default unit, matching what Aswin observed in the school visit. Groups are **anonymous**: no names, no emails, no PII (see [ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids)).
+- **Group** is what students actually join — a *short, dictation-friendly code* (`bold-kazoo-87`) the teacher hands out. Three students sharing a phone is the default unit, matching what AR observed in the school visit. Groups are **anonymous**: no names, no emails, no PII (see [ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids)).
 - **Lesson** is what each group can access. The teacher decides which lessons each class can use. A lesson can be reused across classes; a class can have many lessons available at once.
 
 ### How the pieces fit together — composable, not monolithic
