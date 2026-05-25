@@ -15,7 +15,6 @@ A short non-technical pass over the architecture before the implementation detai
 
 A *lesson* is what a student group works through. It's two pieces designed together, not separately:
 
-::: {.column-page}
 ```{mermaid}
 flowchart LR
     Tutor["💬 <b>Tutor</b><br/>System prompt + behaviour<br/>(e.g. Socratic projectile-motion tutor,<br/>never gives the answer)"]
@@ -29,7 +28,6 @@ flowchart LR
     style Artefact fill:#fff8f8,stroke:#901a1e
     style Lesson fill:#f5f5f5,stroke:#333,stroke-width:2px
 ```
-:::
 
 The tutor and the workbench reference each other. The tutor's prompt names specific elements of the workbench ("the blue arrow", "the v_x graph"); the workbench narrates the student's actions back into the chat ("Adjusted v₀ to 17.5 m/s ✓"). Designed together they form a coherent learning experience; bolted together loosely they don't.
 
@@ -37,7 +35,6 @@ The tutor and the workbench reference each other. The tutor's prompt names speci
 
 ### Who has access to what — the **teacher → class → group → lesson** hierarchy
 
-::: {.column-page}
 ```{mermaid}
 flowchart LR
     Teacher["👤 Teacher\nUCPH login"]
@@ -68,7 +65,6 @@ flowchart LR
     style Groups fill:#f5f5f5,stroke:#333
     style Lessons fill:#f5f5f5,stroke:#333
 ```
-:::
 
 - **Teacher** logs in with UCPH credentials. Owns one or more classes.
 - **Class** is the teacher's roster unit (e.g. "Class 7B Physics A"). Has one or more groups.
@@ -77,7 +73,6 @@ flowchart LR
 
 ### How the pieces fit together — composable, not monolithic
 
-::: {.column-page}
 ```{mermaid}
 flowchart TB
     subgraph Frontends["Front ends — any number"]
@@ -107,7 +102,6 @@ flowchart TB
     style Plugins fill:#f0f4f8,stroke:#3a5a7a
     style LLMs fill:#f5f5f5,stroke:#333
 ```
-:::
 
 Three things this picture says:
 

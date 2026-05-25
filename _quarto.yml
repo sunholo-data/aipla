@@ -74,5 +74,6 @@ format:
     smooth-scroll: true
     link-external-icon: true
     link-external-newwindow: true
+    include-after-body: assets/mermaid-fullscreen.html
     mermaid:
       theme: neutral

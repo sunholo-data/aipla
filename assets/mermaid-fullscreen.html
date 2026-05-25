@@ -1,0 +1,132 @@
+<style>
+.mermaid-wrap {
+  position: relative;
+}
+
+.mermaid-fs-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 3px 9px;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 5;
+  line-height: 1.5;
+  color: #333;
+}
+
+.mermaid-wrap:hover .mermaid-fs-btn,
+.mermaid-fs-btn:focus {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .mermaid-fs-btn { opacity: 1; }
+}
+
+.mermaid-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.mermaid-modal.open {
+  display: flex;
+}
+
+.mermaid-modal-inner {
+  background: white;
+  border-radius: 10px;
+  padding: 2.5rem 2rem 2rem;
+  max-width: 95vw;
+  max-height: 92vh;
+  overflow: auto;
+  position: relative;
+}
+
+.mermaid-modal-inner svg {
+  width: 88vw;
+  height: auto;
+  max-height: 82vh;
+  display: block;
+}
+
+.mermaid-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 18px;
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #555;
+  padding: 4px;
+}
+
+.mermaid-modal-close:hover { color: #000; }
+</style>
+
+<div class="mermaid-modal" id="mermaid-modal" role="dialog" aria-modal="true" aria-label="Diagram fullscreen view">
+  <div class="mermaid-modal-inner">
+    <button class="mermaid-modal-close" id="mermaid-modal-close" aria-label="Close">✕</button>
+    <div id="mermaid-modal-content"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var modal = document.getElementById('mermaid-modal');
+  var content = document.getElementById('mermaid-modal-content');
+  var closeBtn = document.getElementById('mermaid-modal-close');
+
+  function open(svg) {
+    content.innerHTML = '';
+    content.appendChild(svg.cloneNode(true));
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    closeBtn.focus();
+  }
+
+  function close() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  closeBtn.addEventListener('click', close);
+  modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+
+  function addButtons() {
+    document.querySelectorAll('.mermaid').forEach(function (el) {
+      if (el.dataset.fsWrapped) return;
+      var svg = el.querySelector('svg');
+      if (!svg) return;
+      el.dataset.fsWrapped = '1';
+      el.classList.add('mermaid-wrap');
+
+      var btn = document.createElement('button');
+      btn.className = 'mermaid-fs-btn';
+      btn.textContent = '⛶ Fullscreen';
+      btn.setAttribute('aria-label', 'View diagram fullscreen');
+      btn.addEventListener('click', function () { open(svg); });
+      el.appendChild(btn);
+    });
+  }
+
+  var attempts = 0;
+  var poll = setInterval(function () {
+    addButtons();
+    if (++attempts > 40) clearInterval(poll);
+  }, 250);
+})();
+</script>
