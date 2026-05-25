@@ -7,6 +7,115 @@ Working document. ADR-style: context → options → decision → consequences. 
 
 Order is rough priority: privacy and platform foundation first, infrastructure and mechanics after, AILANG disclosure last.
 
+## Overview
+
+A short non-technical pass over the architecture before the implementation details. The diagrams below are what Jesper and Aswin will want to walk teachers through; the ADRs and the technical system view below them are the engineering detail underneath.
+
+### What students and teachers see — a **lesson**
+
+A *lesson* is what a student group works through. It's two pieces designed together, not separately:
+
+```{mermaid}
+flowchart LR
+    Tutor["💬 <b>Tutor</b><br/>System prompt + behaviour<br/>(e.g. Socratic projectile-motion tutor,<br/>never gives the answer)"]
+    Artefact["🧪 <b>Workbench artefact</b><br/>Interactive piece on the right side<br/>(simulator, dataset, sandbox, ...)"]
+    Lesson["📚 <b>Lesson</b><br/>What a student group works through<br/>(chat + workbench together)"]
+
+    Tutor --> Lesson
+    Artefact --> Lesson
+
+    style Tutor fill:#fff8f8,stroke:#901a1e
+    style Artefact fill:#fff8f8,stroke:#901a1e
+    style Lesson fill:#f5f5f5,stroke:#333,stroke-width:2px
+```
+
+The tutor and the workbench reference each other. The tutor's prompt names specific elements of the workbench ("the blue arrow", "the v_x graph"); the workbench narrates the student's actions back into the chat ("Adjusted v₀ to 17.5 m/s ✓"). Designed together they form a coherent learning experience; bolted together loosely they don't.
+
+> **Terminology bridge.** In engineering language, a tutor is a *skill* and a workbench is an *MCP App*. The rest of this page uses those terms. They mean the same thing as *tutor* and *workbench*.
+
+### Who has access to what — the **teacher → class → group → lesson** hierarchy
+
+```{mermaid}
+flowchart TB
+    Teacher["👤 <b>Teacher</b><br/>Logs in with UCPH credentials"]
+
+    subgraph Classes["Classes (a teacher has many)"]
+        direction LR
+        ClassA["Class 7B<br/>Physics A"]
+        ClassB["Class 8A<br/>Physics A"]
+    end
+
+    subgraph Groups["Groups (anonymous; a class has many)"]
+        direction LR
+        Group1["bold-kazoo-87<br/>(3 students<br/>share a phone)"]
+        Group2["ruby-petal-72<br/>(3 students<br/>share a phone)"]
+        Group3["fluffy-goose-56<br/>..."]
+    end
+
+    subgraph Lessons["Lessons (a group has access to specific ones)"]
+        direction LR
+        L1["Boldkast<br/>projectile motion"]
+        L2["Pendul<br/>simple harmonic motion"]
+        L3["..."]
+    end
+
+    Teacher --> Classes
+    Classes --> Groups
+    Groups --> Lessons
+
+    style Teacher fill:#fff8f8,stroke:#901a1e
+    style Classes fill:#f5f5f5,stroke:#333
+    style Groups fill:#f5f5f5,stroke:#333
+    style Lessons fill:#f5f5f5,stroke:#333
+```
+
+- **Teacher** logs in with UCPH credentials. Owns one or more classes.
+- **Class** is the teacher's roster unit (e.g. "Class 7B Physics A"). Has one or more groups.
+- **Group** is what students actually join — a *short, dictation-friendly code* (`bold-kazoo-87`) the teacher hands out. Three students sharing a phone is the default unit, matching what Aswin observed in the school visit. Groups are **anonymous**: no names, no emails, no PII (see [ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids)).
+- **Lesson** is what each group can access. The teacher decides which lessons each class can use. A lesson can be reused across classes; a class can have many lessons available at once.
+
+### How the pieces fit together — composable, not monolithic
+
+```{mermaid}
+flowchart TB
+    subgraph Frontends["Front ends — any number"]
+        Web["Student web app<br/>(today)"]
+        CLI["aiplatform CLI<br/>(today)"]
+        Future["Future fronts:<br/>Telegram, mobile app,<br/>standalone MCP App, ..."]
+    end
+
+    Backend["<b>Backend</b><br/>Lessons (skills) · Teacher / class / group auth<br/>Model router · Chat logs · Budget caps · Telemetry"]
+
+    subgraph Plugins["Plugins — any number"]
+        Workbenches["🧪 Workbench artefacts<br/>(MCP Apps: simulators,<br/>data viewers, sandboxes)"]
+        Tools["🛠 Backend tools<br/>(MCP servers: RAG retrieval,<br/>code execution, document parse)"]
+    end
+
+    LLMs["🧠 AI providers<br/>Claude · Gemini · self-hosted Ollama"]
+
+    Web --> Backend
+    CLI --> Backend
+    Future --> Backend
+    Backend --> Workbenches
+    Backend --> Tools
+    Backend --> LLMs
+
+    style Backend fill:#fff8f8,stroke:#901a1e,stroke-width:2px
+    style Frontends fill:#f0f4f8,stroke:#3a5a7a
+    style Plugins fill:#f0f4f8,stroke:#3a5a7a
+    style LLMs fill:#f5f5f5,stroke:#333
+```
+
+Three things this picture says:
+
+1. **The backend is one stable surface.** Lessons, auth, model routing, chat logs, budget caps and telemetry all live there. The same backend serves today's student web app, today's CLI (`aiplatform smoke jutland`), and any future front end — Telegram, an institutional mobile app, anything that speaks the same protocols.
+2. **Front ends are interchangeable.** The student web app is just one consumer. A teacher could in principle interact via CLI; future classroom installations could use a touch-screen kiosk app or a Telegram channel; the lessons and the data don't change.
+3. **Plugins extend the backend without modifying it.** Workbench artefacts (interactive widgets like the Boldkast simulator) and backend tools (RAG search, code execution, document parsing) each plug in through standardised protocols. **A workbench can be used inside a lesson, paired with a tutor — *or* it can be opened standalone** (a teacher could embed the Boldkast simulator alone, no tutor, on a different page or in a different app). The pieces compose.
+
+**Why this composability matters for AIPLA:** lessons that teachers and AR build today become reusable beyond AIPLA. The Boldkast lesson works on AIPLA's web app, in the CLI, and would work in any future front end. The same workbench artefact could be embedded in a textbook publisher's app, or shared with another physics-education project, without rewriting it. The architecture intentionally does not lock anything into a single product surface.
+
+---
+
 ## Platform foundation
 
 AIPLA sits on two open layers from the `sunholo-data` ecosystem, with the AIPLA-specific configuration on top:
