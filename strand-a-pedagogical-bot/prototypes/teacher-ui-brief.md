@@ -87,14 +87,15 @@ Teacher Dashboard
 
 ## Screen 3: Activity configuration
 
-This is the core screen from the meeting: *"teacher will put in prompts on what they want to teach."*
+Four-tab layout. **Teaching goal is live as of 2026-05-26**; Parameters, Code, History are wireframes (v1.1/v2 targets).
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │  ← 7B Physics A  /  Configure: Boldkast            │
+│  [Teaching goal] [Parameters v1.1] [Code v2] [History v2] │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  Teaching goal                                      │
+│  TAB: Teaching goal                          [Live] │
 │  ┌─────────────────────────────────────────────┐   │
 │  │ What do you want students to discover in    │   │
 │  │ this session?                               │   │
@@ -106,30 +107,53 @@ This is the core screen from the meeting: *"teacher will put in prompts on what 
 │  └─────────────────────────────────────────────┘   │
 │  The tutor will use this to prioritise its         │
 │  questions without revealing the concepts.         │
+│                           [Save]  ← real backend   │
 │                                                     │
-│  Paired workbench                                   │
-│  ● Boldkast simulator  ○ None (chat only)           │
+│  [Preview as student]                               │
+└─────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│  TAB: Parameters                      [v1.1 target] │
 │                                                     │
-│  Language   [Danish ▾]                              │
-│  Difficulty [Standard ▾]   (Standard / Guided)      │
+│  Bounded knobs — sliders and toggles for the        │
+│  skill's configurable settings (temperature,        │
+│  hint frequency, allowed topics, etc.)              │
+│  No raw prompt editing needed.                      │
+└─────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│  TAB: Code                              [v2 target] │
 │                                                     │
-│  [Preview as student]   [Save configuration]        │
+│  AI-assisted direct editing of the skill's system   │
+│  prompt / source. Validator badges flag issues      │
+│  (e.g. "this wording may give answers directly").   │
+│  For advanced teachers who want full control.       │
+└─────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│  TAB: History                           [v2 target] │
+│                                                     │
+│  Version log: each Save creates a version.          │
+│  [Rollback] to any prior version.                   │
+│  Shows diff between versions.                       │
 └─────────────────────────────────────────────────────┘
 ```
 
-**Teaching goal → system prompt:** The teacher's free-text goal is injected into the skill's system prompt at a designated slot, e.g.:
+**Teaching goal → system prompt (confirmed working 2026-05-26):**
 
 ```
 [BASE SOCRATIC PROMPT]
 ...
 TEACHER'S FOCUS FOR THIS SESSION:
-{teaching_goal}
+{teacher_focus}
 
 Use this to shape which concepts you guide toward first. Never state
 these concepts directly — only ask questions that lead the student there.
 ```
 
-This means teachers don't write system prompts; they write teaching intentions. The skill template handles the Socratic scaffolding.
+Teachers write teaching intentions, not system prompts. The skill template handles the Socratic scaffolding. The `{teacher_focus}` slot injection was end-to-end verified: set goal on config screen → join `/group` with `local-demo` → first agent turn reflects it.
+
+**Tab progression rationale:** Teaching goal is the entry-level teacher affordance. Parameters adds bounded control without raw prompt editing. Code is the power-user path for teachers who want full prompt access, with AI assistance and a validator to catch common mistakes (giving answers directly, breaking Socratic constraints). History makes iteration safe — teachers can experiment knowing they can roll back.
 
 ---
 
