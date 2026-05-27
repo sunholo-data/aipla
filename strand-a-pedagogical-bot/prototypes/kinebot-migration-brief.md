@@ -30,6 +30,26 @@ Full kinematics tutoring system combining four modes in one HTML file:
 
 ---
 
+## DRA map
+
+**Status: stub — needs AR + DK input before analytics pipeline can run.**
+
+KineBot covers 11 NCERT kinematics topics. Each topic is a separate activity in AIPLA — each needs its own DRA map. The map below covers the core projectile motion topic (the most likely first activity for DK's beta cohort), as it overlaps with the Boldkast DRA map and allows cross-curriculum comparison.
+
+**Concept:** Projectile motion (NCERT Class 11, Chapter 4)
+
+| ID | Label | Present/Appresent | Modes | Notes |
+|----|-------|------------------|-------|-------|
+| `vx-vy-independence` | Horizontal and vertical motion are independent | present | graphical | Visible in sim (separate v sliders), but independence is still appresent |
+| `parabolic-path` | Trajectory is parabolic under constant gravity | present | graphical, mathematical | Shown in canvas — students can see the shape |
+| `range-angle-relationship` | Range maximised at 45° for flat ground | present | graphical, mathematical | Discoverable by varying angle slider |
+| `time-of-flight-vertical-only` | Time of flight depends only on vertical component | appresent | mathematical, verbal | Not visible in sim; tutor must elicit it |
+| `ncert-formula-connection` | Connecting sims to NCERT standard equations | appresent | mathematical | DK's students need to map sim behaviour to textbook formulas |
+
+> **For AR + DK to review:** DK knows the NCERT curriculum and student prior knowledge — DRA map should be validated against what students typically struggle with in Class 11. Remaining 10 topics (1D uniform motion, free fall, circular motion, etc.) need separate DRA maps.
+
+---
+
 ## Migration goal: AIPLA-compliant activity
 
 The target is a activity pair:

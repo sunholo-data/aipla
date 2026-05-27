@@ -28,6 +28,24 @@ The HTML file is a 4-step wizard. Each step is shown/hidden by `goStep(n)`.
 
 ---
 
+## DRA map
+
+**Status: stub — needs AR + JB input before analytics pipeline can run.**
+
+**Concept:** Photon energy and Planck's constant determination
+
+| ID | Label | Present/Appresent | Modes | Notes |
+|----|-------|------------------|-------|-------|
+| `threshold-voltage-concept` | LED threshold voltage marks the minimum photon energy | present | graphical, verbal | Directly observable on I-U curve |
+| `photon-energy-formula` | E = hf = hc/λ — energy proportional to frequency not wavelength | appresent | mathematical, verbal | The formula is not shown in the sim; tutor must elicit it |
+| `h-derivation` | Rearranging to h = U₀·e·λ/c — understanding why this gives h | appresent | mathematical | Students often accept the formula without understanding the derivation |
+| `measurement-uncertainty` | Multiple LEDs reduce random error; spread in h values reflects systematic + random uncertainty | appresent | mathematical, verbal | Lab computes mean h but doesn't explain why multiple measurements matter |
+| `model-limitation` | Threshold is an approximation — real onset is gradual, not sharp | appresent | verbal | Physically important; invisible in the sim which uses idealised curves |
+
+> **For AR/JB to review:** are these 5 the right DRAs? Which is highest priority for stx physics-A assessment? Add `tutor_question_patterns` for each before v1.2.
+
+---
+
 ## Integration tasks for cphu-aipla-app
 
 ### 1. Add as a workbench MCP App artefact
