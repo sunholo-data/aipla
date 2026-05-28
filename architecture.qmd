@@ -381,6 +381,18 @@ This is the **privacy-by-design** (GDPR Article 25) commitment made concrete. Th
 - Timestamps, skill / topic context, model used (the latter feeds the [capability-floor eval](evaluation.qmd))
 - Any uploaded resources by reference (content sits in Cloud Storage, EU-region)
 
+**Observability instrumentation (as of v0.1+ build):** the OTel pipeline is now wired at the following points, all keyed on anonymous group ID:
+
+| Signal | What it captures | Used for |
+|--------|-----------------|---------|
+| Group-join span | Group code, activity, timestamp | Session boundary; feeds teacher dashboard "active now" |
+| Chat turn span | Role, turn index, model, latency | Research log; capability-floor eval input |
+| Workbench state write | `mcp_app_context.{skill}.{field}`, value, timestamp | Session report sim-run aggregates; teacher analytics |
+| Progress checklist tick | Step index, timestamp | Teacher dashboard; maps to DRA coverage in v1.2 |
+| Proactive greet span | Whether greet fired, latency | Tutor responsiveness monitoring |
+
+All spans go to Cloud Trace (real-time) + BigQuery (research-scale query). No span contains PII — group ID is the only identifier, per ADR-001.
+
 **What does not get stored:**
 
 - Real names, email addresses, UCPH IDs, device identifiers — none of these enter the system per ADR-001

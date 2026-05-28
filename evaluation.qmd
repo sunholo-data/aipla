@@ -145,3 +145,48 @@ Per task class, tracked over time:
 ## How this connects
 
 The [Architecture](architecture.qmd) model router reads the capability-floor matrix to choose models per task class. The local-readiness fraction signals to UCPH IT when on-prem [self-hosting](self-hosting.qmd) is worth the GPU investment. New model classes from the [Strand C](strands.qmd#c1-beyond-llms) investigation plug into the same eval to be compared against the LLM baselines. The eval itself is a research instrument that outlives the contract.
+
+---
+
+## Session analytics — pedagogical rubrics (v1.1+ direction)
+
+The capability-floor eval covers *model quality*. A separate question is what to do with the raw session data AIPLA accumulates once pilots are running: every chat turn, workbench state write, and progress tick is already in BigQuery. The gap between that raw activity stream and *pedagogically meaningful signal* for teachers is where a rubric framework lives.
+
+Two frameworks from the physics-education-research literature fit AIPLA's data shape and are under consideration for v1.1+. **Framework choice sits with JB and AR** — engineering implements once the framework is picked and the BigQuery sink (sprint 1.2) is live.
+
+### ICAP (Chi & Wylie 2014) — engagement quality
+
+Labels each student utterance/action with a cognitive engagement mode:
+
+| Mode | Typical AIPLA signal |
+|------|---------------------|
+| **Passive** — receives without processing | Long pauses; one-word acknowledgements after a tutor message |
+| **Active** — manipulates given information | Slider drag, sim launch, pressing "launch" button |
+| **Constructive** — produces something new | Student turn with causal language ("I think…", "because…", "fordi…") |
+| **Interactive** — builds on the tutor's reasoning | Question that extends the tutor's previous question; "but what if…" |
+
+Output: a per-session engagement histogram (e.g., "28% passive, 41% active, 22% constructive, 9% interactive"). Each mode maps to existing AIPLA data; no new instrumentation needed — detection runs as a post-session LLM-labelling pass over the BigQuery log. An ACL 2025 paper validated this approach on GenAI tutor conversations specifically.
+
+A session with mostly Passive + Active engagement and low Constructive/Interactive is a signal for the teacher to adjust scaffolding — not a mark of poor tutor performance.
+
+### FCI misconception taxonomy (Hestenes et al.) — concept tracking
+
+The Force Concept Inventory defines ~30 labelled Newtonian misconceptions, each with recognisable linguistic signatures. Applied to AIPLA's Boldkast and KineBot sessions, it lets the teacher analytics chat say something specific rather than generic:
+
+| Misconception | Linguistic signature in chat | Relevant activity |
+|---|---|---|
+| `velocity-proportional-to-force` | "if I push harder it goes faster for longer" | Boldkast, KineBot |
+| `motion-implies-active-force` | "what's pushing it now?" during free-flight | Boldkast |
+| `vector-composition-nonvectorial` | "the horizontal and vertical cancel each other" | Boldkast — the key appresent DRA for vx/vy independence |
+| `gravitational-mass-dependence` | "heavier falls faster" | Boldkast |
+| `position-velocity-undiscriminated` | treats x(t) and v(t) graphs as the same | KineBot graph plotter |
+
+FCI labelling is a per-turn classification against a finite misconception list — tractable as a lightweight LLM call. Note: FCI is Newtonian-mechanics-specific; LED Planck and future quantum/waves activities need a different taxonomy (no FCI equivalent exists for those domains yet — AR's input needed).
+
+### Minimum viable starting point
+
+A combined ICAP + FCI pass on Boldkast sessions, run post-session, with results surfaced in the teacher analytics chat as:
+
+> *"Group bold-kazoo-87: 38% constructive engagement — above class average. Two FCI misconception signals detected: `motion-implies-active-force` (turns 12, 17) and `vector-composition-nonvectorial` (turn 23). The tutor addressed the second but not the first."*
+
+This requires: BigQuery sink live (1.2), per-activity DRA map authored by AR + JB, and a labelling-pass design review with JB. Not before mid-point review.
