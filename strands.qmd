@@ -120,7 +120,7 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 | Skill | What it does | Surface | Scope |
 |---|---|---|---|
 | `class-status` | Current class usage, budget remaining, time-to-reset, active groups | A2UI dashboard block | Year-2 |
-| `manage-class` | Create class, generate group IDs, list students-by-group | A2UI form | v1 (minimum: code generation) |
+| `manage-class` | Create class, generate group codes, bind groups to activities, list groups | A2UI form | **✅ v0.1 shipped** (code generation + class binding live) |
 | `review-artefacts` | Pending generated artefacts awaiting teacher approval before students see them | A2UI list with inline preview + approve/reject | Year-2 |
 | `chat-log-search` | Search this teacher's anonymised class chat logs | A2UI search results | Year-2 (BigQuery direct for v1) |
 
@@ -128,7 +128,8 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 
 | Skill | What it does | Scope |
 |---|---|---|
-| Problem-set hints | Chat-based step hints; never solves the problem fully | **✅ v0.1 shipped 2026-05-20** as `problem-set-hints` (Danish stx, Boldkast projectile motion) — live at [aipla-v01-frontend-wgwhd7mspa-lz.a.run.app](https://aipla-v01-frontend-wgwhd7mspa-lz.a.run.app/). + v1 expansion. |
+| Problem-set hints — Boldkast | Socratic tutor for projectile motion (Danish stx); paired with the Boldkast simulator workbench | **✅ v0.1 shipped 2026-05-20** — live at [aipla-v01-frontend-wgwhd7mspa-lz.a.run.app](https://aipla-v01-frontend-wgwhd7mspa-lz.a.run.app/) |
+| LED Planck virtual lab | Socratic tutor for Planck's constant (Danish stx physics-A); paired with AR's LED threshold voltage lab (procedural-lab artefact class — distinct from Boldkast's phenomenon-sim) | **✅ shipped 2026-05-27** — second physics skill, validates the two-artefact-class pattern |
 | Conceptual exploration | Socratic dialogue on a topic the teacher pre-configured | v1 |
 | Lab data troubleshooting | Photo / CSV / Tracker uploads + analysis | Year-2 (multimodal upload not in v1) |
 
@@ -141,7 +142,17 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 | `video-analysis-feedback` | Analyses recorded video of a student working through a task and gives formative feedback on progress | New from JB; multimodal; depends on Gemini's video capabilities and on the safety/privacy posture for student video |
 | `student-model-tracker` | Maintains and updates a per-group concept network ([C3](#c3-student-models)) | The most speculative item; gated by the Strand C scoping recommendation |
 
-**Net v1 commitment.** Out of the skills above, **v1 ships five**: `problem-set-helper-config`, `concept-dialogue-config`, `manage-class` (code generation only), and the two student-facing chat skills (problem-set hints, conceptual exploration). Plus the hand-curated sim library teachers can hand out. Everything else is the architecture's *direction-of-travel*, not the 4-month deliverable.
+**Net v1 commitment.** Out of the skills above, **v1 ships five**: `problem-set-helper-config`, `concept-dialogue-config`, `manage-class` (code generation + class binding), and the two student-facing chat skills (Boldkast + LED Planck, with KineBot to follow). Plus the hand-curated sim library teachers can hand out. Everything else is the architecture's *direction-of-travel*, not the 4-month deliverable.
+
+**Platform features shipped alongside skills (post-Jutland, as of 2026-05-27):**
+
+- **Teacher UI** — five `/teacher/*` routes wired to real backend: class list, class detail (groups + assigned activities), activity configuration (teaching goal live; parameters and code tabs wireframed for v1.1), session report, analytics chat placeholder. `{teacher_focus}` injection confirmed end-to-end.
+- **Lesson picker** — `/lessons` route replacing the hardcoded v0.1 redirect; students see all activities their group can access.
+- **Proactive tutor greet** — tutor speaks first on join, eliminating the dead-start UX gap observed in the first live student test.
+- **Commit-on-submit workbench state** — slider changes held locally, flushed to the agent only on explicit commit (Play button or chat submit). Keeps the agent context clean during exploratory interaction.
+- **Sim-core architectural principle** — workbench artefacts contain the simulation element only; instructions, data recording, and hints live in the tutor. Learned from the LED Planck integration; now the rule for all incoming artefacts.
+
+**Workbench type expansion (from JB post-Jutland feedback, 2026-05-26):** the workbench will expand beyond HTML simulators to include drawing boards (Excalidraw/tldraw), phone-sensor experiment tools, video analysis, and lab notebooks. Twenty-three Danish physics apps at [jitt.dk](https://jitt.dk), built by a Jutland teacher and freely available, are immediate artefact candidates for activities 4–8 without generating new HTML. Design brief in the prototypes folder; implementation from v1.1.
 
 **Vetted artefact library** lives on **GitHub** for portability — survives any future hosting move (UCPH IT, alternate provider). Approved artefacts skip the [content-review pipeline](architecture.qmd#adr-013-artefact-safety-content-review-pipeline) on each use; new artefacts pass through it.
 

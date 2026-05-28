@@ -680,3 +680,22 @@ The reverse direction also matters: when a student manipulates a workbench artef
 The pattern that landed in [v0.1 production](examples.qmd#v01-in-production-what-students-see) (2026-05-21) is **human tool-use cards**: a sandboxed iframe MCP App emits structured `postMessage` events on slider-end and preset-change; the host renders each as a small inline card in chat (e.g., *"Justerede v₀ til 17.5 m/s ✓"*); the agent's prompt actively references those cards plus the current iframe-context state. The iframe-message harness is a standard host-side pattern — any future MCP-App artefact gets this for free, with sandbox auth via `e.source` (not just `origin`) and slider debouncing built in.
 
 **Why this matters:** the workbench is no longer silent to the chat. Student exploration on the sim becomes part of the conversation timeline, and the tutor's Socratic prompts can substantively reference what the student actually did (*"what do you notice about how this much lower gravity on the Moon affects the flight path?"*) — not just respond to questions in the abstract.
+
+### Architectural principle: the artefact is the sim, not the lesson {#artefact-is-the-sim}
+
+Established during the LED Planck integration (2026-05-27). The initial attempt wrapped the full standalone lab — checklist, data table, Planck calculator, error display, instructions — inside the workbench iframe. This was wrong.
+
+**The rule:** a workbench artefact contains the **interactive simulation element only**. Everything else belongs to the platform:
+
+| What | Where |
+|------|-------|
+| Interactive simulation / virtual lab core | Workbench artefact (sandboxed iframe) |
+| Instructions and task framing | Tutor system prompt |
+| Data recording and results | Lab notebook workbench type (v1.1) or tutor-guided freeform |
+| AI hints and Socratic questions | Tutor |
+| Adaptive quizzes | Tutor |
+| Self-assessment checklist | Platform progress component |
+
+This is the **Boldkast model**: the Boldkast artefact is the physics simulator only — sliders, trajectory canvas, readouts. The tutor is the lesson. When onboarding an external teaching tool (jitt.dk apps, KineBot, new lab HTML), extract the sim core and strip the rest; the tutor prompt replaces what was stripped.
+
+The rule holds for all five workbench types (App, Drawing board, Experiment tool, Video analysis, Lab notebook). The artefact produces state the tutor can read; the tutor makes the pedagogical use of that state.

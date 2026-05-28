@@ -65,6 +65,6 @@ Documentation, pairing, and ADR sign-offs from week 4, not week 13. Each major a
 
 ## Status
 
-Project is in its first year. Technical infrastructure under active development; teacher pilots begin after the Danish summer holidays. The plan on this site is the working version — pages are updated as decisions land.
+**Week 3 of build phase.** v0.1 deployed 2026-05-20 (Boldkast projectile motion tutor + simulator, live demo). Post-Jutland sprint (2026-05-27) has shipped: teacher UI (class management, activity configuration, session reports), teacher permission model, lesson picker, LED Planck virtual lab (second physics skill), proactive tutor greet, and commit-on-submit workbench state. KineBot (third skill, NCERT/CBSE kinematics) and session persistence are next. Mid-point review gate: 2026-06-26. Teacher pilots begin mid-August when Danish teachers return from summer.
 
 :::
