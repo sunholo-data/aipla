@@ -129,35 +129,50 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 | Skill | What it does | Scope |
 |---|---|---|
 | Problem-set hints — Boldkast | Socratic tutor for projectile motion (Danish stx); paired with the Boldkast simulator workbench | **✅ v0.1 shipped 2026-05-20** — live at [aipla-v01-frontend-wgwhd7mspa-lz.a.run.app](https://aipla-v01-frontend-wgwhd7mspa-lz.a.run.app/) |
-| LED Planck virtual lab | Socratic tutor for Planck's constant (Danish stx physics-A); paired with AR's LED threshold voltage lab (procedural-lab artefact class — distinct from Boldkast's phenomenon-sim) | **✅ shipped 2026-05-27** — second physics skill, validates the two-artefact-class pattern |
+| LED Planck virtual lab | Socratic tutor for Planck's constant (Danish stx physics-A); paired with AR's LED threshold voltage lab (procedural-lab artefact class — distinct from Boldkast's phenomenon-sim) | **✅ shipped 2026-05-27** — second physics skill |
+| KineBot kinematics tutor | Socratic tutor for NCERT/CBSE Class 11 kinematics (English); paired with 7 canvas-based simulations. Beta cohort: DK's Indian students | **✅ shipped 2026-05-28** — third physics skill, establishes external-artefact migration runbook |
 | Conceptual exploration | Socratic dialogue on a topic the teacher pre-configured | v1 |
-| Lab data troubleshooting | Photo / CSV / Tracker uploads + analysis | Year-2 (multimodal upload not in v1) |
+| Student image / document upload | Students upload handwritten diagrams, photos of experimental setups, or draft notes; tutor gives feedback grounded in the curriculum DRAs for the activity. Confirmed as the most-requested student-facing feature in the 3 June teacher check-in | **v1.1** — ADR-008 multimodal architecture ready; sprint to be scoped |
+| Lab data troubleshooting | Photo / CSV / Tracker uploads + deeper analysis beyond single-image feedback | v1.2 |
 
 ### Stretch (Year-2 / post-handover)
 
 | Skill | What it does | Notes |
 |---|---|---|
-| `student-as-creator` (Strand B) | Lets students generate their own simulations with AI assistance | Same machinery as `physics-sim-builder`; different skill prompts and review gates |
-| `physics-sandbox-tool` (Strand B) | Interactive 2D physics sandbox embedded as an MCP App — drag-and-drop objects, run simulations, query state via MCP tools. The "Algodoo-but-with-API" direction discussed in the 18 May meeting. Validated by AR's [LED Planck-constant lab](examples.qmd#a-procedural-virtual-lab-different-artefact-class) — a concrete instance of the form factor (movable equipment, click-terminal wiring, calibration, real lab procedure) AIPLA's stretch sandbox would generalise. | Build on [Matter.js](https://brm.io/matter-js/) or [Planck.js](https://piqnt.com/planck.js/) (MIT-licensed JS 2D physics). Algodoo itself is desktop-only with no external API; this stretch goal would give AIPLA an interactive scene-building surface that fits the MCP App architecture natively. |
-| `video-analysis-feedback` | Analyses recorded video of a student working through a task and gives formative feedback on progress | New from JB; multimodal; depends on Gemini's video capabilities and on the safety/privacy posture for student video |
+| `oral-exam-prep` | AI plays the role of a Danish physics examiner; student draws a topic, prepares, then presents. AI gives formative feedback on conceptual completeness and DRA coverage. Confirmed as high-value in 3 June teacher check-in. | v1.1 stretch — requires DRA map per topic + voice mode |
+| `student-note-taking` | AI compares student notes (typed or handwritten photo) to curriculum DRAs for the active activity; flags gaps and vague phrasing; tracks improvement across drafts over a school year. | v1.2 — pedagogically significant (students generating representations, not just consuming sims) |
+| `student-as-creator` (Strand B) | Lets students generate their own simulations with AI assistance. Confirmed as a desired direction in 3 June teacher check-in. | Same machinery as `physics-sim-builder`; different skill prompts and review gates |
+| `physics-sandbox-tool` (Strand B) | Interactive 2D physics sandbox embedded as an MCP App — drag-and-drop objects, run simulations, query state via MCP tools. | Build on [Matter.js](https://brm.io/matter-js/) or [Planck.js](https://piqnt.com/planck.js/) (MIT-licensed). Post-handover stretch. |
+| `video-analysis-feedback` | Analyses recorded video of a student working through a task and gives formative feedback on progress | JB; multimodal; depends on Gemini video capabilities and student video consent posture |
 | `student-model-tracker` | Maintains and updates a per-group concept network ([C3](#c3-student-models)) | The most speculative item; gated by the Strand C scoping recommendation |
 
-**Net v1 commitment.** Out of the skills above, **v1 ships five**: `problem-set-helper-config`, `concept-dialogue-config`, `manage-class` (code generation + class binding), and the two student-facing chat skills (Boldkast + LED Planck, with KineBot to follow). Plus the hand-curated sim library teachers can hand out. Everything else is the architecture's *direction-of-travel*, not the 4-month deliverable.
+**Net v1 commitment.** Three student-facing physics skills are live (Boldkast, LED Planck, KineBot). Teacher UI is wired to a real backend. Chat logs land in BigQuery. v1.1 adds: student image upload, teacher activity creation and branching, proactive sim-reactive tutor, in-session student consent prompt, exit ticket, and group code persistence for a full school year.
 
-**Platform features shipped alongside skills (post-Jutland, as of 2026-05-27):**
+**Platform features shipped alongside skills (as of 2026-06-01):**
 
-- **Teacher UI** — five `/teacher/*` routes wired to real backend: class list, class detail (groups + assigned activities), activity configuration (teaching goal live; parameters and code tabs wireframed for v1.1), session report, analytics chat placeholder. `{teacher_focus}` injection confirmed end-to-end.
-- **Lesson picker** — `/lessons` route replacing the hardcoded v0.1 redirect; students see all activities their group can access.
-- **Proactive tutor greet** — tutor speaks first on join, eliminating the dead-start UX gap observed in the first live student test.
-- **Commit-on-submit workbench state** — slider changes held locally, flushed to the agent only on explicit commit (Play button or chat submit). Keeps the agent context clean during exploratory interaction.
-- **Sim-core architectural principle** — workbench artefacts contain the simulation element only; instructions, data recording, and hints live in the tutor. Learned from the LED Planck integration; now the rule for all incoming artefacts.
-- **TTS read-aloud** — every tutor message has a read-aloud button using the browser's native `speechSynthesis` API. No privacy gate; speaks in Danish. Useful for students who find reading the tutor's full response a barrier.
-- **Mobile tab layout** — on phone-sized screens the chat and workspace panels swap via a tab toggle rather than appearing side-by-side; the platform works on a single shared phone, matching the typical school lab setup.
-- **Student progress checklist** — self-assessment checklist embedded in the workspace; each tick is wired to the agent observability pipeline so teachers can see at a glance how far each group progressed through the activity's steps.
-- **Boldkast vx/vy component arrows** — the Boldkast simulator now shows decomposed velocity component arrows (vx horizontal, vy vertical) overlaid on the trajectory canvas, making the independence of horizontal and vertical motion visually present rather than purely inferential.
-- **MCP Apps spec compliance** — all workbench artefacts (Boldkast, LED Planck) migrated to the standard JSON-RPC `ui/initialize` handshake; the iframe-message harness is now fully on-spec, which means any future artefact follows the same integration path without custom hooks.
+- **Teacher UI** — five `/teacher/*` routes wired to real backend: class list, class detail (groups + assigned activities), activity configuration (teaching goal live; parameters and code tabs in progress), session report, analytics chat placeholder. `{teacher_focus}` injection confirmed end-to-end.
+- **Chat log pipeline** — BigQuery-backed; every chat turn and workbench event stored keyed on anonymous group ID. Durable session reports. `aiplatform logs` CLI for researcher access.
+- **Lesson picker** — `/lessons` route; students see all activities their group can access.
+- **Proactive tutor greet** — tutor speaks first on join, eliminating the dead-start UX gap.
+- **Commit-on-submit workbench state** — slider changes held locally, flushed only on explicit commit (Play button or chat submit).
+- **TTS read-aloud** — every tutor message has a read-aloud button; browser `speechSynthesis`, Danish, no privacy gate.
+- **Mobile tab layout** — chat ↔ workspace tab swap below tablet width; works on a single shared phone.
+- **Student progress checklist** — self-assessment checklist wired to the agent observability pipeline.
+- **Boldkast vx/vy component arrows** — velocity decomposition shown visually in the simulator, making the independence of horizontal and vertical motion directly visible rather than inferential.
+- **MCP Apps spec compliance** — standard JSON-RPC `ui/initialize` handshake across all artefacts; new artefacts follow the same path without custom hooks.
 
-**Workbench type expansion (from JB post-Jutland feedback, 2026-05-26):** the workbench will expand beyond HTML simulators to include drawing boards (Excalidraw/tldraw), phone-sensor experiment tools, video analysis, and lab notebooks. Twenty-three Danish physics apps at [jitt.dk](https://jitt.dk), built by a Jutland teacher and freely available, are immediate artefact candidates for activities 4–8 without generating new HTML. Design brief in the prototypes folder; implementation from v1.1.
+**v1.1 direction (next sprint window, pre-August pilot):**
+
+- **Teacher activity creation and branching** — teachers create activities from scratch (topic, workbench type, Socratic prompt, uploaded materials) or branch from existing ones. Non-sim activities first class: a workbench can be a quiz, a drawing board, or nothing. Confirmed as the primary design priority in the 3 June teacher check-in.
+- **Student image / document upload** — handwritten diagrams, experimental photos, draft notes. Tutor gives feedback grounded in the activity's curriculum concepts. Most-requested student feature in the 3 June check-in.
+- **Proactive sim-reactive tutor** — tutor comments on slider changes without waiting for a student message. Teachers explicitly asked for this.
+- **Student in-session consent prompt** — opt-in for chat logging shown at session start. Keeps anonymous group auth; gated on JB sign-off.
+- **Log summaries as primary display** — narrative summary first in session reports; full transcript collapsed. Also the privacy strategy for eventual audio inclusion.
+- **Researcher role** — separate permission tier above teacher: cross-class, cross-teacher access to all sessions and raw BigQuery. Not modelled in the current teacher permission sprint; needs an ADR addition.
+- **Bidirectional voice** — student speaks (browser Web Speech API) → tutor responds via TTS. New UX mode; research angle on whether voice changes Socratic interaction quality.
+- **Group code persistence** — codes last a school year (currently 30 days); connects to student portfolio download.
+
+**Workbench type expansion:** the workbench extends beyond HTML simulators to drawing boards (Excalidraw/tldraw), phone-sensor experiment tools, video analysis, and lab notebooks. Twenty-three Danish physics apps at [jitt.dk](https://jitt.dk) are immediate artefact candidates. Non-sim workbenches (quiz, lab notebook, drawing board) are also first class — teachers confirmed they want activities with no simulator at all.
 
 **Vetted artefact library** lives on **GitHub** for portability — survives any future hosting move (UCPH IT, alternate provider). Approved artefacts skip the [content-review pipeline](architecture.qmd#adr-013-artefact-safety-content-review-pipeline) on each use; new artefacts pass through it.
 
@@ -171,15 +186,16 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 
 **v1 commits to** the chat-tutor side plus a hand-curated library of **paired sim+tutor units** teachers can hand out. The on-demand AI generation of new paired units (`physics-sim-builder`, `misconception-pair`) is direction-of-travel for Year-2 — the architecture supports it but v1 ships the curated library.
 
-**Requirements** (from the brief):
+**Requirements** (from the brief, updated with 3 June teacher feedback):
 
-- **GDPR / privacy-by-design.** EU-hosted, no PII leakage to US providers where avoidable. Holds up to UCPH data-protection review and to teachers' and parents' scrutiny.
+- **GDPR / privacy-by-design.** EU-hosted, no PII leakage to US providers where avoidable. Holds up to UCPH data-protection review and to teachers' and parents' scrutiny. Student in-session consent prompt added for chat logging (gated on JB sign-off).
 - **Usage-based billing on the project side.** Students and teachers don't need their own accounts or subscriptions.
-- **Researcher access to chat logs.** Retrievable, anonymisable, and analysable. Core research data.
-- **Resource upload.** Teachers and the project team upload their own materials (curriculum extracts, problem sets, lab guides) that a given bot draws on. RAG-style.
-- **Rich physics output.** LaTeX formulae, tables, diagrams, graphs where possible. Output compatible with TI-Nspire / GeoGebra would be a plus.
-- **Multimodal input.** Photos of hand-drawn free-body diagrams, screenshots of Tracker video-analysis results, CSV/Excel exports from sensors.
-- **Teacher bot configuration.** Teachers configure or instantiate bots for a specific topic / assignment without a developer in the loop each time. Doesn't have to be polished in v1, but the path to it should be clear.
+- **Researcher access to all data.** Researchers (JB, AR, M) need a separate permission tier above teacher — cross-class, cross-teacher access to all sessions and raw BigQuery. Chat log summaries (not verbatim transcripts) are the preferred research artefact; this also lowers the privacy profile when audio is eventually included.
+- **Teacher activity creation.** Teachers configure activities from scratch or branch from existing ones — setting topic, workbench type, Socratic prompt, and uploaded materials — without a developer in the loop. Non-sim activities (quiz-only, drawing board, lab notebook) are first class. Confirmed as the primary design priority from teacher feedback.
+- **Resource upload.** Teachers upload curriculum extracts, problem sets, lab guides. Students upload images and documents (handwritten diagrams, experimental photos, draft notes) for AI feedback.
+- **Rich physics output.** LaTeX formulae, tables, diagrams, graphs where possible.
+- **Multimodal input.** Photos of hand-drawn free-body diagrams, experimental setups, draft notes. CSV/Excel sensor exports. Video analysis.
+- **Socratic constraint — not taking over.** Teachers observed the tutor being too directive in early sessions. Explicit length caps and question-ending rules are enforced in the base system prompt; tutor responds to sim events but leaves students room to notice things themselves.
 
 **Deliverable.** A working pilot we can put in front of a small group of teachers by the end of the contract, plus documentation that lets us hand it off cleanly to the postdocs joining the project later.
 

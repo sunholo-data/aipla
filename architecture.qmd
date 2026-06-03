@@ -211,7 +211,9 @@ The brief also notes the typical configuration: one shared phone per three stude
 
 **Decision.** **No student authentication.** Students join sessions by entering a **system-assigned anonymous group ID** (e.g., `grp-7B-3`, or a short opaque token). The teacher generates group IDs when setting up an activity; each group enters its ID on the shared device to join. Chat logs key on group ID. Nothing personally identifying about any student is captured anywhere in the system.
 
-**Teacher auth** is separate and minimal: required only for admin functions (creating a class session, generating group IDs, uploading lesson materials, viewing aggregated research data). Use **UCPH institutional SSO** where available (Firebase Auth federated with UCPH IDP, or whatever JB's preferred path is). Teachers are existing institutional users; this is the cheapest GDPR posture for the teacher side.
+**Teacher auth** is separate and minimal: required only for admin functions (creating a class session, generating group IDs, uploading lesson materials, viewing their own class data). Use **UCPH institutional SSO** where available (Firebase Auth federated with UCPH IDP). Teachers are existing institutional users; this is the cheapest GDPR posture for the teacher side.
+
+**Researcher auth** is a third tier above teacher, confirmed in the 3 June teacher check-in. Researchers (JB, AR, M) need cross-class, cross-teacher access to all sessions and raw BigQuery — they cannot be modelled as teachers with extra permissions, because they need to see data from *all* teachers' classes. The researcher role is a separate Firebase custom claim; it bypasses the class-level tag namespace that scopes teachers to their own cohorts. Needs an ADR update to the 1.A teacher permission sprint.
 
 **Why this works.**
 
@@ -229,6 +231,8 @@ The brief also notes the typical configuration: one shared phone per three stude
 **Consequences for [ADR-005](#adr-005-chat-log-storage).** Anonymisation collapses to a non-issue: there is no PII to anonymise. The "separate identity map that researchers cannot access casually" from the earlier draft is removed — the map doesn't exist.
 
 **Open question for JB.** Confirm teacher-auth mechanism (UCPH SSO, Firebase federated, or other) and the granularity of group IDs (per-class only, or finer for small-group work within a class).
+
+**Student in-session consent prompt (v1.1).** Students in the 3 June check-in expressed they didn't want conversations logged. The mitigation keeps anonymous group codes (no change to this ADR) but adds an opt-in prompt shown at session start: *"This session may be recorded for educational research. Do you consent? Yes / No."* If No, the session runs normally but chat turns are not written to BigQuery. The `consent_given` flag is stored at the session level; researcher dashboards note coverage gaps. **Gated on JB sign-off** — same institutional approval gate as audio capture. A well-designed narrative summary (rather than verbatim transcript) further reduces the privacy profile and is the preferred research artefact regardless of consent mode.
 
 ---
 
