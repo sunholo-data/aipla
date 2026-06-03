@@ -122,6 +122,10 @@ AIPLA sits on two open layers from the `sunholo-data` ecosystem, with the AIPLA-
 
 AIPLA-specific work is the configuration *on top* of both: physics skill packs, the [capability-floor router](evaluation.qmd) wiring, anonymous group IDs ([ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids)), and EU-region constraints. AIPLA's repo lives at [`sunholo-data/cphu-aipla-app`](https://github.com/sunholo-data/cphu-aipla-app), instantiated from the `ai-protocol-platform` template on 2026-05-19. See [ADR-002](#adr-002-strand-a-built-on-the-ai-protocol-platform) for the template adoption rationale and scope discipline.
 
+::: {.callout-note appearance="simple"}
+**Disclosure — M's own open-source tooling.** Several building blocks below are M's own work: the AI Protocol Platform template ([ADR-002](#adr-002-strand-a-built-on-the-ai-protocol-platform)), AILANG Parse ([ADR-004](#adr-004-document-parsing-via-ailang-parse)), and the wider AILANG ecosystem ([ADR-012](#adr-012-ailang-ecosystem-in-aipla-utilities-not-runtime)). The same disclosure applies to each and is named explicitly for JB: all are Apache 2.0, public, and multi-purpose (built for a class of projects, not AIPLA-specific); AIPLA depends on none of them as a *runtime* — successors maintain a standard Python stack, and each component is individually swappable. Named here so the lineage is visible rather than implicit. Where an ADR below touches one of these, it states only what's specific to that choice.
+:::
+
 ## System view
 
 ```{mermaid}
@@ -276,11 +280,7 @@ The brief also notes the typical configuration: one shared phone per three stude
 | Vertex AI Search | ❌ Skip v1 | pgvector covers AIPLA's RAG needs per [ADR-010](#adr-010-rag-store) |
 | Real-time collaboration features | ❌ Skip v1 | Out of brief scope |
 
-**Disclosure (handover & conflict of interest).** The AI Protocol Platform is M's own work. This is parallel to the AILANG disclosure in [ADR-012](#adr-012-ailang-ecosystem-in-aipla-utilities-not-runtime) and needs the same explicit visibility with JB. Three mitigating points:
-
-- The template is Apache 2.0 licensed and the repo is public; AIPLA's open-source-at-end-of-project goal is fully compatible
-- The template is multi-purpose — designed for a class of projects, not AIPLA-specific. AILANG itself is not required to use the template (it's used inside the platform for LaTeX parsing and capability benchmarks, but the template supports plain Python stacks)
-- M's architectural authority on AIPLA (per JB's brief) covers this kind of choice, but the choice should be *named* rather than implicit
+**Disclosure.** The template is M's own work — see the [disclosure note](#platform-foundation) above. The one template-specific point: AILANG is *not* required to use it (the platform uses AILANG internally for LaTeX parsing and capability benchmarks, but supports plain Python stacks), so adopting the template doesn't pull in any AILANG runtime dependency.
 
 **Consequences.**
 
@@ -358,7 +358,7 @@ The AI path is only invoked for genuinely image-shaped content (scanned PDFs, ha
 
 For a UCPH data-protection review, "13 of 15 supported formats never leave the trust boundary" is a stronger story than any single-vendor multimodal approach.
 
-**Disclosure.** AILANG Parse is part of the AILANG ecosystem ([ADR-012](#adr-012-ailang-ecosystem-in-aipla-utilities-not-runtime)) — same disclosure considerations apply. It is published as a standalone Apache 2.0 library with Python, JavaScript, and Go SDKs and is used by projects beyond AIPLA. The AI Protocol Platform template integrates it natively.
+**Disclosure.** AILANG Parse is M's own work ([disclosure note](#platform-foundation)) — a standalone Apache 2.0 library with Python, JS, and Go SDKs, chosen for its deterministic-XML privacy properties, not its origin.
 
 **Consequences.**
 
@@ -444,15 +444,7 @@ All spans go to Cloud Trace (real-time) + BigQuery (research-scale query). No sp
 | europe-west1 (Belgium) | EU | Mixed | Equivalent to Frankfurt on services; less differentiated |
 | europe-west4 (Netherlands) | EU | Mixed | Similar to Belgium |
 
-**Decision.** **europe-north1 (Finland)** as primary, with **europe-west3 (Frankfurt)** as fallback if a specific service availability gap appears during build.
-
-**Why Finland over Frankfurt:**
-
-- **Nordic alignment** — Danish school data hosted in a Nordic country is a marginally cleaner political story than Germany; UCPH data-protection review and parent/teacher communication both benefit
-- **100% renewable power** at the Hamina datacenter is a genuine differentiator for an academic project with sustainability stakeholders
-- **Latency from Copenhagen** is comparable to Frankfurt (~20–30ms ballpark either way) — not a meaningful difference for chat-style UX
-
-**Frankfurt fallback** is reserved for a specific scenario: if a Vertex AI feature AIPLA needs lands in europe-west3 but not europe-north1 during the contract window, swap is cheap (regional config change, no architectural impact).
+**Decision.** **europe-north1 (Finland)** as primary — Nordic alignment (a cleaner political story for UCPH review and parent/teacher communication than Germany), 100% renewable power at the Hamina datacenter, and Copenhagen latency comparable to Frankfurt. **europe-west3 (Frankfurt)** is the fallback if a Vertex AI feature AIPLA needs lands there but not in europe-north1 during the contract — a regional config change, no architectural impact.
 
 **v0.1 reality (2026-05-20).** **Gemini 3.5 Flash is not GA in europe-north1** at the time of the Jutland deploy. v0.1 uses **Vertex AI `global` endpoint** with a **project-level Data Residency policy** pinning storage and processing to the EU. Same compliance posture; region-config refinement deferred until europe-north1 reaches GA for the chosen model. Cloud Run service itself remains in europe-north1.
 
@@ -502,12 +494,7 @@ All spans go to Cloud Trace (real-time) + BigQuery (research-scale query). No sp
 | **Neo4j / Memgraph (graph DB)** | Poor | Excellent | Native graph traversal; usable via MCP server |
 | **Dual store** — pgvector for text + graph DB for C3 | Best | Best | More moving parts; concept-graph layer only activates if C3 stretch is pursued |
 
-**Lean.**
-
-- **For v1 (text RAG):** pgvector on Postgres — combines metadata, ACLs, and vectors in one place; cleanly migratable to UCPH-hosted Postgres later. Wraps as an MCP server per the [Core vs extensions](#core-vs-extensions) framing.
-- **For C3 stretch (concept networks):** add a graph DB (Neo4j AuraDB EU, Memgraph, or pgvector + edge tables if we want a single-store fallback) as a *second* MCP server. Decision deferred until the C3 scoping note recommends investment — see [strands.qmd](strands.qmd#c3-student-models).
-
-**Why this works.** Both retrieval surfaces are MCP servers — separate plugins, no template changes needed to swap or add either. UCPH self-host equivalents exist for both: Postgres+pgvector and Memgraph (Apache 2.0) both run on UCPH-managed VMs.
+**Lean.** **pgvector on Postgres for v1 text RAG** (metadata, ACLs, and vectors in one place; cleanly migratable to UCPH-hosted Postgres). For the C3 concept-network stretch, add a **graph DB** (Neo4j AuraDB EU, Memgraph, or pgvector edge tables) as a *second* MCP server — deferred until the [C3 scoping note](strands.qmd#c3-student-models) recommends investment. Both surfaces are MCP servers, so either can be swapped or added without template changes, and UCPH self-host equivalents exist for both (Postgres+pgvector, Memgraph) on managed VMs.
 
 **Pending.** Confirm teacher-upload volume estimates with JB before final scale sizing. Graph-DB decision waits on C3 scoping investment recommendation.
 
@@ -549,16 +536,13 @@ The AI-backend layer is **swappable**: AILANG Parse currently calls cloud multim
 | **AILANG capability benchmarks** | Reference data for the [capability-floor eval](evaluation.qmd) starting model panel | Eval methodology is independent of AILANG; benchmarks are a published starting reference. |
 | Future utilities | Additional MCP servers as appropriate | Each plugs in independently; no AILANG fluency required to maintain the runtime. |
 
-**Disclosure (handover & conflict of interest).** Two layers:
-
-1. **AILANG itself is M's research work** — disclosed to JB. AIPLA does **not** depend on AILANG-the-runtime, so successors do not need to learn AILANG to maintain AIPLA. They maintain Python.
-2. **AILANG-built utilities used in AIPLA** are standalone open-source projects with non-AILANG SDKs (Python, JS, Go). Choosing them is no different in principle from choosing any other open-source tool — the disclosure is so JB can see the lineage explicitly.
+**Disclosure.** Beyond the general [disclosure note](#platform-foundation), the distinction that matters here: AIPLA does **not** depend on AILANG-the-runtime — only on AILANG-*built utilities* that ship as standalone open-source libraries with non-AILANG SDKs. Successors maintain AIPLA in Python; choosing these utilities is no different in principle from choosing any other open-source tool.
 
 **Consequences.**
 
-- Successors maintain AIPLA in Python — no AILANG fluency required
-- Each AILANG-built MCP server is swappable (AILANG Parse could be replaced by Docling or MarkItDown, though none currently match its deterministic-XML privacy)
-- The eval framework is AIPLA's own; AILANG's benchmarks are a starting reference, not a dependency
+- Successors maintain AIPLA in Python — no AILANG fluency required.
+- Each AILANG-built MCP server is swappable (AILANG Parse could be replaced by Docling or MarkItDown, though none currently match its deterministic-XML privacy).
+- The eval framework is AIPLA's own; AILANG's benchmarks are a starting reference, not a dependency.
 
 ---
 
@@ -673,6 +657,12 @@ A2UI's [`surfaceId` mechanism](https://a2ui.org/) is built for this: a surface i
 - Mobile renderer collapses surfaces gracefully.
 - **v1 scope:** **chat-primary with a `workspace` surface for embedded sims.** Full four-surface layout (`sidebar`, `modal`) is Year-2; the architecture supports it but v1 doesn't need it shipped. Over-deliver if time permits.
 
+---
+
+## Implementation patterns
+
+Operational patterns that follow from the decisions above — how the surfaces behave in practice, not decisions in their own right.
+
 ### Live updates without new chat messages
 
 Both [A2UI](https://a2ui.org/) and [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview) support **server-pushed updates to existing rendered components** — and updates flow to the target surface independently of the chat surface.
@@ -691,11 +681,7 @@ For live-update skills the rendered component **stays in `workspace`** and conti
 
 ### Workbench → chat narration: "human tool-use cards"
 
-The reverse direction also matters: when a student manipulates a workbench artefact (moves a slider, switches a preset, checks a self-assessment item), the chat surface should reflect that action so the tutor's responses can reference it. This is the inverse of dashboard live-updates — *student-side actions narrated into the conversation*.
-
-The pattern that landed in [v0.1 production](examples.qmd#v01-in-production-what-students-see) (2026-05-21) is **human tool-use cards**: a sandboxed iframe MCP App emits structured `postMessage` events on slider-end and preset-change; the host renders each as a small inline card in chat (e.g., *"Justerede v₀ til 17.5 m/s ✓"*); the agent's prompt actively references those cards plus the current iframe-context state. The iframe-message harness is a standard host-side pattern — any future MCP-App artefact gets this for free, with sandbox auth via `e.source` (not just `origin`) and slider debouncing built in.
-
-**Why this matters:** the workbench is no longer silent to the chat. Student exploration on the sim becomes part of the conversation timeline, and the tutor's Socratic prompts can substantively reference what the student actually did (*"what do you notice about how this much lower gravity on the Moon affects the flight path?"*) — not just respond to questions in the abstract.
+The inverse of dashboard live-updates: when a student manipulates a workbench artefact, the action is narrated back into chat so the tutor can reference it. The pattern that landed in [v0.1 production](examples.qmd#v01-in-production-what-students-see) is **human tool-use cards** — a sandboxed iframe MCP App emits `postMessage` events on slider-end and preset-change; the host renders each as an inline chat card (*"Justerede v₀ til 17.5 m/s ✓"*); the agent's prompt references those cards plus current iframe state. The harness is host-side and standard, so any future MCP-App artefact gets it for free (sandbox auth via `e.source`, slider debouncing built in). The workbench is no longer silent to the chat — the tutor's Socratic prompts reference what the student actually did, not just questions asked in the abstract. See the [Examples page](examples.qmd#v01-in-production-what-students-see) for this in action.
 
 ### Architectural principle: the artefact is the sim, not the lesson {#artefact-is-the-sim}
 

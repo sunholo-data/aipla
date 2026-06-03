@@ -65,19 +65,12 @@ GPQA Diamond is graduate-level physics, chemistry, and biology — the closest p
 
 GPQA Diamond is a *graduate-level* science benchmark — Tier 4 models aren't designed for that level of reasoning, which is why they don't have published scores on it. They serve light text tasks (summarisation, formatting, short Q&A), which is what gets routed to them in practice.
 
-**Four observations:**
+**What this means for the [UCPH self-host migration](self-hosting.qmd).** *"Cloud now, on-prem someday"* is too conservative — read by the capability a task needs:
 
-1. **The cloud frontier sits at ~94% on graduate science.** Whatever threshold AIPLA picks for its hardest tasks, Tier 1 already clears it.
-2. **Tier 2 (UCPH-hosted server) is within 4 points of frontier.** DeepSeek V4 Pro at 90.1% is essentially equivalent to cloud for AIPLA purposes. With UCPH IT providing GPU cluster hosting, AIPLA can serve near-frontier capability **without sending any data to a cloud provider at all**.
-3. **Tier 3 (server-local workstation) clears 80% comfortably.** Qwen 3.5 27B and Gemma 4 31B both land at 84–86%. A 128 GB Mac, a single H100, or a small departmental server runs these. No GPU cluster needed.
-4. **Tier 4 (on-device) is the remaining gap.** Smaller models trail at 40–56% on this benchmark and the truly tiny on-device models (Apple Intelligence, Gemini Nano) aren't designed for graduate science at all. They serve light tasks, which is what gets routed to them.
-
-**Implication for the UCPH self-host migration timeline.** *"Cloud now, on-prem someday"* is too conservative. A more accurate framing for AIPLA:
-
-- **For tasks needing 80%+ capability:** Tier 3 (Qwen 3.5 27B / Gemma 4 31B on a single machine) is viable today.
-- **For tasks needing 88–92% capability:** Tier 2 (DeepSeek V4 Pro on a UCPH GPU cluster) sits at 90.1% — viable today if the cluster exists.
-- **For tasks needing 93%+ capability:** Tier 1 (cloud API) is still the answer in 2026; the gap narrows every release cycle.
-- **For light tasks:** Tier 4 is already operational for what it's designed for.
+1. **80%+ capability → Tier 3 (server-local) is viable today.** Qwen 3.5 27B and Gemma 4 31B land at 84–86% on a 128 GB Mac, a single H100, or a small departmental server. No cluster needed.
+2. **88–92% → Tier 2 (UCPH GPU cluster) is viable today** if the cluster exists. DeepSeek V4 Pro at 90.1% is within 4 points of frontier — near-cloud capability **without sending any data to a cloud provider at all**.
+3. **93%+ → Tier 1 (cloud API) is still the answer in 2026**, but the gap narrows every release cycle.
+4. **Light tasks → Tier 4 (on-device) is already operational.** It trails at 40–56% on graduate science and isn't designed for it; summarisation, formatting, and short Q&A are what get routed there.
 
 **Where this populates from going forward.** AIPLA's own capability-floor report (a periodic deliverable, refreshed as new models release) will include current scores across the full model panel for *each* AIPLA task class — not just GPQA Diamond, which is a proxy. The eval composes published benchmark trajectories with AIPLA's STX-physics-specific task definitions.
 

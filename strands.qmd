@@ -146,7 +146,7 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 | `video-analysis-feedback` | Analyses recorded video of a student working through a task and gives formative feedback on progress | JB; multimodal; depends on Gemini video capabilities and student video consent posture |
 | `student-model-tracker` | Maintains and updates a per-group concept network ([C3](#c3-student-models)) | The most speculative item; gated by the Strand C scoping recommendation |
 
-**Net v1 commitment.** Three student-facing physics skills are live (Boldkast, LED Planck, KineBot). Teacher UI is wired to a real backend. Chat logs land in BigQuery. v1.1 adds: student image upload, teacher activity creation and branching, proactive sim-reactive tutor, in-session student consent prompt, exit ticket, and group code persistence for a full school year.
+For the headline status (what's live, the v1.1 priorities, the next review date) see the [home page](index.qmd#status). The lists below are the detailed build log behind it.
 
 **Platform features shipped alongside skills (as of 2026-06-01):**
 

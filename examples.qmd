@@ -24,19 +24,14 @@ The deployed app went through a substantial UX iteration on 2026-05-21: the chat
 
 ![Phone-form-factor view: top has Chat | Arbejde tabs (the workbench collapses to a tab below the `md` breakpoint). Three "human tool-use cards" stack at the top of the chat narrating the student's recent sim actions: "Justerede v₀ til 17.5 m/s ✓ · Justerede θ til 62° ✓ · Skiftede tyngdekraft til Måne ✓". The tutor's response confirms the exact values the student set and uses them as the substance of the next Socratic prompt about lower-gravity effects on flight path.](assets/aipla-v0.1-student-feedback.png){fig-alt="Mobile screenshot of the AIPLA v0.1 app showing the Chat/Arbejde tab pattern, three human tool-use cards narrating workbench actions (slider adjustments and gravity preset change), the student asking 'can you see the values I set?', and the tutor responding with the exact values and a Socratic prompt about lower gravity"}
 
-**What this third screenshot demonstrates:**
+**What the three screenshots show:**
 
-- **Mobile tab pattern** — `Chat | Arbejde` tabs below the `md` breakpoint. Matters because the brief specifies *"one shared phone per three students"* — the deployed app degrades to phone form factor without losing the multi-surface architecture.
-- **Human tool-use cards** — when a student moves a slider or changes a preset on the workbench, a card appears inline in the chat ("Adjusted v₀ to 17.5 m/s ✓"). The workbench *narrates its state into the conversation* rather than being a silent sidebar. Architecturally these are first-class conversation primitives — a new artefact type beyond text + SVG + MCP-App-panel.
-- **End-to-end bidirectional loop in action** — student sets values on sim → cards appear in chat → student asks *"can you see the values I set?"* → tutor confirms exact values *and* uses them as the substance of the next inquiry prompt. This is the multi-surface architecture from [ADR-015](architecture.qmd#adr-015-unified-multi-surface-ui-ai-directs-the-layout) doing real pedagogical work, not just rendering side-by-side.
-
-**What's visible across the three screenshots:**
-
-- **Chat surface (`chat`):** Danish problem-set-hints tutor, Socratic scaffolding, AI-generated inline SVG diagrams, **human tool-use cards narrating sim actions**
-- **Workbench surface (`workbench`):** problem statement, interactive Boldkast simulator (sliders for v₀ θ g, gravity presets, trajectory plot, results), self-assessment checklist
-- **Bidirectional state flow:** tutor reads simulator values + student's checked steps + recent slider moves, references them in its responses
-- **Group-ID join:** anonymous, no PII (ADR-001); 30-day TTL friendly codes (`bold-kazoo-87`, `ruby-petal-72` etc.); teachers hand codes out
-- **Responsive across form factors:** desktop 50/50 split (screenshots 1–2) collapses to chat/workbench tabs on phone (screenshot 3)
+- **Chat surface (`chat`):** Danish problem-set-hints tutor, Socratic scaffolding, AI-generated inline SVG diagrams.
+- **Workbench surface (`workbench`):** problem statement, interactive Boldkast simulator (sliders for v₀ θ g, gravity presets, trajectory plot, results), self-assessment checklist.
+- **Human tool-use cards** — moving a slider or changing a preset drops a card inline in chat (*"Justerede v₀ til 17.5 m/s ✓"*). The workbench narrates its state into the conversation rather than sitting as a silent sidebar — a conversation primitive beyond text + SVG + MCP-App panel.
+- **Bidirectional loop:** student sets values on the sim → cards appear in chat → student asks *"can you see the values I set?"* → tutor confirms the exact values and uses them as the substance of its next Socratic prompt. The [ADR-015](architecture.qmd#adr-015-unified-multi-surface-ui-ai-directs-the-layout) multi-surface architecture doing real pedagogical work, not just rendering side-by-side.
+- **Group-ID join:** anonymous, no PII (ADR-001); 30-day TTL friendly codes (`bold-kazoo-87`, `ruby-petal-72`); teachers hand them out.
+- **Responsive:** desktop 50/50 split (screenshots 1–2) collapses to `Chat | Arbejde` tabs on phone (screenshot 3), matching the brief's *"one shared phone per three students"* — phone form factor without losing the multi-surface architecture.
 
 **What's deliberately limited in v0.1:**
 
@@ -79,11 +74,9 @@ This is the *richer* of two simulations the teacher generated. They prefer the *
 
 ## The paired Socratic-tutor system prompt
 
-The system prompt below was **built specifically for the simpler paired-chatbot simulation** (not the richer one embedded above) — designed alongside that simulation as a single unit. It is the **canonical AIPLA pattern**: the tutor's instructions name specific visual elements of its paired sim, so students know exactly what to look at when the tutor asks *"what do you notice about the blue arrow?"*
+The system prompt below was **built for the simpler paired-chatbot simulation** (not the richer one embedded above) and designed alongside it as a single unit — the canonical AIPLA pattern: the tutor's instructions name specific visual elements of its paired sim, so students know what to look at when it asks *"what do you notice about the blue arrow?"* It shows strict Socratic constraints, three teaching phases, hidden concepts to be discovered rather than stated, and polite off-topic redirects — the kind of configuration teachers will produce in AIPLA via `problem-set-helper-config` and `concept-dialogue-config`, through structured A2UI forms rather than raw text.
 
-Strict Socratic constraints, three teaching phases, hidden concepts that should be discovered rather than stated, polite redirects for off-topic requests. This is the kind of skill configuration teachers will produce in AIPLA via the `problem-set-helper-config` and `concept-dialogue-config` skills, with structured A2UI forms rather than raw prompt text — and the tutor's prompt is **co-generated** with the simulation it pairs with, referencing its specific UI.
-
-**One technical note on the original paired-chatbot file:** that version requires a user-provided Anthropic API key entered in the browser, calling Anthropic directly. AIPLA replaces this with **server-side central key management** ([ADR-014](architecture.qmd#adr-014-per-group-per-class-budget-enforcement)) — same paired-tutor pattern, different key handling. Teachers and students never see an API key.
+The original file calls Anthropic directly with a browser-entered API key; AIPLA replaces that with server-side central key management ([ADR-014](architecture.qmd#adr-014-per-group-per-class-budget-enforcement)) — same pattern, no key ever seen by teacher or student.
 
 ```text
 You are a warm, encouraging, and gently playful physics tutor helping
