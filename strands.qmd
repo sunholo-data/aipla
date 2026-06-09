@@ -11,6 +11,10 @@ The four-month contract splits into three strands. **A and B** are priority deli
 | **B** — Simulation & game creation | Build | High | Working pilot similar to A |
 | **C** — Investigation and scoping | Research | Lower | 5–10pp scoping note with feasibility + recommendations |
 
+::: {.callout-note appearance="simple"}
+**Year-1 posture: breadth over depth.** The emphasis this year is exploring a *wide range* of tools and activity types — many thin, end-to-end probes — over scaling or polishing any single feature. Year 1 is about discovering which interfaces and activities are worth pursuing, so coverage of the design space is worth more than depth on any one bet. Read the skill and workbench lists below in that light: a deliberately broad exploration, each item committed only to the scope its marker shows.
+:::
+
 ## Timeline at a glance
 
 ```{mermaid}
@@ -40,7 +44,7 @@ gantt
     Final handover            :milestone, m2, 2026-09-15, 0d
 ```
 
-A **v0.1 demo URL** lands by Wed 27 May, in time for JB and Aswin's Jutland teacher visit. Strand A's core build then runs to the **mid-point review on 26 June**, before both go on holiday (week 27, 29 June – 5 July). Strands B and C kick off on return. Teacher pilot starts when Danish teachers return mid-August.
+A **v0.1 demo URL** lands by Wed 27 May, in time for JB and AR's Jutland teacher visit. Strand A's core build then runs to the **mid-point review on 26 June**, before both go on holiday (week 27, 29 June – 5 July). Strands B and C kick off on return. Teacher pilot starts when Danish teachers return mid-August.
 
 ## How the strands relate
 
@@ -100,7 +104,7 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 
 | Skill | What it does | Surface | Scope |
 |---|---|---|---|
-| `physics-sim-builder` | Generates a paired sim+tutor unit. **Phenomenon-simulation form factor** (sliders, observation, parameter exploration). **Structured inputs:** *Topic* (full scope) + *Student Difficulty* (emphasis). Anti-reduction discipline: address the misconception inside the complete topic, never collapse to it. **Output structure:** HTML simulation + Predict→Explore→Reflect→Summarize learning flow + paired Socratic tutor referencing the sim's UI. Modelled on AR's iteratively refined prompt (`sources/aswin-trials/prompt-aswin.txt`). | MCP App (sim) + tutor-prompt feed into a config skill | Year-2 |
+| `physics-sim-builder` | Generates a paired sim+tutor unit. **Phenomenon-simulation form factor** (sliders, observation, parameter exploration). **Structured inputs:** *Topic* (full scope) + *Student Difficulty* (emphasis). Anti-reduction discipline: address the misconception inside the complete topic, never collapse to it. **Output structure:** HTML simulation + Predict→Explore→Reflect→Summarize learning flow + paired Socratic tutor referencing the sim's UI. Modelled on AR's iteratively refined trial prompt. | MCP App (sim) + tutor-prompt feed into a config skill | Year-2 |
 | `physics-lab-builder` | Generates a paired virtual-lab+tutor unit. **Procedural form factor** (draggable equipment, wiring, calibration, measurement workflow). **Structured inputs:** *Experiment source* (PDF or text of the real procedure) + *Equipment list* (anti-hallucination ground truth) + *Student Difficulty*. **Output structure:** Interactive HTML lab + checklist-driven procedure + paired Socratic tutor referencing the lab's specific equipment and measurement steps. Modelled on AR's second trial (LED Planck-constant lab — see [Examples](examples.qmd#a-procedural-virtual-lab-different-artefact-class)). | MCP App (lab) + tutor-prompt feed into a config skill | Year-2 |
 | `illustration-builder` | Generates SVG/PNG illustrations for student materials | A2UI inline image | Year-2 |
 | `misconception-pair` | Generates a *correct* illustration **and** a textbook-distractor wrong variant — pulls on the pedagogical pattern AR is already using to mine instructive AI failure modes | A2UI side-by-side | Year-2 |
@@ -164,15 +168,18 @@ For the headline status (what's live, the v1.1 priorities, the next review date)
 **v1.1 direction (next sprint window, pre-August pilot):**
 
 - **Teacher activity creation and branching** — teachers create activities from scratch (topic, workbench type, Socratic prompt, uploaded materials) or branch from existing ones. Non-sim activities first class: a workbench can be a quiz, a drawing board, or nothing. Confirmed as the primary design priority in the 3 June teacher check-in.
-- **Student image / document upload** — handwritten diagrams, experimental photos, draft notes. Tutor gives feedback grounded in the activity's curriculum concepts. Most-requested student feature in the 3 June check-in.
+- **Student image / document upload** — handwritten diagrams, experimental photos, draft notes. Tutor gives feedback grounded in the activity's curriculum concepts (e.g. "what are the units?" → student re-uploads corrected). Privacy guardrail: uploads are for **no-person-in-frame** material — diagrams, graphs, notes — which keeps the consent profile low. Also powers the **no-laptop flow**: at the end of class the AI ingests photographed handwritten notes and summarises them against the activity's learning goals. Most-requested student feature in the 3 June check-in; reinforced 9 June.
 - **Proactive sim-reactive tutor** — tutor comments on slider changes without waiting for a student message. Teachers explicitly asked for this.
 - **Student in-session consent prompt** — opt-in for chat logging shown at session start. Keeps anonymous group auth; gated on JB sign-off.
 - **Log summaries as primary display** — narrative summary first in session reports; full transcript collapsed. Also the privacy strategy for eventual audio inclusion.
 - **Researcher role** — separate permission tier above teacher: cross-class, cross-teacher access to all sessions and raw BigQuery. Not modelled in the current teacher permission sprint; needs an ADR addition.
-- **Bidirectional voice** — student speaks (browser Web Speech API) → tutor responds via TTS. New UX mode; research angle on whether voice changes Socratic interaction quality.
+- **Bidirectional voice** — student speaks → tutor responds with audio (sound in *and* out). Teachers stressed this on 9 June; **promoted with a near-term target ahead of the holiday week (late June)**. Research angle on whether voice changes Socratic interaction quality.
 - **Group code persistence** — codes last a school year (currently 30 days); connects to student portfolio download.
+- **Selectable tutor personas** — the tutor's interaction style is a preset a teacher (and optionally a student) chooses per activity — e.g. concise and directive ("just try this", no follow-ups), warm-but-not-sycophantic, or a rigorous exam-level persona — *alongside* the Socratic-questioning default, not replacing it. Raised 9 June.
+- **Formative-first, with deliberate friction** — the tutor optimises for *what to do next*, not just *what happened*, and deliberately preserves **visible friction a teacher can see and correct** rather than dispensing frictionless answers. Entry timing (typed vs pasted) is a candidate summative-integrity signal. Raised 9 June.
+- **Offline-lab workbench** — for lessons run without laptops: the teacher sets up a real experiment, students run it offline and enter their measurements, and the AI checks the entered data for mistakes in chat — keeping the experiment hands-on. Raised 9 June.
 
-**Workbench type expansion:** the workbench extends beyond HTML simulators to drawing boards (Excalidraw/tldraw), phone-sensor experiment tools, video analysis, and lab notebooks. Twenty-three Danish physics apps at [jitt.dk](https://jitt.dk) are immediate artefact candidates. Non-sim workbenches (quiz, lab notebook, drawing board) are also first class — teachers confirmed they want activities with no simulator at all.
+**Workbench type expansion:** the workbench extends beyond HTML simulators to drawing boards (Excalidraw/tldraw), phone-sensor experiment tools, video analysis, and lab notebooks. Twenty-three Danish physics apps at [jitt.dk](https://jitt.dk) are immediate artefact candidates. Non-sim workbenches (quiz, lab notebook, drawing board) are also first class — teachers confirmed they want activities with no simulator at all. Teacher activity authoring gains a **referenceable library of common-curriculum PDFs** (by stx level — A / B / C) teachers can cite or extend with their own uploads, and the AI can **co-design the missing workbench elements** around the equipment a teacher already has. Simulations are now a validated building block (POC complete); the 9 June priority is letting teachers add their own and mix activity types into hybrid lessons.
 
 **Vetted artefact library** lives on **GitHub** for portability — survives any future hosting move (UCPH IT, alternate provider). Approved artefacts skip the [content-review pipeline](architecture.qmd#adr-013-artefact-safety-content-review-pipeline) on each use; new artefacts pass through it.
 
@@ -222,7 +229,7 @@ For the headline status (what's live, the v1.1 priorities, the next review date)
 
 ## Strand C — Investigation and scoping
 
-Three open questions that go beyond what gets built in this contract. The deliverable is a written scoping note (5–10 pages) covering all three, with a recommendation on which directions are worth pursuing and rough effort estimates.
+Three core open questions that go beyond what gets built in this contract. The deliverable is a written scoping note (5–10 pages) covering these — plus any newer scoping inputs that surface (see the exam archive below) — with a recommendation on which directions are worth pursuing and rough effort estimates.
 
 ### C1 — Beyond LLMs
 
@@ -270,6 +277,10 @@ sequenceDiagram
 - **Teacher visibility** into how a class is converging or diverging from a reference understanding.
 - **A research instrument** for studying how student understanding evolves over a topic — potentially novel data for physics-education research.
 
+**One concrete realization — the teachable robot.** Instead of the AI quietly modelling the student behind the scenes, flip it: the concept network *is* the object the student manipulates, shown in the workbench, and the chatbot answers **from** it. The map starts disconnected or wrongly connected; the robot's answers are wrong in ways the student can see. Students correct the robot by showing it evidence — an experiment result, a worked problem — and the robot updates its model, which changes its answers. The developing map becomes the assessment object, formative and summative, usable at examinations. This is the **learning-by-teaching** paradigm (cf. Vanderbilt's *Betty's Brain*; the *protégé effect*), with physics-specific concept networks in the lineage of Koponen & Nousiainen. It lands directly on the existing Chatbot | Workbench form factor — workbench as concept-map editor, chat as the robot reasoning over it — and adds a concept-map editor to the [workbench types](#strand-a-pedagogical-bot-infrastructure) already being built.
+
+The decision that makes or breaks it: **the robot must reason from the map, not from the model's own physics knowledge.** An LLM "knows" the right answer regardless of what the student's map says; if it answers from that, the map is decorative and the mechanic collapses. The graph has to be the source of truth, with the model only verbalizing a traversal of the student's network (closed-world over their map). This is also what makes it a research contribution rather than a demo, and it is squarely a scoping question.
+
 **What the scoping needs to assess.** Clear-eyed feasibility, not advocacy:
 
 - Are LLMs actually consistent enough at extracting concept-map representations from free-form student input? Run trials against curated examples.
@@ -277,6 +288,15 @@ sequenceDiagram
 - What is the smallest useful slice? A "thin end-to-end prototype" — one topic, one concept network, one comparison — would teach more than a long literature review.
 - What's the privacy posture? Student understanding models are sensitive data; the GDPR analysis needs to be in scope from day one.
 
-**Recommendation framing.** The scoping note should give JB a decision-quality assessment: is this worth investing in as a Year-2 development item, is it worth a small Year-2 exploratory study, or is it a dead end in current model capability? Mark's recommendation will come with rough effort estimates and risk markers.
+**Recommendation framing.** The scoping note should give JB a decision-quality assessment: is this worth investing in as a Year-2 development item, is it worth a small Year-2 exploratory study, or is it a dead end in current model capability? M's recommendation will come with rough effort estimates and risk markers.
 
 **Timeline.** Scoping kickoff after the mid-July review. Initial assessment based on existing literature + AILANG benchmark probes. A thin proof-of-concept against a single physics topic is ideal but not required — if it fits in weeks 14–15 without compromising Strand A or B, do it.
+
+### Exam archive as a standards corpus {.unnumbered}
+
+A newer scoping input (9 June teacher feedback): a complete archive of national written exams back to 2010. Two uses are in tension, and the point of scoping is to weigh them rather than decide prematurely:
+
+- **Standards / concept extraction** — mine the papers to build a ground-truth set of concepts and expected competences per topic and stx level. This feeds the C3 reference model and the teacher-analytics DRA vocabulary.
+- **Exam-training tool** — students practise against past papers with AI feedback: the written-exam analogue of the [`oral-exam-prep`](#stretch-year-2-post-handover) direction.
+
+The papers are copyrighted: concept extraction sidesteps most of the issue, verbatim re-serving does not. Either way the IP and GDPR posture is in scope before anything ships.

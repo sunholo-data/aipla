@@ -35,7 +35,7 @@ A three-year research programme investigating how generative AI can be meaningfu
 - **[Evaluation](evaluation.qmd)** — capability-floor framework: task taxonomy, model panel, KPIs that drive routing and the local-deployment migration timeline
 - **[Self-hosting](self-hosting.qmd)** — UCPH migration table: cloud components and their on-premises equivalents
 
-People referenced by initials throughout (M, JB, AR, DS, ZL, P2, K) for light anonymisation — the team knows the mapping.
+People referenced by initials throughout (M, JB, AR, DS, ZL, P2, K, DK) for light anonymisation — the team knows the mapping.
 
 ## Design principles
 
@@ -65,6 +65,6 @@ Documentation, pairing, and ADR sign-offs from week 4, not week 13. Each major a
 
 ## Status
 
-**Week 4 of build phase.** Three student-facing physics skills live: Boldkast (projectile motion, Danish stx), LED Planck (Planck's constant, Danish stx), KineBot (kinematics, NCERT/CBSE). Teacher UI wired to real backend; chat logs in BigQuery. 3 June check-in with teachers confirmed direction and added v1.1 priorities: teacher activity creation and branching, student image/document upload, proactive sim-reactive tutor, student consent prompt for logging, and researcher access tier. Mid-point review: 2026-06-26. Teacher pilots begin mid-August.
+**Week 4 of build phase.** Three student-facing physics skills live: Boldkast (projectile motion, Danish stx), LED Planck (Planck's constant, Danish stx), KineBot (kinematics, NCERT/CBSE). Teacher UI wired to real backend; chat logs in BigQuery. 3 June check-in with teachers confirmed direction and added v1.1 priorities: teacher activity creation and branching, student image/document upload, proactive sim-reactive tutor, student consent prompt for logging, and researcher access tier. A 9 June teacher session refined these and added selectable tutor personas, an offline-lab workbench, and a bidirectional-voice target — under a Year-1 steer that breadth of activity types matters more than depth on any one feature. Mid-point review: 2026-06-26. Teacher pilots begin mid-August.
 
 :::

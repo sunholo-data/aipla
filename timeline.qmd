@@ -4,7 +4,7 @@ subtitle: "17 weeks, three overlapping tracks, handover woven through"
 ---
 
 **Contract:** ~17 weeks, 2026-05-15 → ~2026-09-15
-**Jutland demo:** Wed 27 – Fri 29 May — JB + Aswin visit teachers; v0.1 demo URL by then
+**Jutland demo:** Wed 27 – Fri 29 May — JB + AR visit teachers; v0.1 demo URL by then
 **Mid-point review:** week 6 (Fri 26 June), before both M and JB go on holiday
 **Holiday window:** Week 27 (Mon 29 June – Sun 5 July) — JB on Danish summer break; M at Croatia workshop
 **Teacher pilot starts:** week 13 (~2026-08-14), when Danish teachers return from summer

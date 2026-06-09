@@ -551,7 +551,7 @@ The AI-backend layer is **swappable**: AILANG Parse currently calls cloud multim
 **Context.** AIPLA bots generate two kinds of artefacts that get rendered in front of students:
 
 1. **Static illustrations** (SVG, PNG) — embedded inline via [A2UI](#core-vs-extensions)
-2. **Interactive HTML simulations** — embedded via [MCP Apps](#core-vs-extensions) in sandboxed iframes (form factor anchored on AR's existing GenAI trials — see `notes/2026-05-18-aswin-trials-analysis.md`)
+2. **Interactive HTML simulations** — embedded via [MCP Apps](#core-vs-extensions) in sandboxed iframes (form factor anchored on AR's existing GenAI trials)
 
 Generated HTML is untrusted by default — the model can be prompted, accidentally or intentionally, into emitting external `<script src=…>`, `fetch()` calls, or unsafe DOM. A naive "model outputs HTML → iframe renders it" pipeline fails the GDPR/safety bar AIPLA must hold.
 
