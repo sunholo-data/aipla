@@ -659,6 +659,32 @@ A2UI's [`surfaceId` mechanism](https://a2ui.org/) is built for this: a surface i
 
 ---
 
+## ADR-016 — Researcher role: permission tier above teacher
+
+**Status:** Accepted (15 June 2026) — addition to the role model in [ADR-015](#adr-015-unified-multi-surface-ui-ai-directs-the-layout).
+
+**Context.** The role filtering in [ADR-015](#adr-015-unified-multi-surface-ui-ai-directs-the-layout) models two roles: anonymous student (group-ID) and authenticated teacher (UCPH SSO). A teacher sees *their own* classes' logs and sessions. But the brief's research purpose needs **cross-class, cross-teacher** access to all sessions and the raw BigQuery dataset — JB, AR, and M analysing data across the whole pilot, not one classroom. This surfaced in the 3 June check-in and again on 9 and 15 June; it has been carried as "needs an ADR addition" each time. This ADR closes it.
+
+**Decision.** Add a **researcher** role as a tier above teacher in the same SSO-driven role filter. Researcher is a superset of teacher scope:
+
+| Role | Auth | Scope |
+|---|---|---|
+| Student | Anonymous group ID ([ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids)) | Own group's session only |
+| Teacher | UCPH SSO | Own classes: their groups, activities, session reports, logs |
+| **Researcher** | UCPH SSO + researcher grant | **All** classes and teachers: every session, all session reports, and direct read on the raw BigQuery dataset |
+
+- Researcher is an **explicit grant** on top of an SSO identity (an allowlist of UCPH accounts maintained by an admin), not an automatic property of any teacher account.
+- The skill registry's role filter ([ADR-015](#adr-015-unified-multi-surface-ui-ai-directs-the-layout)) gains the researcher tier; researcher sessions get teacher-role skills **without the own-class scope filter**, plus raw-log access.
+- **No PII consequence.** Because students are anonymous group IDs with no identity map ([ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids)), cross-teacher access does not expose student PII — there is none. The `consent_given` flag from the [ADR-005 in-session consent prompt](#adr-005-chat-log-storage) still governs whether a session's turns were logged at all; researcher dashboards note coverage gaps.
+
+**Consequences.**
+
+- One new role value and an admin-managed allowlist; no new auth path (rides UCPH SSO).
+- Raw BigQuery access for researchers is already the `aiplatform logs` CLI path; this ADR makes the in-app researcher surface match it.
+- Retention and access scope follow the consent form JB owns ([ADR-005](#adr-005-chat-log-storage)).
+
+---
+
 ## Implementation patterns
 
 Operational patterns that follow from the decisions above — how the surfaces behave in practice, not decisions in their own right.
