@@ -685,6 +685,38 @@ A2UI's [`surfaceId` mechanism](https://a2ui.org/) is built for this: a surface i
 
 ---
 
+## ADR-017 — Document ingestion: two pipelines, parse-to-text before RAG
+
+**Status:** Accepted (16 June 2026) — records what v0.1 actually built for document handling, and reconciles the text-RAG store choice with [ADR-010](#adr-010-rag-store).
+
+**Context.** "Where does an uploaded document go, and who parses it?" had drifted from the ADRs by v0.1. Two questions needed pinning down: (1) a document can land in **two different stores** depending on how it arrives, and the distinction was implicit; (2) [ADR-010](#adr-010-rag-store) leaned **pgvector** for text RAG, but the curriculum library shipped on **Vertex AI RAG Engine** — an unrecorded change.
+
+**Decision — two pipelines, by arrival path.**
+
+| | Chat-uploaded document (student/teacher drops a file mid-conversation) | Curriculum-library document (teacher uploads to the shared/own library) |
+|---|---|---|
+| Store | **ADK ArtifactService** (`doc:{id}.json`) | **Vertex AI RAG Engine** corpus (RagManagedDb) |
+| How the model sees it | whole document loaded into context for that session | chunked, retrieved on demand via the ADK `VertexAiRagRetrieval` tool, scoped to the activity's cited docs |
+| Lifetime / scope | one session | reusable across activities; ACL-scoped (shared vs teacher-own) |
+| Use when | "read this with me right now" | "ground the tutor in curriculum it can cite" |
+
+Rule of thumb: **transient, whole-document, single-session → artifact; durable, retrievable, citable → RAG.** Both honour [ADR-004](#adr-004-document-parsing-via-ailang-parse) (AILANG Parse first) and [ADR-011](#adr-011-multimodal-input-handling).
+
+**Decision — parse to text *before* RAG, rather than letting RAG parse the raw file.** Vertex AI RAG Engine can ingest raw PDF / DOCX / PPTX / HTML / MD and parse them itself (default parser, plus a Document AI Layout Parser and OCR/LLM parsers — verified against Google's RAG-Engine docs, June 2026). We deliberately **don't** use that: ingest runs AILANG Parse (deterministic formats) or the Gemini OCR fallback (PDF/images), then uploads the resulting **`.txt`** to the corpus, which only chunks + embeds it.
+
+**Why pre-parse wins here:** one parse feeds **three** consumers — the RAG corpus, the in-app **content viewer** (a teacher/student reads the doc), and the teacher's **parse-review** ("is this what got extracted?"). If RAG parsed the raw file we'd have no text for the latter two without reading chunks back out. There is **no double-parse** (a `.txt` is never re-parsed) and a single Gemini OCR implementation, shared by both pipelines (`tools/documents/ai_extract.py`).
+
+**Reconciliation with [ADR-010](#adr-010-rag-store).** For **v1 text RAG the store is Vertex AI RAG Engine (RagManagedDb), not pgvector.** Rationale: ADK ships a first-class `VertexAiRagRetrieval` tool, so retrieval is a built-in tool with zero custom-server code and zero ops surface; the corpus is EU-region (the corpus's own region drives the SDK endpoint, per `db/rag_corpus.py`); and graceful degradation is clean (no corpus → no grounding, tutor still answers). pgvector remains the documented **self-host / UCPH-migration target** ([self-hosting](self-hosting.qmd)) and the likely store for the C3 concept-graph stretch; this ADR narrows ADR-010's v1 text-RAG lean to the managed option, it does not reopen the graph-DB question.
+
+**Consequences.**
+
+- **Self-host gap to track.** Vertex RAG Engine is GCP-managed; the UCPH on-prem path needs a pgvector-equivalent behind the same retrieval-tool interface. Logged in [self-hosting](self-hosting.qmd) — the retrieval call is one tool, so the swap is bounded.
+- **PDF AI path bypasses the model router.** The Gemini OCR fallback calls Vertex GenAI directly rather than routing through [ADR-008](#adr-008-model-abstraction-routing-layer); acceptable for v1 (one provider, one region) but a known shortcut to fold back into the router when the local-OCR swap from [ADR-011](#adr-011-multimodal-input-handling) is taken.
+- **Chat-upload PDFs are now first-class.** They previously stored zero blocks (`pending_ai_extraction`); they now extract via the shared fallback → markdown → AILANG Parse's markdown→blocks path, so a PDF dropped in chat is actually readable by the tutor.
+- **Content predating the viewer needs a one-time backfill.** Docs seeded before the viewer existed are in RAG but have no stored display text; `make backfill-curriculum-content` repopulates it (idempotent).
+
+---
+
 ## Implementation patterns
 
 Operational patterns that follow from the decisions above — how the surfaces behave in practice, not decisions in their own right.
