@@ -44,7 +44,7 @@ gantt
     Final handover            :milestone, m2, 2026-09-15, 0d
 ```
 
-A **v0.1 demo URL** lands by Wed 27 May, in time for JB and AR's Jutland teacher visit. Strand A's core build then runs to the **mid-point review on 26 June**, before both go on holiday (week 27, 29 June – 5 July). Strands B and C kick off on return. Teacher pilot starts when Danish teachers return mid-August.
+A **v0.1 demo URL** landed by 27 May, in time for JB and AR's Jutland teacher visit. Strand A's core build then ran to the **mid-point review on 26 June**; both then go on holiday (week 27, 29 June – 5 July). Strands B and C kick off on return. Teacher pilot starts when Danish teachers return mid-August.
 
 ## How the strands relate
 
@@ -136,7 +136,7 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 | LED Planck virtual lab | Socratic tutor for Planck's constant (Danish stx physics-A); paired with AR's LED threshold voltage lab (procedural-lab artefact class — distinct from Boldkast's phenomenon-sim) | **✅ shipped 2026-05-27** — second physics skill |
 | KineBot kinematics tutor | Socratic tutor for NCERT/CBSE Class 11 kinematics (English); paired with 7 canvas-based simulations. Beta cohort: DK's Indian students | **✅ shipped 2026-05-28** — third physics skill, establishes external-artefact migration runbook |
 | Conceptual exploration | Socratic dialogue on a topic the teacher pre-configured | v1 |
-| Student image / document upload | Students upload handwritten diagrams, photos of experimental setups, or draft notes; tutor gives feedback grounded in the curriculum DRAs for the activity. Confirmed as the most-requested student-facing feature in the 3 June teacher check-in | **v1.1** — ADR-008 multimodal architecture ready; sprint to be scoped |
+| Student image / document upload | Students upload handwritten diagrams, photos of experimental setups, or draft notes; tutor gives feedback grounded in the curriculum DRAs for the activity. Confirmed as the most-requested student-facing feature in the 3 June teacher check-in | **✅ v1.1 shipped** — paperclip/camera in the student chat, the tutor sees the image; curriculum-grounded feedback via the activity's cited docs also live (RAG) |
 | Lab data troubleshooting | Photo / CSV / Tracker uploads + deeper analysis beyond single-image feedback | v1.2 |
 
 ### Stretch (Year-2 / post-handover)
@@ -150,9 +150,9 @@ All teacher tasks happen in the **same UI app** as students — a single multi-s
 | `video-analysis-feedback` | Analyses recorded video of a student working through a task and gives formative feedback on progress | JB; multimodal; depends on Gemini video capabilities and student video consent posture |
 | `student-model-tracker` | Maintains and updates a per-group concept network ([C3](#c3-student-models)) | The most speculative item; gated by the Strand C scoping recommendation |
 
-For the headline status (what's live, the v1.1 priorities, the next review date) see the [home page](index.qmd#status). The lists below are the detailed build log behind it.
+For the authoritative, code-verified status (what's live, in progress, and backlog) see [Current status](timeline.qmd#current-status) on the Timeline page; the [home page](index.qmd#status) carries the headline. The lists below are the detailed build log behind them.
 
-**Platform features shipped alongside skills (as of 2026-06-01):**
+**Platform features shipped alongside skills (early build, to 2026-06-01 — later shipped work is in [Current status](timeline.qmd#current-status)):**
 
 - **Teacher UI** — five `/teacher/*` routes wired to real backend: class list, class detail (groups + assigned activities), activity configuration (teaching goal live; parameters and code tabs in progress), session report, analytics chat placeholder. `{teacher_focus}` injection confirmed end-to-end.
 - **Chat log pipeline** — BigQuery-backed; every chat turn and workbench event stored keyed on anonymous group ID. Durable session reports. `aiplatform logs` CLI for researcher access.
@@ -167,15 +167,19 @@ For the headline status (what's live, the v1.1 priorities, the next review date)
 
 **v1.1 direction (next sprint window, pre-August pilot):**
 
+::: {.callout-note appearance="simple"}
+**Status (late June).** Several items below have since shipped — selectable tutor personas, summary-first session reports, the researcher role, student image upload, teacher activity creation (concept activities) with an authoring co-pilot, and a teacher co-working co-pilot. Others remain planned or backlog: call-teacher, full bidirectional voice, the in-session consent prompt, the offline-lab workbench, the live class dashboard, and the mobile-performance pass. The authoritative, code-verified breakdown is [Current status](timeline.qmd#current-status) on the Timeline page; the list below is the original feedback-driven direction it grew from.
+:::
+
 - **Teacher activity creation and branching** — teachers create activities from scratch (topic, workbench type, Socratic prompt, uploaded materials) or branch from existing ones. Non-sim activities first class: a workbench can be a quiz, a drawing board, or nothing. Confirmed as the primary design priority in the 3 June teacher check-in.
 - **Student image / document upload** — handwritten diagrams, experimental photos, draft notes. Tutor gives feedback grounded in the activity's curriculum concepts (e.g. "what are the units?" → student re-uploads corrected). The upload affordance and the uploaded image live on the **workbench** surface, not inline in the chat (16 June). Privacy guardrail: uploads are for **no-person-in-frame** material — diagrams, graphs, notes — which keeps the consent profile low. Also powers the **no-laptop flow**: at the end of class the AI ingests photographed handwritten notes and summarises them against the activity's learning goals. Most-requested student feature in the 3 June check-in; reinforced 9 June.
 - **Proactive sim-reactive tutor** — tutor comments on slider changes without waiting for a student message. Teachers explicitly asked for this.
 - **Student in-session consent prompt** — opt-in for chat logging shown at session start. Keeps anonymous group auth; gated on JB sign-off.
 - **Log summaries as primary display** — narrative summary first in session reports; full transcript collapsed. Also the privacy strategy for eventual audio inclusion. Teachers can optionally **share a session summary back to the student** as formative feedback (teacher-gated, their choice; raised 16 June).
 - **Researcher role** — separate permission tier above teacher: cross-class, cross-teacher access to all sessions and raw BigQuery. Raised again 15 June (third session running); now specified in [ADR-016](architecture.qmd#adr-016-researcher-role-permission-tier-above-teacher).
-- **Call teacher** — a student can escalate to a human teacher mid-session; the teacher sees a "raised hand" signal in the live class view. Raised 15 June; near-term v1.1.
+- **Call teacher** — a student can escalate to a human teacher mid-session; the teacher sees a "raised hand" signal in the live class view. Raised 15 June; planned, not yet built.
 - **Student–AI relationship & permission framing** — students read the tutor as an unfamiliar *third entity* — not a casual home chatbot, not their teacher — and are unsure they have *permission* to ask it; the introduction text goes unread (a student reached for Google for something the bot could answer). The fix is **in-flow** onboarding: the teacher frames the bot's role at session start, the bot invites questions early and low-stakes ("you can ask me anything"), and the ask affordance is discoverable at the point of need. Surfaced 16 June, sharpened by JB. Pairs with call-teacher and the not-a-sycophant persona.
-- **Bidirectional voice** — student speaks → tutor responds with audio (sound in *and* out). Teachers stressed this on 9 June; **promoted with a near-term target ahead of the holiday week (late June)**. Research angle on whether voice changes Socratic interaction quality.
+- **Bidirectional voice** — student speaks → tutor responds with audio (sound in *and* out). Teachers stressed this on 9 June. The shipped path is turn-based TTS read-aloud plus a voice provider + selectable personas; **full duplex voice is deferred** (the late-June target slipped past the freeze). Research angle on whether voice changes Socratic interaction quality.
 - **Group code persistence** — codes last a school year (currently 30 days); connects to student portfolio download.
 - **Selectable tutor personas** — the tutor's interaction style is a preset a teacher (and optionally a student) chooses per activity — e.g. concise and directive ("just try this", no follow-ups), warm-but-not-sycophantic, or a rigorous exam-level persona — *alongside* the Socratic-questioning default, not replacing it. Raised 9 June; sycophancy was observed first-hand in the 16 June demo, reinforcing the warm-but-not-sycophantic preset.
 - **Formative-first, with deliberate friction** — the tutor optimises for *what to do next*, not just *what happened*, and deliberately preserves **visible friction a teacher can see and correct** rather than dispensing frictionless answers. Entry timing (typed vs pasted) is a candidate summative-integrity signal. Raised 9 June. Teachers also want a **rolling class-level summary during the lesson** (~every 5 minutes) — confirmed wanted 15 June; the live dashboard is gated on the R1 analytics-framework decision (before the 29 June freeze).

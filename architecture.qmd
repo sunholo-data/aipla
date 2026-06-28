@@ -142,8 +142,10 @@ flowchart LR
 
     subgraph Multivac["Infrastructure — Multivac (EU region)"]
         direction TB
-        DB[("Postgres + pgvector<br/>logs · RAG · identity")]
-        Storage[("Cloud Storage<br/>uploads")]
+        FS[("Firestore<br/>app DB · identity mirror")]
+        BQ[("BigQuery<br/>chat logs · telemetry")]
+        RAG[("Vertex AI RAG Engine<br/>curriculum corpus")]
+        Storage[("Cloud Storage<br/>uploads · chat-doc artifacts")]
         Claude["Anthropic Claude<br/>tier 1 — cloud-agnostic text"]
         Gemini["Google Gemini<br/>tier 2 — EU multimodal"]
         Ollama["Self-hosted Ollama<br/>tier 3 — case-by-case per task"]
@@ -152,7 +154,9 @@ flowchart LR
     User --> Front
     Front -.tier 4 routes here.-> OnDevice
     Front --> Back
-    Back --> DB
+    Back --> FS
+    Back --> BQ
+    Back --> RAG
     Back --> Storage
     Back --> Router
     Router --> Claude
@@ -177,9 +181,9 @@ This separation matters for three reasons: successors can add new plugins withou
 | Layer | Protocol | What it is | Examples for AIPLA | AIPLA v1 |
 |---|---|---|---|---|
 | Application core | (template, fixed) | AG-UI streaming, ADK orchestration, skills framework, model router, auth/session, log capture, telemetry | n/a — provided | ✅ Adopted as-is |
-| Model providers | (template adapter) | Cloud + local model backends | Claude, Gemini, Ollama, on-device — see [ADR-003](#adr-003-llm-provider-mix-claude-gemini-ollama) | ✅ All four tiers |
+| Model providers | (template adapter) | Cloud + local model backends | Claude, Gemini, Ollama, on-device — see [ADR-003](#adr-003-llm-provider-mix-4-tiers-ai-api-server-server-local-on-device) | ✅ All four tiers |
 | Skills (app configuration) | (template) | Teacher-configurable bot setups | Physics tutors per topic, problem-set helpers, lab assistants | ✅ Multiple per topic |
-| Data + computation tools | **MCP server** | Anything that fetches data, runs computation, or wraps an external service | RAG retrieval ([ADR-010](#adr-010-rag-store)), code execution sandbox, document parse via AILANG Parse ([ADR-004](#adr-004-document-parsing-via-ailang-parse)), domain search | ✅ pgvector RAG · code sandbox · AILANG Parse · 🟡 graph DB (stretch — for C3) |
+| Data + computation tools | **MCP server** | Anything that fetches data, runs computation, or wraps an external service | RAG retrieval ([ADR-017](#adr-017-document-ingestion-two-pipelines-parse-to-text-before-rag)), code execution sandbox, document parse via AILANG Parse ([ADR-004](#adr-004-document-parsing-via-ailang-parse)), domain search | ✅ Vertex AI RAG Engine · code sandbox · AILANG Parse · 🟡 graph DB (stretch — for C3) |
 | Interactive UI extensions | **MCP Apps** | Sandboxed iframes with their own state and UI | GeoGebra widget, Tracker / sensor-data viewer, concept-map editor for [student models (C3)](strands.qmd#c3-student-models), simulation workbench (Strand B) | 🟡 concept-map editor (C3 stretch) · Strand-B target |
 | Declarative UI extensions | **A2UI** | Backend-emitted structured UI elements rendered inline in chat | Problem-hint cards · LaTeX/KaTeX formula blocks · structured feedback panels · teacher-config forms | ✅ Hint cards · LaTeX · feedback panels |
 
@@ -198,12 +202,14 @@ This separation matters for three reasons: successors can add new plugins withou
 | 007 | Cloud region: europe-north1 (Finland) | Decided | M, [JB / UCPH IT TBC] |
 | 008 | Model abstraction / routing layer | Decided (via template) | M |
 | 009 | Backend stack | Decided (via template) | M |
-| 010 | RAG store | Lean: pgvector · graph DB for C3 stretch | — |
+| 010 | RAG store | Narrowed for v1 by ADR-017 → Vertex AI RAG Engine; pgvector = self-host target | M |
 | 011 | Multimodal input handling | Decided · via AILANG Parse (swappable backends) | M |
 | 012 | AILANG ecosystem in AIPLA (utilities, not runtime) | Decided | M, [JB to be informed] |
 | 013 | Artefact safety / content-review pipeline | Decided | M |
 | 014 | Per-group / per-class budget enforcement | Decided | M |
-| 015 | Unified multi-surface UI — AI directs the layout | Decided | M |
+| 015 | Unified multi-surface UI — AI directs the layout | Decided · revised 2026-06 (dedicated teacher routes) | M |
+| 016 | Researcher role: permission tier above teacher | Accepted (2026-06-15) | M |
+| 017 | Document ingestion: two pipelines, parse-to-text before RAG | Accepted (2026-06-16) | M |
 
 ---
 
@@ -277,7 +283,7 @@ The brief also notes the typical configuration: one shared phone per three stude
 | MCP Apps (sandboxed iframes) | ✅ Use | **Hosts teacher-generated interactive artefacts** (HTML simulations, problem workbenches) in chat. Gated by [ADR-013](#adr-013-artefact-safety-content-review-pipeline) safety pipeline. Pattern based on AR's existing GenAI trials. |
 | A2A agent discovery | ❌ Skip v1 | Useful long-term, not required for the pilot |
 | Telegram / Email / WhatsApp channels | ❌ Skip v1 | Available; not needed for STX teacher pilot |
-| Vertex AI Search | ❌ Skip v1 | pgvector covers AIPLA's RAG needs per [ADR-010](#adr-010-rag-store) |
+| Vertex AI Search | ❌ Skip v1 | Vertex AI RAG Engine ([ADR-017](#adr-017-document-ingestion-two-pipelines-parse-to-text-before-rag)) covers v1 RAG; the Search product isn't needed |
 | Real-time collaboration features | ❌ Skip v1 | Out of brief scope |
 
 **Disclosure.** The template is M's own work — see the [disclosure note](#platform-foundation) above. The one template-specific point: AILANG is *not* required to use it (the platform uses AILANG internally for LaTeX parsing and capability benchmarks, but supports plain Python stacks), so adopting the template doesn't pull in any AILANG runtime dependency.
@@ -456,7 +462,7 @@ All spans go to Cloud Trace (real-time) + BigQuery (research-scale query). No sp
 
 **Context.** Brief implies and the 2026-05-15 conversation confirmed: provider should be a config swap, not a code change. Capability-floor eval determines which model is routed for which task class.
 
-**Decision.** Use the **AI Protocol Platform template's built-in model router**, which already abstracts across Claude, Gemini, OpenAI, and Ollama behind one interface. Adoption follows from [ADR-002](#adr-002-strand-a-built-on-the-ai-protocol-platform). The capability-floor eval matrix drives per-task routing config; the [four-tier model mix in ADR-003](#adr-003-llm-provider-mix-claude-gemini-ollama) defines the destinations.
+**Decision.** Use the **AI Protocol Platform template's built-in model router**, which already abstracts across Claude, Gemini, OpenAI, and Ollama behind one interface. Adoption follows from [ADR-002](#adr-002-strand-a-built-on-the-ai-protocol-platform). The capability-floor eval matrix drives per-task routing config; the [four-tier model mix in ADR-003](#adr-003-llm-provider-mix-4-tiers-ai-api-server-server-local-on-device) defines the destinations.
 
 **Consequences.** Provider swap is a config change, not a code change. The on-device tier (tier 4) needs a thin client-side adapter that the router can fall through to, since on-device dispatch is browser-side. AILANG-Parse-related ML calls run through this same router for their AI path (PDFs and images — see [ADR-004](#adr-004-document-parsing-via-ailang-parse)).
 
@@ -478,6 +484,8 @@ All spans go to Cloud Trace (real-time) + BigQuery (research-scale query). No sp
 ---
 
 ## ADR-010 — RAG store
+
+**Status.** Narrowed for v1 by [ADR-017](#adr-017-document-ingestion-two-pipelines-parse-to-text-before-rag): v1 text RAG ships on **Vertex AI RAG Engine** (RagManagedDb), not pgvector. The pgvector lean below stands as the **self-host / UCPH-migration target** and the likely store for the C3 concept-graph stretch. Read this ADR for the option analysis; ADR-017 for what v1 actually runs.
 
 **Context.** Two retrieval needs, with different shapes:
 
@@ -611,6 +619,8 @@ Counters derive from the OpenTelemetry usage stream already in [ADR-005](#adr-00
 
 ## ADR-015 — Unified multi-surface UI: AI directs the layout
 
+**Status.** Revised (late June 2026). The unified, AI-directed-surface model holds for the **student** experience — chat plus a `workspace` workbench, one activity surface. For **teachers**, the "no `/teacher` routes" stance below was deliberately dropped: dedicated `/teacher/*` routes (classes, activities, analytics) shipped and proved clearer to build and use than routing teacher tasks through AI-directed surfaces. They are also where the teacher **co-working co-pilots** now sit — a floating AI panel that *proposes* changes on the teacher's own page (see [Timeline → Current status](timeline.qmd#current-status)). It remains one Next.js app and one deploy. The original decision is kept below for its rationale; this note records where reality diverged, and why we kept the divergence.
+
 **Context.** Teachers and students have different needs from AIPLA — teachers configure skills, review artefacts, monitor budgets; students engage with tutors and consume artefacts. The reflex is to build a separate teacher dashboard alongside the student chat. Both that reflex *and* the opposite reflex ("just stuff everything inline in a scrolling chat") are wrong:
 
 - Separate apps doubles the v1 surface area
@@ -643,7 +653,7 @@ A2UI's [`surfaceId` mechanism](https://a2ui.org/) is built for this: a surface i
 
 **Why this works:**
 
-- **One UI app to maintain.** No `/teacher` routes, no separate auth flow, no second deploy target.
+- **One UI app to maintain.** One Next.js app, one auth path, one deploy target — teachers and students share it. *(Revised — see Status: teachers do have dedicated `/teacher/*` routes inside that single app; it's still one deploy, just not one undifferentiated surface.)*
 - **Dashboards don't scroll away.** A teacher's `class-status` lives in `workspace` and updates live; the chat conversation continues in `chat` without burying it.
 - **Aligns with the [AI Protocol Platform template](#platform-foundation) philosophy** — skills emit rich UI via A2UI / MCP Apps. Multi-surface is what A2UI was designed for.
 - **Auth-driven role filtering.** UCPH SSO sessions get teacher-role skills; anonymous group-ID sessions (per [ADR-001](#adr-001-student-identity-no-auth-anonymous-group-ids)) get student-role skills. The skill registry filters by role and the AI picks the appropriate target surface per skill.

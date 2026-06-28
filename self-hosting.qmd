@@ -3,24 +3,24 @@ title: "UCPH self-hosting"
 subtitle: "Living migration table from EU cloud to on-premises"
 ---
 
-The AIPLA prototype runs on two layers: the **AI Protocol Platform template** (application) and **Multivac** (infrastructure — model access, Ollama hosting, managed Postgres, Cloud Storage). The template is cloud-agnostic and portable as-is. The migration target is to **swap the Multivac infrastructure layer for UCPH-managed equivalents** while keeping the template unchanged.
+The AIPLA prototype runs on two layers: the **AI Protocol Platform template** (application) and **Multivac** (infrastructure — model access, Ollama hosting, Firestore, BigQuery, Vertex AI RAG Engine, Cloud Storage). The template is cloud-agnostic and portable as-is. The migration target is to **swap the Multivac infrastructure layer for UCPH-managed equivalents** while keeping the template unchanged.
 
 This page captures the component-by-component swap and what UCPH IT would need to provide. Half of the final handover package.
 
-**Status:** stub. To be populated as the architecture decisions on the [Architecture](architecture.qmd) page solidify and as UCPH IT responds with hosting capabilities.
+**Status:** living document. The component list now reflects what v0.1 actually runs (Firestore, BigQuery, Vertex AI RAG Engine, Cloud Storage — no Postgres in the cloud build); the migration *efforts* and UCPH equivalents firm up as the [Architecture](architecture.qmd) ADRs settle and UCPH IT responds with hosting capabilities.
 
 ## Migration table
 
 | Cloud component | Role in prototype | UCPH equivalent | Migration effort | Notes |
 |---|---|---|---|---|
-| Vertex AI (Gemini) | LLM + multimodal | Ollama on UCPH GPU server | Medium — depends on local-readiness fraction per task class | Capability gap depends on which local models are at the floor; see [Evaluation](evaluation.qmd) |
-| Cloud Run | Backend hosting | UCPH Kubernetes / VM | Low | Containerised backend portable as-is |
-| Cloud SQL (Postgres + pgvector) | Application DB + RAG vectors | UCPH-managed Postgres | Low | `pg_dump` → restore; pgvector extension widely available |
-| Cloud Storage | Uploaded resources (PDFs, images, CSVs) | UCPH NFS or S3-compatible | Low | Path abstraction in app |
-| Firestore (if used) | TBD | TBD | TBD | Prefer not to use — see ADR-005 |
-| Cloud Logging | Operational logs | UCPH ELK or similar | Low | Standard log shipping |
-| Vertex AI Vector Search (if used) | RAG vectors | pgvector or self-hosted Chroma | Low if not used; see ADR-005 | Lean is to avoid in favour of pgvector |
-| GCP IAM | Service auth | UCPH SSO / institutional IDs | TBD | Depends on student-auth decision in ADR-010 |
+| Vertex AI (Gemini) | LLM + multimodal | Ollama on UCPH GPU server (Tiers 2–3, [ADR-003](architecture.qmd#adr-003-llm-provider-mix-4-tiers-ai-api-server-server-local-on-device)) | Medium — depends on local-readiness fraction per task class | Capability gap depends on which local models reach the floor; see [Evaluation](evaluation.qmd) |
+| Cloud Run | Backend + frontend hosting (backend runs as a sidecar in the frontend service) | UCPH Kubernetes / VM | Low | Containerised; portable as-is |
+| Firestore | Application DB — classes, activities, groups, skill + identity mirror | UCPH-managed Postgres | Medium | The app codes against a Firestore *protocol* (`db/firestore_protocol.py`), so the swap is one `PostgresFirestoreClient` adapter, already scoped as a typed checklist |
+| Vertex AI RAG Engine (RagManagedDb) | Curriculum text RAG — chunk / embed / retrieve ([ADR-017](architecture.qmd#adr-017-document-ingestion-two-pipelines-parse-to-text-before-rag)) | pgvector on UCPH Postgres behind the same retrieval-tool interface | Medium | Retrieval is one ADK tool (`VertexAiRagRetrieval`); the swap is bounded to that tool. pgvector is the documented target ([ADR-010](architecture.qmd#adr-010-rag-store)) |
+| BigQuery | Anonymised chat logs + telemetry ([ADR-005](architecture.qmd#adr-005-chat-log-storage)) | UCPH analytics DB (Postgres / ClickHouse) | Medium | Research-scale query surface; schema is group-ID-keyed, no PII |
+| Cloud Storage | Chat-uploaded doc artifacts (ADK ArtifactService) + uploaded resources | UCPH NFS or S3-compatible | Low | Path abstraction in app |
+| Cloud Logging / Cloud Trace | Operational logs + traces | UCPH ELK or similar | Low | Standard OpenTelemetry shipping |
+| Firebase Auth (teachers) + anonymous group JWT (students) | Identity ([ADR-001](architecture.qmd#adr-001-student-identity-no-auth-anonymous-group-ids)) | UCPH SSO (teachers) + the existing group-JWT path (students — no change) | TBD | Student side is already self-contained (custom JWT, no Firebase identity); only the teacher side rides UCPH SSO |
 
 ## Outstanding questions for UCPH IT
 

@@ -46,13 +46,55 @@ gantt
 |---|---|---|---|
 | 0. Decide & set up | 1 | May 15 – May 22 | ADRs done; GCP projects (`aipla-dev/test/prod-2026`) live; **platform feature work kicked off upstream** (group-ID auth, `tenant_id` span hook, budget enforcement, artefact review pipeline — see notes) |
 | **0.5. Jutland demo (v0.1)** | 1–2 | May 19 – May 27 | **v0.1 deployed 2026-05-20**, 6 days ahead of the Wed 27 May Jutland deadline. Feature detail on the [home page](index.qmd#status) and [Strands](strands.qmd#strand-a-pedagogical-bot-infrastructure). Buffer week 21–26 May for AR-led prompt iteration. |
-| 1. Build (Strand A core) | 3–6 | May 27 – Jun 26 | **In progress — ahead of plan.** Three physics skills live, teacher UI wired to backend, chat log pipeline in BigQuery; 3 June check-in confirmed direction and set v1.1 priorities (see [home page](index.qmd#status)). Next: session persistence, teacher UI Phase 3 (Firebase auth). |
-| **Mid-point review** | 6 | Fri Jun 26 | Live demo + scope review **before holidays** |
+| 1. Build (Strand A core) | 3–6 | May 27 – Jun 26 | **Complete — ahead of plan.** Three physics skills, full teacher UI (auth, classes, activities, analytics), chat-log pipeline in BigQuery, session persistence, and the v1.1 feature wave (co-pilots, rich-document workbench, cross-teacher sharing, MCP-App sims). The 3 June check-in set v1.1 priorities. Detail in [Current status](#current-status) below. |
+| **Mid-point review** | 6 | Fri Jun 26 | **Done.** Live demo + scope review, held before the holiday freeze. |
 | Both on holiday (M + JB) | 7 (wk 27) | Jun 29 – Jul 5 | Code freeze. JB on Danish summer break; M at Croatia workshop |
 | 2. Internal iteration | 8–12 | Jul 6 – Aug 14 | First eval run; iterate Strand A; Strand B build; Strand C scoping kickoff |
 | 3. Teacher pilot | 13–14 | Aug 14 – Aug 28 | Real teachers (10 Danish + K) engage; capability-floor eval refresh |
 | 4. Strand C scoping draft | 14–16 | Aug 19 – Sep 9 | 5–10pp scoping note: beyond-LLMs, beyond-chat, student models |
 | 5. Handover-intensive | 16–17 | Sep 2 – Sep 15 | Final docs, deep-dive sessions, sign-offs |
+
+## Current status {#current-status}
+
+*As of 28 June 2026 (pre-freeze). Verified against the execution codebase, not
+just design docs: each "shipped" line was checked against real files and routes,
+each "not built" line confirmed absent in code.*
+
+### Shipped to dev — this pre-freeze push (22–28 June)
+
+- **Teacher co-working co-pilot** — a floating AI partner on the teacher's own pages that *proposes* changes the teacher *Applies* (nothing happens without the click), the change appearing alongside their own edits. Live on the class list (create classes / mint join-codes) and read-only on class detail (ask about engagement); conversations resume across visits.
+- **Activity-authoring co-pilot** — the AI composes an activity from a description (prompt, checklists, tables, charts, calculators, notes, solution/upload fields, a proposed vetted sim). Live on dev; held off test/prod until the AR/JB teaching framework lands.
+- **Rich-document workbench** — rich parsed-document rendering, a Documents tab + activity workbench shell, an in-place PDF viewer (page-nav / zoom / fullscreen, access-controlled), and student upload feeding the active file to the tutor.
+- **Image-based solution submission** — students answer with a photo + freehand whiteboard (the earlier rich-text editor was removed as the solution surface went image-based).
+- **Cross-teacher activity sharing** — duplicate / branch an activity, publish to a shared catalogue, adopt a colleague's, with provenance; plus a researcher all-teachers view.
+- **Sims as portable MCP Apps** — the physics sims are served over the open MCP protocol so they render in external AI hosts, not only our app.
+- **Researcher cross-class analytics** — drill-downs, overview, trends, and transcripts across all classes.
+- Onboarding (auto-seeded demo for a new teacher), workbench "shared with the AI" trust cards, one unified sim render path, env-level thinking-budget control.
+
+### Shipped earlier in v1.1
+
+Student image upload (the tutor sees handwritten work / setup photos); curriculum-RAG grounding (the tutor cited on teacher-attached documents); summary-first session report; teacher-UI consolidation; the activity element palette (table / chart / calculator / note); activity preview; voice provider + personas; cost dashboard.
+
+### In progress
+
+- **Teacher activity authoring** (the non-sim authoring umbrella) — concept-activity creation shipped end-to-end; the quiz, workbench-type, and equipment co-design milestones are gated on JB + AR. The one genuinely-open sprint at the freeze.
+
+### Partial — backend done, surface or layers missing
+
+- Per-join-code TTL choice (backend accepts it; no teacher UI yet); thinking budget (env-level only; no per-skill / per-turn / per-persona layer); student consent (recording-consent attestation only, no per-session opt-in prompt).
+
+### Not built yet — the backlog
+
+Co-pilot chat history tier; migrating the activity co-pilot onto the shared shell; full from-scratch authoring; end-of-class notes summary; student audio turns; exit ticket; engagement signals; offline-lab workbench; call-teacher (raised hand); a lesson-author preview surface; mobile-performance pass.
+
+### Deferred / parked
+
+Duplex voice (turn-based speech is the shipped path); the sim-catalogue admin UI (post-pilot); the 2010 exam archive (Strand C, out of scope).
+
+### Blocked on people
+
+- **JB + AR:** exit-ticket question set; offline-lab ground-truth model + two real experiments; engagement-signal metrics; the authoring teaching framework (un-gates the co-pilot for test/prod).
+- **JB:** student-consent wording.
 
 ## Handover fan-out (parallel, not sequential)
 
