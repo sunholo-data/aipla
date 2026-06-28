@@ -85,7 +85,7 @@ Student image upload (the tutor sees handwritten work / setup photos); curriculu
 
 ### Not built yet — the backlog
 
-Co-pilot chat history tier; migrating the activity co-pilot onto the shared shell; full from-scratch authoring; end-of-class notes summary; student audio turns; exit ticket; engagement signals; offline-lab workbench; call-teacher (raised hand); a lesson-author preview surface; mobile-performance pass.
+Co-pilot chat history tier; migrating the activity co-pilot onto the shared shell; full from-scratch authoring; end-of-class notes summary; student audio turns; exit ticket; engagement signals; tutor-message feedback (thumbs up/down + sentiment); offline-lab workbench; call-teacher (raised hand); a lesson-author preview surface; mobile-performance pass; live per-group difficulty tuning.
 
 ### Deferred / parked
 

@@ -42,9 +42,9 @@ Initials per the site convention (M, JB, AR, DS, ZL, P2, K).
 **Finish the co-pilot:** chat **history tier** (browse/reopen past chats by class); migrate the activity co-pilot onto the shared shell (de-dup).
 **Authoring depth:** the full from-scratch activity authoring (M1+); the AR/JB **teaching framework** that gates the authoring co-pilot for test/prod.
 **Student-facing:** end-of-class notes summary; student audio turns.
-**Assessment/feedback:** exit ticket; session-report dual-source narrative; student engagement signals.
+**Assessment/feedback:** exit ticket; session-report dual-source narrative; student engagement signals; **tutor-message feedback** — thumbs up/down + sentiment-over-time tracking (raised 22 June, unspecced; distinct from the behavioural engagement signals).
 **Labs:** offline-lab workbench (ground-truth checking) — only stub comments today.
-**Teacher tools:** call-teacher (raised hand); lesson-author surface (resolved-prompt preview + trial session); per-code TTL UI; mobile-performance pass.
+**Teacher tools:** call-teacher (raised hand); lesson-author surface (resolved-prompt preview + trial session); per-code TTL UI; mobile-performance pass; live per-group difficulty tuning (raised 23 June, unspecced).
 
 ## Deferred / parked
 - **Duplex voice (`gemini_live`)** — TODO stub only; deferred until there's a clear non-Google reason (turn-based speech is the shipped path).
