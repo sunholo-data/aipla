@@ -230,7 +230,9 @@ For the authoritative, code-verified status (what's live, in progress, and backl
 
 **Deliverable.** A working pilot similar to Strand A.
 
-**Timeline.** Kickoff after the mid-point review (week 7+). Pilot-ready by weeks 14–15. Less new infrastructure than the original framing suggested — most of the heavy lifting is already done by Strand A's artefact machinery. The interactive sandbox is post-handover stretch unless an early scope opportunity appears.
+**Status (July).** The infrastructure half is effectively delivered by Strand A: AI-generated physics sims run as portable MCP Apps — inside the platform and in external AI hosts — behind the artefact review pipeline (ADR-013). What remains is the student-facing slice: the `student-as-creator` skill (tighter review gates than the teacher path), versioned student artefacts in the GitHub-based library, and a pilot framing so a class authors sims in weeks 14–15. The games direction rides the same machinery.
+
+**Timeline.** Kickoff after the mid-point review (week 7+). Pilot-ready by weeks 14–15. The interactive sandbox is post-handover stretch unless an early scope opportunity appears.
 
 ---
 

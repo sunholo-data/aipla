@@ -100,7 +100,7 @@ Duplex voice (turn-based speech is the shipped path); the sim-catalogue admin UI
 
 ## Handover fan-out (parallel, not sequential)
 
-Handover starts **week 4**, not week 13. Each artefact is explicitly co-owned with someone who'll be around after the contract.
+Handover starts **week 4**, not week 13. The primary handover targets are the **two postdocs** — AR (co-PI, present now) and AD (starts ~1 Oct, joining dev meetings remotely until then). Each artefact is explicitly co-owned with someone who'll be around after the contract.
 
 | Artefact | Primary inheritor | Co-owned with | First touchpoint |
 |---|---|---|---|
@@ -108,7 +108,7 @@ Handover starts **week 4**, not week 13. Each artefact is explicitly co-owned wi
 | Pedagogical rubrics / LLM-judge prompts | AR | — | Week 4 — first rubric review |
 | Production architecture (Strand A) | DS + AD | ZL (day-to-day) | Week 4 — ADR walkthrough |
 | Cloud infra / GCP setup | AD (from ~1 Oct) | UCPH IT (for self-host migration) | Week 6 — runbook v0 |
-| Day-to-day operations | Student helpers | AD | Week 8 — onboarding session |
+| Day-to-day operations | AR + AD | Student helpers (if hired) | Week 8 — onboarding session |
 | Strand B (simulation/game) | ZL (likely) | DS | Week 10 — kickoff |
 | Scoping note (Strand C) | JB (audience) | AR (input) | Week 14 — draft review |
 
