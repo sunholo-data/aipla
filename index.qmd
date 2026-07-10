@@ -35,7 +35,7 @@ A three-year research programme investigating how generative AI can be meaningfu
 - **[Evaluation](evaluation.qmd)** — capability-floor framework: task taxonomy, model panel, KPIs that drive routing and the local-deployment migration timeline
 - **[Self-hosting](self-hosting.qmd)** — UCPH migration table: cloud components and their on-premises equivalents
 
-People referenced by initials throughout (M, JB, AR, DS, ZL, P2, K, DK) for light anonymisation — the team knows the mapping.
+People referenced by initials throughout (M, JB, AR, AD, DS, ZL, K, DK) for light anonymisation — the team knows the mapping. AD is the project postdoc, previously written as P2 before the hire.
 
 ## Design principles
 
@@ -65,6 +65,6 @@ Documentation, pairing, and ADR sign-offs from week 4, not week 13. Each major a
 
 ## Status
 
-**Mid-point reached (late June), entering the week-27 freeze.** Three student-facing physics skills are live — Boldkast (projectile motion, Danish stx), LED Planck (Planck's constant, Danish stx), and KineBot (kinematics, NCERT/CBSE) — on a full teacher UI (classes, activities, analytics) with chat logs in BigQuery. The pre-freeze push added a teacher co-working co-pilot, an activity-authoring co-pilot, a rich-document workbench, image-based solution submission, cross-teacher activity sharing, and the physics sims served as portable MCP Apps. The mid-point review was held 26 June, before M and JB go on holiday (week 27). Teacher pilots begin mid-August. For the full shipped / in-progress / backlog breakdown — verified against code — see [Current status](timeline.qmd#current-status) on the Timeline page.
+**Post-freeze internal iteration (July).** The mid-point review was held 26 June; the week-27 freeze has passed and the project is in the internal-iteration phase (Strand A iteration, Strand B build, Strand C scoping kickoff). Three student-facing physics skills are live — Boldkast (projectile motion, Danish stx), LED Planck (Planck's constant, Danish stx), and KineBot (kinematics, NCERT/CBSE) — on a full teacher UI (classes, activities, analytics) with chat logs in BigQuery. The pre-freeze push added a teacher co-working co-pilot, an activity-authoring co-pilot, a rich-document workbench, image-based solution submission, cross-teacher activity sharing, and the physics sims served as portable MCP Apps. In early July the platform went to the partner-school teachers as a voluntary sneak peek — teacher login only, explicitly not for student use until the GDPR/consent work lands. A postdoc (AD) has been hired to lead the student perspective, officially starting ~1 October and already joining development meetings online. Teacher pilots begin mid-August, with a full-day teacher workshop at a partner gymnasium tentatively set for Friday 21 August; in the autumn the project group returns to the gymnasiums for observation, student interviews, and scoping the physical data-collection setup (cameras, audio). For the full shipped / in-progress / backlog breakdown — verified against code — see [Current status](timeline.qmd#current-status) on the Timeline page.
 
 :::

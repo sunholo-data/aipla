@@ -40,4 +40,10 @@ The migration becomes worth doing when:
 2. Local-readiness fraction (per [Evaluation](evaluation.qmd)) reaches a threshold per task class — likely 70–80% as a working bar
 3. Steady-state usage justifies fixed infrastructure cost over per-API spend
 
+A July steer sharpens the timeline: the project has told the partner schools that when
+student **data collection** begins, it will run on locally installed models at UCPH or
+another secure location in Denmark, so student data is not sent to external AI
+services. That binds the migration (at least for the student-data path) to the
+data-collection start rather than leaving it open-ended.
+
 Until then, GCP EU is the right place to be.

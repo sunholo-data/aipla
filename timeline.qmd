@@ -8,6 +8,7 @@ subtitle: "17 weeks, three overlapping tracks, handover woven through"
 **Mid-point review:** week 6 (Fri 26 June), before both M and JB go on holiday
 **Holiday window:** Week 27 (Mon 29 June – Sun 5 July) — JB on Danish summer break; M at Croatia workshop
 **Teacher pilot starts:** week 13 (~2026-08-14), when Danish teachers return from summer
+**Teacher workshop:** Fri 21 Aug (tentative) — full-day workshop at a partner gymnasium; confirmed against teachers' timetables in early August, fallback later Sept / Oct
 
 ## At a glance
 
@@ -37,6 +38,7 @@ gantt
     Jutland demo (v0.1)       :milestone, m0, 2026-05-27, 0d
     Mid-point review          :milestone, m1, 2026-06-26, 0d
     M + JB holiday (wk 27)    :crit, 2026-06-29, 7d
+    Teacher workshop (tent.)  :milestone, m3, 2026-08-21, 0d
     Final handover            :milestone, m2, 2026-09-15, 0d
 ```
 
@@ -50,7 +52,7 @@ gantt
 | **Mid-point review** | 6 | Fri Jun 26 | **Done.** Live demo + scope review, held before the holiday freeze. |
 | Both on holiday (M + JB) | 7 (wk 27) | Jun 29 – Jul 5 | Code freeze. JB on Danish summer break; M at Croatia workshop |
 | 2. Internal iteration | 8–12 | Jul 6 – Aug 14 | First eval run; iterate Strand A; Strand B build; Strand C scoping kickoff |
-| 3. Teacher pilot | 13–14 | Aug 14 – Aug 28 | Real teachers (10 Danish + K) engage; capability-floor eval refresh |
+| 3. Teacher pilot | 13–14 | Aug 14 – Aug 28 | Real teachers (10 Danish + K) engage; full-day teacher workshop tentatively Fri 21 Aug; capability-floor eval refresh |
 | 4. Strand C scoping draft | 14–16 | Aug 19 – Sep 9 | 5–10pp scoping note: beyond-LLMs, beyond-chat, student models |
 | 5. Handover-intensive | 16–17 | Sep 2 – Sep 15 | Final docs, deep-dive sessions, sign-offs |
 
@@ -104,9 +106,9 @@ Handover starts **week 4**, not week 13. Each artefact is explicitly co-owned wi
 |---|---|---|---|
 | Capability-floor eval (dataset + runner) | AR (domain) | student helper (operations) | Week 3 — co-design task taxonomy |
 | Pedagogical rubrics / LLM-judge prompts | AR | — | Week 4 — first rubric review |
-| Production architecture (Strand A) | DS + P2 | ZL (day-to-day) | Week 4 — ADR walkthrough |
-| Cloud infra / GCP setup | P2 (when hired) | UCPH IT (for self-host migration) | Week 6 — runbook v0 |
-| Day-to-day operations | Student helpers | P2 | Week 8 — onboarding session |
+| Production architecture (Strand A) | DS + AD | ZL (day-to-day) | Week 4 — ADR walkthrough |
+| Cloud infra / GCP setup | AD (from ~1 Oct) | UCPH IT (for self-host migration) | Week 6 — runbook v0 |
+| Day-to-day operations | Student helpers | AD | Week 8 — onboarding session |
 | Strand B (simulation/game) | ZL (likely) | DS | Week 10 — kickoff |
 | Scoping note (Strand C) | JB (audience) | AR (input) | Week 14 — draft review |
 
@@ -114,7 +116,7 @@ Handover starts **week 4**, not week 13. Each artefact is explicitly co-owned wi
 
 - **Pair on commits** from week 3 onwards — every major component touched by ≥ 2 people before merge
 - **ADR sign-offs** — every architecture decision needs a second signature, captured in the Sign-off column on the [Architecture](architecture.qmd) page
-- **Bi-weekly walkthrough sessions** — 1hr, rotating audience (AR / DS+ZL / P2 once hired / student helpers)
+- **Bi-weekly walkthrough sessions** — 1hr, rotating audience (AR / DS+ZL / AD / student helpers)
 - **Task-oriented runbooks** written *for* successors, not for posterity:
   - "How to add a new bot configuration"
   - "How to onboard a new teacher / class"
@@ -125,7 +127,7 @@ Handover starts **week 4**, not week 13. Each artefact is explicitly co-owned wi
 ## Risk markers
 
 - **Teacher feedback window is narrow.** Real teachers active only weeks 13–17 (post-summer). Don't over-engineer pre-summer iteration on internal feedback alone — leave headroom to respond to teacher input.
-- **P2 hire timing unknown.** If they arrive late, their onboarding compresses. Pre-document everything assuming they may only have 2–3 weeks of overlap.
+- **Postdoc starts after the contract ends.** The postdoc (AD) is hired — resolving the earlier hire-timing unknown — but officially starts ~1 October, after the contract closes 15 September. There is no in-person overlap, so handover to AD rides on the documentation and on the online development meetings AD already attends.
 - **Both M and JB on holiday weeks 7–8** (early-to-mid July). The mid-point review at week 6 needs to leave M with enough scope clarity *and* enough demo material for JB to take into the break. No major direction-setting during the holiday window.
 - **Build phase is 4 weeks pre-holiday, not 6.** Strand A core needs the minimum viable vertical slice ready by ~Jun 26 — RAG and multimodal can layer on post-holiday if needed.
 - **GDPR / consent forms** — JB owns these but they gate any teacher-facing deployment. Confirm by early August at latest.
@@ -138,4 +140,4 @@ Handover starts **week 4**, not week 13. Each artefact is explicitly co-owned wi
 - Strand C scoping note delivered
 - All artefacts have a named co-owner who has demonstrated they can operate them
 - UCPH self-host migration notes complete enough for IT to estimate effort
-- Final handover session run with P2 + AR + DS + ZL
+- Final handover session run with AD (remote) + AR + DS + ZL
