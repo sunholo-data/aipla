@@ -58,9 +58,20 @@ gantt
 
 ## Current status {#current-status}
 
-*As of 28 June 2026 (pre-freeze). Verified against the execution codebase, not
+*As of 10 July 2026. Verified against the execution codebase, not
 just design docs: each "shipped" line was checked against real files and routes,
 each "not built" line confirmed absent in code.*
+
+### Shipped since the freeze (29 June – 10 July)
+
+The planned week-27 freeze turned into a light-iteration week rather than a stop:
+
+- **Group shared-session live sync** — the shared group session now syncs live across devices: a per-group turn-lock serialises who's talking to the tutor, chat updates pulse to all group members, workbench shares flow through the chat, and presence shows "N in your group are here".
+- **One shared MCP-App guest bridge** — all four sim artefacts migrated onto a single canonical bridge with a CI drift guard; sim commit-visibility **verified live in ChatGPT**, and the M365 Copilot path confirmed native to the same open standard.
+- **"Open in AIPLA" deep-link** — sims running in external AI hosts now carry a call-to-action back into the platform (external hosts as advertising, the app as the home).
+- **Curriculum catalogue summary field** — feeds co-pilot and teacher document selection (phase 1 of curriculum-selection work).
+- **Activity co-pilot folded onto the shared co-pilot shell** — closing an item from the backlog below.
+- **Design specs (not yet code):** the living concept map (teacher-authored prerequisite graph + in-session tutor check-off, M0–M3 with a calibration eval) and the Year-2 concept-graph student-model / cross-group-matching vision.
 
 ### Shipped to dev — this pre-freeze push (22–28 June)
 
@@ -87,7 +98,7 @@ Student image upload (the tutor sees handwritten work / setup photos); curriculu
 
 ### Not built yet — the backlog
 
-Co-pilot chat history tier; migrating the activity co-pilot onto the shared shell; full from-scratch authoring; end-of-class notes summary; student audio turns; exit ticket; engagement signals; tutor-message feedback (thumbs up/down + sentiment); offline-lab workbench; call-teacher (raised hand); a lesson-author preview surface; mobile-performance pass; live per-group difficulty tuning.
+Co-pilot chat history tier; full from-scratch authoring; end-of-class notes summary; student audio turns; exit ticket; engagement signals; tutor-message feedback (thumbs up/down + sentiment); offline-lab workbench; call-teacher (raised hand); a lesson-author preview surface; mobile-performance pass; live per-group difficulty tuning.
 
 ### Deferred / parked
 
