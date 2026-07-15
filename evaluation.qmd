@@ -47,28 +47,33 @@ External benchmarks calibrate the model panel; the AIPLA eval adds physics-speci
 
 ### Real numbers — GPQA Diamond, the closest public proxy
 
-GPQA Diamond is graduate-level physics, chemistry, and biology — the closest public benchmark to upper-secondary physics reasoning, and harder than most STX physics tasks will require. A snapshot of current scores (verified 2026-05-15) across the four tiers:
+GPQA Diamond is graduate-level physics, chemistry, and biology — the closest public benchmark to upper-secondary physics reasoning, and harder than most STX physics tasks will require. Scores below are **re-verified against primary sources (2026-07-15)** after an audit found several earlier blog-sourced figures to be unreliable or fabricated (see notes ¹ ²):
 
 | Tier | Model | Hardware needed | GPQA Diamond | Source |
 |---|---|---|---|---|
-| 1 — AI API | Claude Opus 4.7 | None (API; cloud-agnostic — Anthropic / Bedrock / Vertex) | **94.2%** | [Vellum leaderboard](https://www.vellum.ai/llm-leaderboard) |
-| 1 — AI API | Gemini 3.1 Pro Preview | None (Vertex AI, EU regions available) | **94.1%** | [Artificial Analysis](https://artificialanalysis.ai/evaluations/gpqa-diamond) |
+| 1 — AI API | Claude Opus 4.8 | None (API) | **93.6%** | [Anthropic system card](https://www-cdn.anthropic.com/0b4915911bb0d19eca5b5ee635c80fef830a37ea.pdf) |
+| 1 — AI API | Claude Opus 4.7 | None (API; Anthropic / Bedrock / Vertex) | **94.2%** | [Anthropic](https://www.anthropic.com/news/claude-opus-4-7) |
+| 1 — AI API | Gemini 3.1 Pro Preview | None (Vertex AI, EU regions) | **94.1–94.3%** | [Model card](https://deepmind.google/models/model-cards/gemini-3-1-pro/) · [Artificial Analysis](https://artificialanalysis.ai/evaluations/gpqa-diamond) |
 | 1 — AI API | GPT-5.5 (xhigh) | None (OpenAI / Azure) | **93.5%** | Artificial Analysis |
-| 1 — AI API | Gemini 2.5 Pro | None (Vertex AI EU — prototype default) | ~85–86% | Google model card |
-| 2 — Self-hosted server | **DeepSeek V4 Pro** (1.6T MoE / 49B active) | Cluster: 8× H100 / 4× H200 (~800+ GB VRAM at Q4_K_M; NVLink) | **90.1%** | [Framia benchmarks](https://framia.pro/page/en-US/news/deepseek-v4-benchmarks) |
-| 2 — Self-hosted server | DeepSeek V4 Flash (284B MoE / 13B active) | ~4× H100 (~280 GB VRAM at FP8); top open-weight by OpenRouter usage | 79.0% | [Codersera deep-dive](https://codersera.com/blog/deepseek-v4-flash-deep-dive/) |
-| 3 — Server-local | **Qwen 3.5 27B** | ~30 GB at Q6 — fits on 128 GB Mac or single H100/A100 | **85.5%** | [Awesome Agents](https://awesomeagents.ai/tools/qwen-3-5-27b-vs-gemma-3-27b/) |
-| 3 — Server-local | **Gemma 4 31B** | ~32 GB at Q6 — fits on 128 GB Mac or single H100 | **84.3%** | [ai.rs roundup](https://ai.rs/ai-developer/gemma-4-vs-qwen-3-5-vs-llama-4-compared) |
-| 3 — Server-local | Phi-4 (14B) | ~14 GB FP8 — single consumer GPU (RTX 4090) or high-end laptop | 56.1% | [TokenMix](https://tokenmix.ai/blog/phi-4-review-microsoft-small-model-2026) |
-| 4 — On-device | Apple Intelligence (~3B) | iPhone 15 Pro+, iPad M-series, Apple Silicon Mac | n/a (not GPQA-benchmarked) | Apple |
-| 4 — On-device | Gemini Nano (3.25B) | Pixel 8+, Samsung S24+, supporting Chromebooks | n/a (not GPQA-benchmarked) | Google |
+| 1 — AI API | Gemini 2.5 Pro | None (Vertex AI EU — prototype default) | **84.0%** preview · **86.4%** GA | [Google model card](https://storage.googleapis.com/deepmind-media/Model-Cards/Gemini-2-5-Pro-Model-Card.pdf) · Epoch AI |
+| 2 — Self-hosted server | Qwen3-Next-80B-A3B (80B MoE / 3B active) | Multi-GPU node (~2× A100 80 GB) | **72.9%** | [Qwen HF card](https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct) |
+| 2 — Self-hosted server | DeepSeek V4 (Pro / Flash MoE) | Cluster | **no published GPQA** ¹ | — |
+| 3 — Server-local | Qwen3.5-27B | ~30 GB — single GPU / 128 GB Mac | 85.5% ² *(vendor, unverified)* | [Qwen card](https://huggingface.co/Qwen/Qwen3.5-27B) |
+| 3 — Server-local | Gemma 4 31B | ~32 GB — single GPU | 84.3% ² *(vendor, unverified)* | [DeepMind Gemma 4](https://deepmind.google/models/gemma/gemma-4/) |
+| 3 — Server-local | Qwen3-32B *(prior gen, verified)* | ~32 GB | **68.4%** | [Qwen3 tech report](https://arxiv.org/abs/2505.09388) |
+| 3 — Server-local | Gemma-3-27B *(prior gen, verified)* | ~27 GB | **42.4%** | [Gemma 3 report](https://arxiv.org/abs/2503.19786) |
+| 3 — Server-local | Phi-4 (14B) | ~14 GB — single consumer GPU | **56.1%** | [Phi-4 tech report](https://arxiv.org/abs/2412.08905) |
+| 4 — On-device | Apple Intelligence · Gemini Nano (~3B) | phone / tablet / Apple Silicon | n/a (not GPQA-benchmarked) | Apple · Google |
+
+¹ DeepSeek V4's official technical report (arXiv:2606.19348) publishes **no GPQA-Diamond score**; the widely-cited "90.1% Pro / 79.0% Flash" figures are blog-only and mutually inconsistent (Flash appears as 79.0 / 88.1 / 71.2 across sources) — removed as unverifiable.
+² Qwen3.5-27B (85.5) and Gemma 4 31B (84.3%) appear on vendor pages but are **self-reported, reasoning-mode, no-tools** figures with no independent confirmation, and imply extraordinary generational jumps (+17 / +42 points over the prior gen's *verified* 68.4 / 42.4). Treat as unconfirmed upper bounds; the verified prior-gen rows are the safer floor. **This uncertainty is exactly why AIPLA runs its own eval** (below) — on real STX task data these self-hostable models land ~52–80%, not near-frontier.
 
 GPQA Diamond is a *graduate-level* science benchmark — Tier 4 models aren't designed for that level of reasoning, which is why they don't have published scores on it. They serve light text tasks (summarisation, formatting, short Q&A), which is what gets routed to them in practice.
 
 **What this means for the [UCPH self-host migration](self-hosting.qmd).** *"Cloud now, on-prem someday"* is too conservative — read by the capability a task needs:
 
-1. **80%+ capability → Tier 3 (server-local) is viable today.** Qwen 3.5 27B and Gemma 4 31B land at 84–86% on a 128 GB Mac, a single H100, or a small departmental server. No cluster needed.
-2. **88–92% → Tier 2 (UCPH GPU cluster) is viable today** if the cluster exists. DeepSeek V4 Pro at 90.1% is within 4 points of frontier — near-cloud capability **without sending any data to a cloud provider at all**.
+1. **Moderate thresholds (~70 %) → Tier 3 (server-local) is viable today — but the "near-frontier at 84–86 %" claim does not survive audit.** The *independently-verified* self-hostable ceiling is ~68 % (Qwen3-32B GPQA); the 84–86 % figures for Qwen3.5-27B / Gemma 4 31B are unconfirmed vendor self-reports (note ²). On AIPLA's own STX task these single-GPU models land **52–80 %** (below). Tier 3 clears moderate task thresholds comfortably on a 128 GB Mac or a single A100; it is **not yet a substitute for the cloud frontier** on the hardest reasoning.
+2. **Tier 2 (UCPH GPU cluster) is *emerging*, not settled.** DeepSeek V4 has no published GPQA, so the earlier "90.1 % → within 4 points of frontier" claim is **withdrawn**. The verified Tier-2 anchor is Qwen3-Next-80B-A3B at 72.9 % GPQA (~80 % on STX) — genuinely strong, fully on-prem, **no data leaving the building** — but a clear step below the cloud frontier.
 3. **93%+ → Tier 1 (cloud API) is still the answer in 2026**, but the gap narrows every release cycle.
 4. **Light tasks → Tier 4 (on-device) is already operational.** It trails at 40–56% on graduate science and isn't designed for it; summarisation, formatting, and short Q&A are what get routed there.
 
@@ -81,6 +86,48 @@ GPQA Diamond is a *graduate-level* science benchmark — Tier 4 models aren't de
 - **[LMArena](https://lmarena.ai)** — human-preference comparisons; useful for chat-style tasks
 - **[Epoch AI Benchmarking Dashboard](https://epoch.ai/data/ai-benchmarking-dashboard)** — long-run trajectories and projections
 - **[GPQA leaderboard](https://github.com/idavidrein/gpqa)** — primary source for GPQA Diamond results
+
+## First AIPLA correctness run — STX Fysik A (provisional, July 2026)
+
+This is the first run of AIPLA's own capability-floor eval — the task-specific numbers this page has promised, standing in for the GPQA proxy on one concrete task class. **Provisional and unverified** (see limitations below): directional signal, not a leaderboard.
+
+**What it measures.** The *Correctness* dimension of task class **T1** (exam problem solving): can a model solve a Danish stx Fysik A written-exam subquestion, graded against the official ministry answer key? Metric = **solve accuracy** = correct ÷ (correct + incorrect) over the *text-solvable* subset (33 subquestions from the 2023–24 gold sets), with a separate **abstention rate** — items the model declines because they need a graph/figure it cannot see. Models answer via a schema-enforced `{value, unit}` with an explicit "I don't know" option, so a text-only model *abstains* on figure-dependent items rather than guessing; grading is deterministic value/unit compare plus an LLM judge against the key.
+
+Results against the page's **≥ 80% capability-floor threshold**, with where each model runs (tiers match the [GPQA table above](#real-numbers--gpqa-diamond-the-closest-public-proxy)):
+
+| Model | Runs on | STX accuracy | Abstains | ≥ 80% |
+|---|---|---|---|---|
+| Claude sonnet / opus / haiku | Cloud API (Tier 1) | 93–96% | 5–6 | ✓ |
+| gemini-3.5-flash (app top) | Cloud API — Vertex (Tier 1) | 92% | 7 | ✓ |
+| **qwen3-8b** (open, 8 B) | **Small local — single 24 GB GPU, even a laptop (Tier 3)** | **88%** | 6 | ✓ |
+| gemini-2.5-flash (app mid) | Cloud API — Vertex (Tier 1) | 86% | 5 | ✓ |
+| deepseek-v4-flash · qwen3-next-80b-a3b (open MoE) | Server / cluster — multi-GPU node (Tier 2) | 80–86% | 5–8 | ✓ |
+| qwen3-32b · qwen3-30b-a3b (open) | Single GPU — ~1× A100 80 GB (Tier 3) | 67–73% | 5–6 | ✗ |
+| gemini-2.5-flash-lite (app lite) | Cloud API — Vertex (Tier 1) | 66% | 3 | ✗ |
+| mistral-small-24b · gemma-3-27b (open) | Single GPU — ~1× A100 80 GB or a 128 GB Mac (Tier 3) | 52–64% | 2–5 | ✗ |
+
+All 14 rows are complete single runs of n = 33 (no errors). Full descent: sonnet-4.6/5 96 · opus/haiku 93 · gemini-3.5-flash 92 · **qwen3-8b 88** · gemini-2.5-flash / deepseek-v4-flash 86 · qwen3-next-80b 80 · qwen3-32b 73 · qwen3-30b-a3b 67 · gemini-2.5-flash-lite 66 · mistral-24b 64 · gemma-3-27b 52.
+
+**Cost shape** (detailed in [self-hosting](self-hosting.qmd)): Tier 1 is **pay-per-token** — cheap for the flash/lite tiers, materially more for the frontier (opus-class ~2 orders of magnitude above flash-class per token). Tiers 2–3 are **amortised hardware, no per-call cost, data stays on-prem** — a one-time GPU rather than a running bill. The standout is that the ≥ 80% floor is *reachable at Tier 3 today*: `qwen3-8b` hits 88% on a single consumer GPU — the cheapest possible self-host — which is the sharpest version of the "self-hosting is viable now for this task" finding.
+
+**Three reads for our decisions:**
+
+1. **The frontier is saturated for this task.** Claude and gemini-3.5-flash cluster at 92–96%; the spread is within the small-sample noise. Well-posed stx numeric physics is *not* frontier-hard — which reframes "always want state-of-the-art" for this task class specifically.
+2. **The app's own tiers descend sharply:** gemini 3.5-flash 92 → 2.5-flash 86 → 2.5-flash-lite 66. The lite tier misses ~1 in 3 — under-powered for physics correctness; **2.5-flash is the app's sweet spot** for this class, with 3.5-flash buying the last few points.
+3. **Self-hosting is viable for this task today.** An 8B (qwen3-8b, 88%) and mid-size MoEs (~80%) clear the floor — a departmental GPU, or even a single card, could serve stx-physics correctness on-prem, keeping student data off cloud APIs entirely. This tightens the [self-host migration](self-hosting.qmd) estimate for T1 from "someday" to "now."
+
+**Calibration — the abstention signal.** The stronger models abstain honestly (5–8 items) on the figure-dependent problems rather than inventing a reading. For a tutoring app, where a confidently-wrong answer is the real failure mode, *knowing what it can't do* is a distinct and valuable axis — one this eval measures directly.
+
+**Validity.** *Internal:* the calibration gate (top tier ≥ ~95% on the official keys) passes at 96%, so the top tier's answers are provisionally trustworthy as keys. *External:* across the open-weights, STX correlates with (re-verified) published GPQA-Diamond at **Pearson r ≈ 0.76** (n = 7) — genuine external validity; the eval tracks the same underlying capability as an established benchmark. But it does **not** substitute for measurement, and the reason is decision-critical: **`qwen3-8b` is a stark outlier** — the *lowest* GPQA of the open models (63.3) yet the *highest* STX (88%), because GPQA is graduate-level while STX is upper-secondary. STX sits ~15–25 points above GPQA (the task is easier), and the gap is widest for small models. So a GPQA-based shortlist would have **dismissed the single most decision-relevant model** — frontier-level accuracy on the cheapest self-host. Correlated enough to trust the method; divergent enough that the task-specific run is necessary. *(n = 7; `deepseek-v4-flash` uses DeepSeek-V3.2 GPQA as proxy; thinking/non-thinking mode confounds some published figures — treat r as directional.)*
+
+**Limitations — read before citing.**
+
+- **Provisional / unverified.** Single run, **n = 33**, no repeats. Small-sample noise is visible (e.g. qwen3-8b scoring above qwen3-32b — an ordering that shouldn't hold, and a marker of the noise floor). Treat bands, not exact ranks.
+- **Judge-graded**, not yet human-audited. The methodology's human-calibration sample (~20 items graded by AR or a physics teacher) is the next step.
+- **Figure / graph items excluded** pending expert (AR / JB) review — this is the *text-solvable* subset only, not the full paper.
+- The two genuine frontier failures (a shared physical-inference gap; an r₀/rₙ interpretation) are real signal, not grading errors.
+
+*Snapshot 2026-07-15. Numbers will move as the item set grows, runs repeat, and the judge is human-calibrated.*
 
 ## Task taxonomy
 
