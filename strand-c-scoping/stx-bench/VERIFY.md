@@ -39,14 +39,17 @@ constructors (no `isLegalVerdict` call). Pursue when hardening past dry-run, or
 wait for AILANG's contract-callee inlining on their roadmap. Signatures handed to
 core (`msg_20260714_192720`).
 
-## 3. Model panel ids — API names, verify each live
+## 3. Model panel ids — provider-inferred, verify each live
 
-Per-call `step(model,…)` needs **provider API names** (dots), not friendly `--ai`
-names. `bench-config.json` panel updated to API names; `gemini-2.5-flash` and
-`gemini-2.5-pro` confirmed live. Still to confirm before a paid run:
+Provider is inferred from the model-id (`GuessProvider`); one `--ai <id>` run per
+model. Verified live 2026-07-15: `gemini-2.5-flash`, `gemini-2.5-pro` (Vertex),
+`claude-haiku-4-5` (Anthropic direct), `deepseek/deepseek-chat` + `anthropic/claude-haiku-4-5`
+(OpenRouter), `gpt-5-mini` (OpenAI). Still to confirm before a paid run:
 `gemini-3-pro-preview`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite-preview`
-(names from models.yml, not yet called), and the cross-vendor spot checks (need
-OpenRouter routing, not direct per-call).
+(models.yml names, not yet called). **OpenRouter slugs change** — verify
+`meta-llama/llama-3.3-70b-instruct`, `qwen/qwen-2.5-72b-instruct`,
+`mistralai/mistral-small` at openrouter.ai/models before use (deepseek confirmed).
+Final panel is M's call (hardware/security).
 
 ## 4. question_text slicing (Stage A) — needed for live solver
 

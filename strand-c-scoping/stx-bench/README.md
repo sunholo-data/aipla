@@ -20,7 +20,8 @@ Built against **AILANG v0.29.2**. Verified API surface, not assumed.
 | Live AI plumbing (`benchmark/smoke.ail`) | **Verified live** — 2/2 correct on gemini-2-5-flash; FACIT contract reinforced |
 | Stage 2 — report (`benchmark/matrix.ail` + `mockrun.ail`) | **Built** — per-model / per-topic matrix + divergence + cost, validated on mock tiers |
 | Stage 2 — live demo (`benchmark/stage2demo.ail`) | **Verified live** — per-call model selection (gemini-2.5-flash + -pro), real results -> matrix |
-| Stage 2 — full corpus runner | **Pending** — same loop over items.jsonl question_text; gated (spend + question_text + VERIFY.md) |
+| Cross-provider trial (`benchmark/trial.ail` + sweep) | **Verified live** — 4 routes (Vertex/Anthropic/OpenAI/OpenRouter), 2/2 each -> matrix |
+| Stage 2 — full corpus runner | **Pending** — trial.ail over items.jsonl question_text; gated (spend + question_text + VERIFY.md) |
 | Stage 3 — provisional keys | Gated on Stage 1 passing |
 
 ## Run it
@@ -88,6 +89,28 @@ applies, so a friendly name returns `ModelNotFound`. Also, per-call routing stay
 within the bound handler's provider: a `claude-*` id while `--ai` binds Vertex
 returns `ModelNotFound` (cross-vendor needs OpenRouter). `bench-config.json` panel
 ids are now API names; reported upstream.
+
+## Providers & where scoring data comes from
+
+Provider-agnostic: AILANG's `GuessProvider` infers the provider from the model-id,
+so **one `ailang run --ai <id>` per model** auto-selects the route (the canonical
+"one run per model" tier descent).
+
+| Model-id form | Route | Key |
+|---|---|---|
+| `gemini-2.5-flash` | Vertex (ADC) | ADC |
+| `claude-haiku-4-5` | Anthropic direct | `ANTHROPIC_API_KEY` |
+| `gpt-5-mini` | OpenAI direct | `OPENAI_API_KEY` |
+| `anthropic/…`, `deepseek/…`, `openrouter:…` | OpenRouter | `OPENROUTER_API_KEY` |
+| `ollama/<model>` | Ollama GPU (deferred) | `OLLAMA_HOST` |
+
+**Scoring plan (M, 2026-07-15):** the scores come from **cloud APIs** (Gemini /
+Claude / GPT frontier tiers) **+ OpenRouter** to audit the smaller / open-weights
+models — that's expected to be enough to actually score. **No local GPU is needed
+for scoring.** Running selected models on the server's GPU cluster is a *future*
+step, decided from the scores. Verified live from the dev laptop 2026-07-15: Vertex
+(gemini-2.5-flash/-pro), Anthropic direct (claude-haiku-4-5, 2/2), OpenRouter
+routing (`anthropic/claude-haiku-4-5`). Ollama is **not** run here.
 
 ## Live AI smoke finding (2026-07-14)
 
