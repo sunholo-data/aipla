@@ -5,10 +5,11 @@ module benchmark/runmodel
 -- the runnable items from items.jsonl, solves each via the --ai-bound model, and
 -- emits one results.jsonl line per item to stdout.
 --
--- PER-MODEL BUDGET is enforced NATIVELY by AILANG (the run's budget flag, set per
--- model by the driver). This runner just reacts to AIError.BudgetExhausted: it
--- stops cleanly, keeping the partial results already emitted. No token counting
--- here — that's AILANG's job.
+-- PER-MODEL BUDGET (RUNNER-SIDE): AILANG's --routing-max-price is a per-token
+-- provider-price FILTER (OpenRouter only), NOT a cumulative spend halt — confirmed
+-- with AILANG core 2026-07-15. So this runner counts tokens and halts THIS model
+-- once it hits BUDGET_TOKENS (partial results kept). AIError.BudgetExhausted also
+-- halts cleanly. The rate ceiling (--routing-max-price) is passed by the driver.
 --
 -- Needs items.jsonl to carry a `question_text` field (Stage A / problem-text
 -- slicing). Until then, questions are empty — use --ai-stub to validate loading.
@@ -28,7 +29,7 @@ import std/env (getEnvOr)
 import std/json (decode, getString, getBool, getNumber, getArray, getObject, asString, Json)
 import std/option (Option, Some, None, getOrElse)
 import std/result (Result, Ok, Err)
-import std/string (trim, split, length as strLen)
+import std/string (trim, split, length as strLen, stringToFloat)
 import std/list (map, filter)
 
 type Item = {
@@ -97,32 +98,39 @@ pure func quoteJoin(xs: [string]) -> string =
 pure func line(it: Item, model: string, verdict: string, inTok: int, outTok: int) -> string =
   "{\"item_id\":\"${it.item_id}\",\"set\":\"${it.set}\",\"subq\":\"${it.subq}\",\"topics\":[${quoteJoin(it.topics)}],\"model\":\"${model}\",\"verdict\":\"${verdict}\",\"in_tokens\":${show(inTok)},\"out_tokens\":${show(outTok)}}"
 
--- Loop over items. AILANG enforces the per-model budget; on BudgetExhausted we
--- stop cleanly (partial results already on stdout). Other transient errors emit
--- an "error" line and continue to the next item.
-func run(model: string, items: [Item]) -> () ! {AI, IO} {
+pure func parseIntOr(s: string, d: int) -> int =
+  match stringToFloat(s) { Some(f) => _float_to_int(f), None => d }
+
+-- Loop over items, threading `acc` = tokens this model has spent. Halts at the
+-- per-model token cap (partial results kept). On BudgetExhausted, stop cleanly;
+-- other transient errors emit an "error" line and continue.
+func run(model: string, cap: int, acc: int, items: [Item]) -> () ! {AI, IO} {
   match items {
     [] => (),
     it :: rest =>
-      match solve(it.question) {
-        Ok(r) => {
-          let verdict =
-            match extractFacit(r.message.content) {
-              Numeric(v, u)  => verdictLabel(gradeNumeric(it.expected, v, u)),
-              Symbolic       => "ambiguous",
-              NeedsReview(_) => "ambiguous"
-            };
-          println(line(it, model, verdict, r.input_tokens, r.output_tokens));
-          run(model, rest)
-        },
-        Err(e) => {
-          println(line(it, model, "error", 0, 0));
-          if e.code == "BudgetExhausted" then () else run(model, rest)
+      if acc >= cap then ()   -- per-model token budget halt
+      else
+        match solve(it.question) {
+          Ok(r) => {
+            let verdict =
+              match extractFacit(r.message.content) {
+                Numeric(v, u)  => verdictLabel(gradeNumeric(it.expected, v, u)),
+                Symbolic       => "ambiguous",
+                NeedsReview(_) => "ambiguous"
+              };
+            println(line(it, model, verdict, r.input_tokens, r.output_tokens));
+            run(model, cap, acc + r.input_tokens + r.output_tokens, rest)
+          },
+          Err(e) => {
+            println(line(it, model, "error", 0, 0));
+            if e.code == "BudgetExhausted" then () else run(model, cap, acc, rest)
+          }
         }
-      }
   }
 }
 
 export func main() -> () ! {AI, IO, FS, Env} {
-  run(getEnvOr("TRIAL_MODEL", "unknown"), loadItems("runs/stage0/items.jsonl"))
+  let model = getEnvOr("TRIAL_MODEL", "unknown");
+  let cap = parseIntOr(getEnvOr("BUDGET_TOKENS", "150000"), 150000);
+  run(model, cap, 0, loadItems("runs/stage0/items.jsonl"))
 }

@@ -14,11 +14,12 @@ module benchmark/items
 
 import benchmark/keyparse (KeyValue, Numeric, Symbolic, NeedsReview, extractKey)
 import benchmark/catalogue (ProblemMeta, loadProblems, findProblem, subqProblemNo, flagFor)
-import std/fs (readFile, writeFile, mkdirAll)
+import std/fs (readFile, writeFile, mkdirAll, fileExists)
 import std/json (decode, encode, asArray, getString, Json, JString, JNumber, JBool, JArray, JObject, JNull)
 import std/option (Option, Some, None, getOrElse)
 import std/result (Ok, Err)
 import std/list (map, filter, length)
+import std/string (split, trim)
 
 type ItemRec = { json: Json, kind: string, runnable: bool }
 
@@ -54,22 +55,65 @@ pure func expectedJson(c: Classified) -> Json =
     ])
   else JNull
 
-pure func buildOne(setShort: string, setId: string, problems: [ProblemMeta], keyItem: Json) -> ItemRec {
+-- Borderline items held out of scoring pending AR/JB review (VERIFY.md §1):
+-- inline-graph reads at tight tolerance + image-bilag graph-reading. Kept in the
+-- file (count visible), flagged, but runnable=false.
+pure func isHeld(itemId: string) -> bool =
+  itemId == "1stx231-3a" || itemId == "1stx241-3a" || itemId == "1stx241-3b" ||
+  itemId == "2stx231-3a" || itemId == "2stx231-3b" ||
+  itemId == "1stx241-5a" || itemId == "2stx231-5a" || itemId == "2stx231-5b"
+
+-- ---- question_text join (from the docparse-extracted cache) ---------------
+
+type QRec = { subq: string, question_text: string }
+
+pure func collectQ(lines: [string]) -> [QRec] =
+  match lines {
+    [] => [],
+    l :: rest =>
+      if trim(l) == "" then collectQ(rest)
+      else
+        match decode(l) {
+          Ok(j)  => {
+            let q = { subq: getOrElse(getString(j, "subq"), "?"), question_text: getOrElse(getString(j, "question_text"), "") };
+            q :: collectQ(rest)
+          },
+          Err(_) => collectQ(rest)
+        }
+  }
+
+func loadQuestions(short: string) -> [QRec] ! {FS} {
+  if fileExists("runs/questions/questions-${short}.jsonl") then collectQ(split(readFile("runs/questions/questions-${short}.jsonl"), "\n"))
+  else []
+}
+
+pure func qFor(qs: [QRec], subq: string) -> string =
+  match qs {
+    [] => "",
+    q :: rest => if q.subq == subq then q.question_text else qFor(rest, subq)
+  }
+
+pure func buildOne(setShort: string, setId: string, problems: [ProblemMeta], qs: [QRec], keyItem: Json) -> ItemRec {
   let subq = getOrElse(getString(keyItem, "subq"), "?");
   let answer = getOrElse(getString(keyItem, "answer"), "");
+  let itemId = "${setShort}-${subq}";
   let no = subqProblemNo(subq);
   let meta = findProblem(problems, no);
   let title = match meta { Some(m) => m.title, None => "" };
   let topics = match meta { Some(m) => m.topics, None => [] };
   let mods = match meta { Some(m) => m.modality, None => [] };
-  let c = classify(flagFor(mods), extractKey(answer));
+  let c0 = classify(flagFor(mods), extractKey(answer));
+  let c = if isHeld(itemId)
+    then ({ kind: "borderline-hold", runnable: false, tol: 0.0, value: c0.value, unit: c0.unit, hasVal: c0.hasVal, flags: ["borderline-hold"], note: "held for AR/JB review (graph-reading/inline-graph)" })
+    else c0;
   let j = JObject([
-    { key: "item_id", value: JString("${setShort}-${subq}") },
+    { key: "item_id", value: JString(itemId) },
     { key: "set", value: JString(setId) },
     { key: "problem_no", value: JNumber(_int_to_float(no)) },
     { key: "subq", value: JString(subq) },
     { key: "title", value: JString(title) },
     { key: "topics", value: JArray(map(\t. JString(t), topics)) },
+    { key: "question_text", value: JString(qFor(qs, subq)) },
     { key: "kind", value: JString(c.kind) },
     { key: "runnable", value: JBool(c.runnable) },
     { key: "flags", value: JArray(map(\f. JString(f), c.flags)) },
@@ -82,13 +126,14 @@ pure func buildOne(setShort: string, setId: string, problems: [ProblemMeta], key
 
 func buildSet(setShort: string, setId: string, keyPath: string, catPath: string) -> [ItemRec] ! {FS} {
   let problems = loadProblems(catPath, setId);
+  let qs = loadQuestions(setShort);
   let raw = readFile(keyPath);
   match decode(raw) {
     Err(_) => [],
     Ok(j)  =>
       match asArray(j) {
         None          => [],
-        Some(keyItems) => map(\ki. buildOne(setShort, setId, problems, ki), keyItems)
+        Some(keyItems) => map(\ki. buildOne(setShort, setId, problems, qs, ki), keyItems)
       }
   }
 }

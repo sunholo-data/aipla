@@ -2,23 +2,19 @@
   "_note": "Model panel lives in config, NOT code (kickoff Stage 2). ids are the exact strings passed to --ai / step(); provider is inferred from the id (see _provider_routing).",
   "_deployment": "Scoring data comes from CLOUD APIs (Gemini/Claude/GPT frontier tiers) + OPENROUTER (to audit the smaller / open-weights models) — expected to be sufficient to score, NO local GPU needed. Running selected models on the server's GPU cluster (Ollama) is a FUTURE step decided from the scores. The dev laptop authors + runs cheap cloud plumbing smoke; the full corpus scoring run can execute from laptop or server against cloud+OR APIs (M, 2026-07-15).",
   "_provider_routing": "AILANG GuessProvider infers the provider from the model-id: gemini-* -> Vertex (ADC); claude-* -> Anthropic direct (ANTHROPIC_API_KEY); gpt-*/o1/o3/codex -> OpenAI direct (OPENAI_API_KEY); ollama/<model> -> Ollama GPU via OLLAMA_HOST (no key); vendor/model or openrouter:<model> -> OpenRouter (OPENROUTER_API_KEY). Per-call step(model) needs the provider API name (dots), not the friendly --ai name. Canonical tier-descent execution: ONE `ailang run --ai <id>` per model (provider auto-selected), append to a shared results.jsonl.",
-  "top_tier": "gemini-3-pro-preview",
+  "top_tier": "claude-opus-4-8",
+  "_panel_selected": "M, 2026-07-15: opus / sonnet / haiku (Anthropic direct) + gemma4 & deepseek-flash (OpenRouter). Final panel is M's call; swap ids in the driver and it just works.",
   "panel": [
-    { "id": "gemini-3-pro-preview",          "tier": "top",   "provider": "vertex", "enabled": true },
-    { "id": "gemini-3-flash-preview",        "tier": "mid",   "provider": "vertex", "enabled": true },
-    { "id": "gemini-2.5-flash",              "tier": "low",   "provider": "vertex", "enabled": true },
-    { "id": "gemini-3.1-flash-lite-preview", "tier": "floor", "provider": "vertex", "enabled": true }
+    { "id": "claude-opus-4-8",             "tier": "frontier-top",  "route": "anthropic-direct", "enabled": true },
+    { "id": "claude-sonnet-4-6",           "tier": "frontier-mid",  "route": "anthropic-direct", "enabled": true },
+    { "id": "claude-haiku-4-5",            "tier": "frontier-low",  "route": "anthropic-direct", "enabled": true },
+    { "id": "google/gemma-4-26b-a4b-it",   "tier": "open-gemma4",   "route": "openrouter",       "enabled": true },
+    { "id": "deepseek/deepseek-v4-flash",  "tier": "open-deepseek", "route": "openrouter",       "enabled": true }
   ],
-  "cross_vendor_spot_checks": [
-    { "id": "claude-haiku-4-5", "provider": "anthropic-direct", "enabled": true,  "_note": "Anthropic direct; verified live 2/2" },
-    { "id": "gpt-5-mini",       "provider": "openai-direct",    "enabled": false, "_note": "id from models.yml; verify live before use" }
-  ],
-  "openrouter_audit": [
-    { "_note": "Smaller / open-weights models scored via OpenRouter (the audit route). ids are OpenRouter slugs — VERIFY each at openrouter.ai/models before a run. This is where the small-model scores come from, instead of the local GPU.",
-      "id": "meta-llama/llama-3.3-70b-instruct", "tier": "open-70b",  "provider": "openrouter", "enabled": false },
-    { "id": "qwen/qwen-2.5-72b-instruct",        "tier": "open-72b",  "provider": "openrouter", "enabled": false },
-    { "id": "deepseek/deepseek-chat",            "tier": "open-moe",  "provider": "openrouter", "enabled": false },
-    { "id": "mistralai/mistral-small",           "tier": "open-small","provider": "openrouter", "enabled": false }
+  "other_options": [
+    { "id": "gemini-2.5-flash / -pro / gemini-3-*", "route": "vertex",   "_note": "verified live; add if wanted" },
+    { "id": "gpt-5-mini",                           "route": "openai",   "_note": "reasoning; high token cost" },
+    { "id": "google/gemma-4-26b-a4b-it:free",       "route": "openrouter", "_note": "free OR variant of gemma4 (rate-limited)" }
   ],
   "local_gpu_future": [
     { "id": "ollama/<server-model>", "provider": "ollama", "enabled": false, "_note": "FUTURE / deferred. Not needed for scoring — OpenRouter covers small models. Only if the scores justify running a specific model on the server GPU cluster; then set OLLAMA_HOST + ids from `ollama list`." }
@@ -28,16 +24,15 @@
     "graph_reading_tolerance_rel": 0.10
   },
   "budget": {
-    "_note": "PER-MODEL budgets (one run per model). Enforced NATIVELY by AILANG's run budget (AILANG is adding real enforcement — the flag was previously parsed-but-not-forwarded). The driver passes each model's budget to its `ailang run --ai <id>` invocation; the runner just reacts to AIError.BudgetExhausted (halt cleanly, keep partial results). Reasoning models (gpt-5) use ~6x tokens/item — verified live (gpt-5-mini 2370 vs gemini 391 on 2 probes) — so they get a higher budget or cover fewer items.",
-    "per_model_usd_cap_default": 1.0,
-    "per_model_usd_cap_overrides": {
-      "gpt-5-mini": 4.0,
-      "gpt-5": 8.0,
-      "gemini-3-pro-preview": 3.0
+    "_note": "TWO LAYERS (confirmed with AILANG core 2026-07-15). (1) --routing-max-price = a per-token RATE ceiling, OpenRouter-only provider filter (now honest: filters providers, errors loudly on bad values, rejects on direct providers) — NOT a spend halt. (2) RUNNER-SIDE per-model TOKEN cap = the actual spend halt: runmodel.ail accumulates in+out tokens and stops THIS model at BUDGET_TOKENS, keeping partial results. The driver passes both per model. Reasoning models use ~6x tokens/item (gpt-5-mini 2370 vs gemini 391 live) — give them a higher cap.",
+    "per_model_token_cap_default": 150000,
+    "per_model_token_cap_overrides": {
+      "claude-opus-4-8": 250000,
+      "gpt-5-mini": 500000
     },
-    "response_max_tokens": 4096,
+    "openrouter_max_price_per_mtok_usd": 2.0,
     "halt_on_budget_exhausted": true,
-    "est_full_run": "~50 items x panel x (1 solve + <=1 judge) <= ~700 calls; single-digit dollars for cloud tiers, more if reasoning models dominate"
+    "est_full_run": "~33 runnable x 5 models x 1 solve = ~165 calls; single-digit dollars"
   },
   "cache": {
     "system_prompt_breakpoint": true,
