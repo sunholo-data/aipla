@@ -39,11 +39,14 @@ constructors (no `isLegalVerdict` call). Pursue when hardening past dry-run, or
 wait for AILANG's contract-callee inlining on their roadmap. Signatures handed to
 core (`msg_20260714_192720`).
 
-## 3. Model panel ids — verify at build time
+## 3. Model panel ids — API names, verify each live
 
-`bench-config.json` has placeholder ids (`gemini-3-pro` … + `TODO-verify-*` for
-the cross-vendor spot checks). Confirm every id against the live provider before a
-paid run — the kickoff says do not trust the suggested list.
+Per-call `step(model,…)` needs **provider API names** (dots), not friendly `--ai`
+names. `bench-config.json` panel updated to API names; `gemini-2.5-flash` and
+`gemini-2.5-pro` confirmed live. Still to confirm before a paid run:
+`gemini-3-pro-preview`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite-preview`
+(names from models.yml, not yet called), and the cross-vendor spot checks (need
+OpenRouter routing, not direct per-call).
 
 ## 4. question_text slicing (Stage A) — needed for live solver
 

@@ -18,7 +18,9 @@ Built against **AILANG v0.29.2**. Verified API surface, not assumed.
 | Stage 1 — dry-run pipeline (`benchmark/stage1.ail`) | **Built** — reads items.jsonl (41 runnable), 41/41 correct, results carry topics |
 | Report layer (`benchmark/score.ail`) | **Built** — accuracy overall / per-set / per-topic off results.jsonl |
 | Live AI plumbing (`benchmark/smoke.ail`) | **Verified live** — 2/2 correct on gemini-2-5-flash; FACIT contract reinforced |
-| Stage 2 — tier descent (divergence + per-model matrix) | Not started; builds on score.ail |
+| Stage 2 — report (`benchmark/matrix.ail` + `mockrun.ail`) | **Built** — per-model / per-topic matrix + divergence + cost, validated on mock tiers |
+| Stage 2 — live demo (`benchmark/stage2demo.ail`) | **Verified live** — per-call model selection (gemini-2.5-flash + -pro), real results -> matrix |
+| Stage 2 — full corpus runner | **Pending** — same loop over items.jsonl question_text; gated (spend + question_text + VERIFY.md) |
 | Stage 3 — provisional keys | Gated on Stage 1 passing |
 
 ## Run it
@@ -32,6 +34,8 @@ ailang run --caps IO,FS --entry main benchmark/stage0.ail          # extract 4 g
 ailang run --caps IO,FS --entry main benchmark/items.ail           # Stage-0 build -> runs/stage0/items.jsonl
 ailang run --caps IO,FS --entry main benchmark/stage1.ail          # Stage-1 dry run -> runs/dryrun/*
 ailang run --caps IO,FS --entry main benchmark/score.ail           # report: accuracy overall/per-set/per-topic
+ailang run --caps IO,FS --entry main benchmark/mockrun.ail         # synthetic multi-tier results (for the report)
+ailang run --caps IO,FS --entry main benchmark/matrix.ail          # Stage-2: per-model/per-topic matrix + divergence
 ailang run --ai-stub --caps IO,AI --entry main benchmark/smoke.ail # live AI wiring check (free)
 ailang verify benchmark/grader.ail                                 # Z3 (see caveat)
 ```
@@ -73,6 +77,17 @@ subquestion to its catalogue problem (title/topics/modality) and writes the full
 - Graph-reading is **3, not ~7**. We only catch items whose problem carries an
   `image-bilag` modality; graphs drawn inline in the problem text (no bilag) are
   not flagged and land in `numeric`. Widen if those need the 0.10 band.
+
+## Per-call model-id finding (2026-07-15)
+
+Tier descent relies on `step(model, …)` with a different model string per call.
+Gotcha found live: the per-call model must be the **provider API name** (dots,
+`gemini-2.5-flash`), **not** the friendly `--ai` name (dashes, `gemini-2-5-flash`)
+— the per-call path skips the `models.yml` friendly→api resolution that `--ai`
+applies, so a friendly name returns `ModelNotFound`. Also, per-call routing stays
+within the bound handler's provider: a `claude-*` id while `--ai` binds Vertex
+returns `ModelNotFound` (cross-vendor needs OpenRouter). `bench-config.json` panel
+ids are now API names; reported upstream.
 
 ## Live AI smoke finding (2026-07-14)
 

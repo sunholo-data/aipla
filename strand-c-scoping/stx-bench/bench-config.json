@@ -1,14 +1,15 @@
 {
-  "_note": "Model panel lives in config, NOT code (kickoff Stage 2). Model ids MUST be re-verified against providers at build time - this is a starting suggestion, not a trusted list.",
-  "top_tier": "gemini-3-pro",
+  "_note": "Model panel lives in config, NOT code (kickoff Stage 2). ids are PROVIDER API NAMES (dots, e.g. gemini-2.5-flash) as required by per-call std/ai.step — NOT the friendly --ai names (dashes). Verified against models.yml 2026-07-15; gemini-2.5-flash + gemini-2.5-pro confirmed working live.",
+  "top_tier": "gemini-3-pro-preview",
   "panel": [
-    { "id": "gemini-3-pro",         "tier": "top",   "vendor": "google", "enabled": true },
-    { "id": "gemini-3-flash",       "tier": "mid",   "vendor": "google", "enabled": true },
-    { "id": "gemini-2.5-flash",     "tier": "low",   "vendor": "google", "enabled": true },
-    { "id": "gemini-2.5-flash-lite","tier": "floor", "vendor": "google", "enabled": true }
+    { "id": "gemini-3-pro-preview",          "tier": "top",   "vendor": "google", "enabled": true },
+    { "id": "gemini-3-flash-preview",        "tier": "mid",   "vendor": "google", "enabled": true },
+    { "id": "gemini-2.5-flash",              "tier": "low",   "vendor": "google", "enabled": true },
+    { "id": "gemini-3.1-flash-lite-preview", "tier": "floor", "vendor": "google", "enabled": true }
   ],
   "cross_vendor_spot_checks": [
-    { "id": "TODO-verify-claude-id",      "tier": "spot", "vendor": "anthropic",  "enabled": false },
+    { "_note": "cross-vendor per-call needs OpenRouter routing (bound handler is single-provider); direct claude-* per-call while --ai binds Vertex returns ModelNotFound.",
+      "id": "claude-haiku-4-5-20251001", "tier": "spot", "vendor": "anthropic",  "enabled": false },
     { "id": "TODO-verify-openweights-id", "tier": "spot", "vendor": "openrouter", "enabled": false }
   ],
   "grading": {
