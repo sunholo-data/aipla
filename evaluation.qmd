@@ -93,41 +93,44 @@ This is the first run of AIPLA's own capability-floor eval — the task-specific
 
 **What it measures.** The *Correctness* dimension of task class **T1** (exam problem solving): can a model solve a Danish stx Fysik A written-exam subquestion, graded against the official ministry answer key? Metric = **solve accuracy** = correct ÷ (correct + incorrect) over the *text-solvable* subset (33 subquestions from the 2023–24 gold sets), with a separate **abstention rate** — items the model declines because they need a graph/figure it cannot see. Models answer via a schema-enforced `{value, unit}` with an explicit "I don't know" option, so a text-only model *abstains* on figure-dependent items rather than guessing; grading is deterministic value/unit compare plus an LLM judge against the key.
 
-Results against the page's **≥ 80% capability-floor threshold**, with where each model runs (tiers match the [GPQA table above](#real-numbers--gpqa-diamond-the-closest-public-proxy)):
+Results are **means ± std over 5 runs** per model (frontier ×3; all runs n = 33, verified error-free), against the page's **≥ 80% capability-floor threshold**. Tiers match the [GPQA table above](#real-numbers--gpqa-diamond-the-closest-public-proxy):
 
-| Model | Runs on | STX accuracy | Abstains | ≥ 80% |
-|---|---|---|---|---|
-| Claude sonnet / opus / haiku | Cloud API (Tier 1) | 93–96% | 5–6 | ✓ |
-| gemini-3.5-flash (app top) | Cloud API — Vertex (Tier 1) | 92% | 7 | ✓ |
-| **qwen3-8b** (open, 8 B) | **Small local — single 24 GB GPU, even a laptop (Tier 3)** | **88%** | 6 | ✓ |
-| gemini-2.5-flash (app mid) | Cloud API — Vertex (Tier 1) | 86% | 5 | ✓ |
-| deepseek-v4-flash · qwen3-next-80b-a3b (open MoE) | Server / cluster — multi-GPU node (Tier 2) | 80–86% | 5–8 | ✓ |
-| qwen3-32b · qwen3-30b-a3b (open) | Single GPU — ~1× A100 80 GB (Tier 3) | 67–73% | 5–6 | ✗ |
-| gemini-2.5-flash-lite (app lite) | Cloud API — Vertex (Tier 1) | 66% | 3 | ✗ |
-| mistral-small-24b · gemma-3-27b (open) | Single GPU — ~1× A100 80 GB or a 128 GB Mac (Tier 3) | 52–64% | 2–5 | ✗ |
+| Model | Runs on | STX (mean ± std) | ≥ 80% |
+|---|---|---|---|
+| Claude sonnet / opus / haiku | Cloud API (Tier 1) | 93–96% (± ≤ 2) | ✓ |
+| gemini-3.5-flash (app top) | Cloud API — Vertex (Tier 1) | 95 ± 2 | ✓ |
+| **deepseek-v4-flash** (open MoE) | Server / cluster — multi-GPU (Tier 2) | **91 ± 2** | ✓ |
+| qwen3-32b (open) | Single GPU — ~1× A100 80 GB (Tier 3) | 88 ± 6 | ✓ |
+| gemini-2.5-flash (app mid) | Cloud API — Vertex (Tier 1) | 87 ± 3 | ✓ |
+| **qwen3-8b** (open, 8 B) | **Small local — single 24 GB GPU / laptop (Tier 3)** | **83 ± 3** | ✓ (borderline) |
+| qwen3-next-80b-a3b (open MoE) | Server / cluster — multi-GPU (Tier 2) | 75 ± 6 | ✗ |
+| gemini-2.5-flash-lite (app lite) | Cloud API — Vertex (Tier 1) | 73 ± 4 | ✗ |
+| qwen3-30b-a3b (open MoE) | Single GPU (Tier 3) | 68 ± 9 | ✗ |
+| mistral-small-24b (open) | Single GPU (Tier 3) | 67 ± 6 | ✗ |
+| gemma-3-27b (open) | Single GPU (Tier 3) | 64 ± 3 | ✗ |
 
-All 14 rows are complete single runs of n = 33 (no errors). Full descent: sonnet-4.6/5 96 · opus/haiku 93 · gemini-3.5-flash 92 · **qwen3-8b 88** · gemini-2.5-flash / deepseek-v4-flash 86 · qwen3-next-80b 80 · qwen3-32b 73 · qwen3-30b-a3b 67 · gemini-2.5-flash-lite 66 · mistral-24b 64 · gemma-3-27b 52.
+**Why the numbers moved from the first single-run snapshot — and why that *is* the finding.** An earlier version of this table used *single* n = 33 runs. Repeating each model 5× reshuffled the mid-field substantially: qwen3-32b 73 → **88**, deepseek-v4-flash 86 → **91**, qwen3-8b 88 → **83**, qwen3-next-80b 80 → 75, gemini-lite 66 → **73**. **Single runs are not trustworthy at this resolution** — the model's sampling *and* the LLM judge are both stochastic, and at n = 33 a few flipped items = several points. **Open-weights are markedly noisier (std 3–9) than the cloud models (std 2–4)**, so their single-run numbers are the least reliable of all.
 
-**Cost shape** (detailed in [self-hosting](self-hosting.qmd)): Tier 1 is **pay-per-token** — cheap for the flash/lite tiers, materially more for the frontier (opus-class ~2 orders of magnitude above flash-class per token). Tiers 2–3 are **amortised hardware, no per-call cost, data stays on-prem** — a one-time GPU rather than a running bill. The standout is that the ≥ 80% floor is *reachable at Tier 3 today*: `qwen3-8b` hits 88% on a single consumer GPU — the cheapest possible self-host — which is the sharpest version of the "self-hosting is viable now for this task" finding.
+**Cost shape** (detailed in [self-hosting](self-hosting.qmd)): Tier 1 is **pay-per-token** — cheap for the flash/lite tiers, materially more for the frontier (opus-class ~2 orders of magnitude above flash-class per token). Tiers 2–3 are **amortised hardware, no per-call cost, data stays on-prem** — a one-time GPU rather than a running bill. The ≥ 80% floor is *reachable at Tier 3 today*: `qwen3-8b` averages 83 ± 3 on a single consumer GPU (borderline but the cheapest self-host), and `deepseek-v4-flash` sits at a stable 91 ± 2 on a multi-GPU node — the sharpest form of "self-hosting is viable now for this task."
 
-**Three reads for our decisions:**
+**Three reads that survive the variance:**
 
-1. **The frontier is saturated for this task.** Claude and gemini-3.5-flash cluster at 92–96%; the spread is within the small-sample noise. Well-posed stx numeric physics is *not* frontier-hard — which reframes "always want state-of-the-art" for this task class specifically.
-2. **The app's own tiers descend sharply:** gemini 3.5-flash 92 → 2.5-flash 86 → 2.5-flash-lite 66. The lite tier misses ~1 in 3 — under-powered for physics correctness; **2.5-flash is the app's sweet spot** for this class, with 3.5-flash buying the last few points.
-3. **Self-hosting is viable for this task today.** An 8B (qwen3-8b, 88%) and mid-size MoEs (~80%) clear the floor — a departmental GPU, or even a single card, could serve stx-physics correctness on-prem, keeping student data off cloud APIs entirely. This tightens the [self-host migration](self-hosting.qmd) estimate for T1 from "someday" to "now."
+1. **The frontier is saturated and stable** — Claude + gemini-3.5-flash at 93–96 with std ≤ 2. Well-posed stx numeric physics is *not* frontier-hard, which reframes "always want state-of-the-art" for this task class.
+2. **The app's own tiers genuinely descend:** gemini 3.5-flash **95** → 2.5-flash **87 ± 3** → 2.5-flash-lite **73 ± 4**. The flash → lite gap is a real ~14 points (the distributions separate) — though the lite tier's *earlier published* "66% / misses 1-in-3" was a low-outlier draw; its true mean is ~73. **2.5-flash is the app's sweet spot** for this class.
+3. **Self-hosting is viable — but the *specific* model matters.** `deepseek-v4-flash` (91 ± 2, multi-GPU) is near-frontier and stable; `qwen3-8b` (83 ± 3) clears ~80 on a single consumer GPU but sits close to the line. The mid-size single-GPU dense models (mistral-24b 67, gemma-27b 64, qwen3-30b 68) do **not** clear the floor, and their ± 5–9 leaves them mutually indistinguishable. So "self-host is viable now for T1" holds — but the earlier "any 27–31B is near-frontier" story (which traced to the fabricated GPQA numbers) does not.
 
 **Calibration — the abstention signal.** The stronger models abstain honestly (5–8 items) on the figure-dependent problems rather than inventing a reading. For a tutoring app, where a confidently-wrong answer is the real failure mode, *knowing what it can't do* is a distinct and valuable axis — one this eval measures directly.
 
-**Validity.** *Internal:* the calibration gate (top tier ≥ ~95% on the official keys) passes at 96%, so the top tier's answers are provisionally trustworthy as keys. *External:* across the open-weights, STX correlates with (re-verified) published GPQA-Diamond at **Pearson r ≈ 0.76** (n = 7) — genuine external validity; the eval tracks the same underlying capability as an established benchmark. But it does **not** substitute for measurement, and the reason is decision-critical: **`qwen3-8b` is a stark outlier** — the *lowest* GPQA of the open models (63.3) yet the *highest* STX (88%), because GPQA is graduate-level while STX is upper-secondary. STX sits ~15–25 points above GPQA (the task is easier), and the gap is widest for small models. So a GPQA-based shortlist would have **dismissed the single most decision-relevant model** — frontier-level accuracy on the cheapest self-host. Correlated enough to trust the method; divergent enough that the task-specific run is necessary. *(n = 7; `deepseek-v4-flash` uses DeepSeek-V3.2 GPQA as proxy; thinking/non-thinking mode confounds some published figures — treat r as directional.)*
+**Validity.** *Internal:* the calibration gate (top tier ≥ ~95% on the official keys) passes, so the top tier's answers are provisionally trustworthy as keys. *External:* across the open-weights, STX (5-run means) correlates with re-verified published GPQA-Diamond at **Pearson r ≈ 0.73** (n = 7) — genuine external validity; the eval tracks the same underlying capability as an established benchmark. But it does **not** substitute for measurement: **`qwen3-8b` is a stark outlier** — the *lowest* GPQA of the open models (63.3) yet an 83% STX mean, because GPQA is graduate-level while STX is upper-secondary. STX sits well above GPQA (the task is easier), and the gap is widest for small models. So a GPQA-based shortlist would have mis-ranked the cheap self-host candidates. Correlated enough to trust the method; divergent — and, as the variance shows, noisy — enough that the task-specific run, *repeated*, is necessary. *(n = 7; `deepseek-v4-flash` uses DeepSeek-V3.2 GPQA as proxy; thinking/non-thinking mode confounds some published figures — treat r as directional.)*
 
 **Limitations — read before citing.**
 
-- **Provisional / unverified.** Single run, **n = 33**, no repeats. Small-sample noise is visible (e.g. qwen3-8b scoring above qwen3-32b — an ordering that shouldn't hold, and a marker of the noise floor). Treat bands, not exact ranks.
-- **Judge-graded**, not yet human-audited. The methodology's human-calibration sample (~20 items graded by AR or a physics teacher) is the next step.
+- **Provisional.** 5 runs per model (frontier 3), **n = 33 items** each. The 5-run means are far more stable than the single-run snapshot this replaced, but the item set is still small — treat gaps under ~1 std (esp. within the open-weights, ± 5–9) as unresolved, and read bands, not exact ranks.
+- **Judge-graded**, not yet human-audited. The methodology's human-calibration sample (~20 items graded by AR or a physics teacher) is the next step, and would also pin the judge's own contribution to the variance.
 - **Figure / graph items excluded** pending expert (AR / JB) review — this is the *text-solvable* subset only, not the full paper.
 - The two genuine frontier failures (a shared physical-inference gap; an r₀/rₙ interpretation) are real signal, not grading errors.
 
-*Snapshot 2026-07-15. Numbers will move as the item set grows, runs repeat, and the judge is human-calibrated.*
+*Snapshot 2026-07-15 (means over 5 runs). Numbers will firm up as the item set grows and the judge is human-calibrated.*
 
 ## Task taxonomy
 
