@@ -94,9 +94,10 @@ func printModels(recs: [ResultRec], models: [string]) -> () ! {IO} =
   match models {
     [] => (),
     m :: rest => {
-      let tot = length(filter(\r. r.model == m, recs));
-      let cor = length(filter(\r. r.model == m && isCorrect(r), recs));
-      println("  ${m}   ${acc(cor, tot)}   tokens=${show(_float_to_int(sumTokens(filter(\r. r.model == m, recs))))}");
+      let cor = length(filter(\r. r.model == m && r.verdict == "correct", recs));
+      let inc = length(filter(\r. r.model == m && r.verdict == "incorrect", recs));
+      let ab = length(filter(\r. r.model == m && r.verdict == "abstain", recs));
+      println("  ${m}   ${acc(cor, cor + inc)} solved   abstain=${show(ab)}   (${show(cor)}✓ ${show(inc)}✗ ${show(ab)}∅)");
       printModels(recs, rest)
     }
   }

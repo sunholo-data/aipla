@@ -123,6 +123,19 @@ export pure func unitCanon(unit: string) -> Option[(float, string)] =
     "Hz"   => Some((1.0, "Hz")),
     "kHz"  => Some((1000.0, "Hz")),
     "deg"  => Some((1.0, "deg")),
+    -- mass
+    "kg"   => Some((1.0, "kg")),
+    "g"    => Some((0.001, "kg")),
+    "mg"   => Some((0.000001, "kg")),
+    "ug"   => Some((0.000000001, "kg")),
+    "t"    => Some((1000.0, "kg")),
+    "u"    => Some((1.0, "u")),
+    -- astronomical distance (base Mpc)
+    "pc"   => Some((0.000001, "Mpc")),
+    "kpc"  => Some((0.001, "Mpc")),
+    "Mpc"  => Some((1.0, "Mpc")),
+    "ly"   => Some((0.0000003066, "Mpc")),
+    "Mly"  => Some((0.3066, "Mpc")),
     _      => None
   }
 

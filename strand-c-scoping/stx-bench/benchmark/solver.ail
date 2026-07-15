@@ -17,6 +17,15 @@ export pure func systemPrompt() -> string =
 export pure func userMessage(questionText: string) -> string =
   "${questionText}\n\nAfslut dit svar med præcis denne linje og intet efter den:\nFACIT: <værdi> <enhed>"
 
+-- STRUCTURED-OUTPUT solve (replaces the fragile FACIT-line + regex path). The
+-- provider enforces this schema, so `value` arrives as a real number (no
+-- superscript / 10^n parsing) and `unit` as a clean string.
+export pure func answerSchema() -> string =
+  "{\"type\":\"object\",\"properties\":{\"working\":{\"type\":\"string\"},\"can_solve\":{\"type\":\"boolean\"},\"value\":{\"type\":\"number\"},\"unit\":{\"type\":\"string\"}},\"required\":[\"working\",\"can_solve\",\"value\",\"unit\"]}"
+
+export pure func solveInput(questionText: string) -> string =
+  "Du er en dygtig gymnasieelev til skriftlig eksamen i Fysik A (stx). Løs delspørgsmålet med korrekt fysik. Vis din fulde udregning i feltet 'working'.\n\nGÆT ALDRIG. Hvis du ikke med sikkerhed kan bestemme facit ud fra den givne TEKST — fx fordi opgaven kræver aflæsning af en graf, figur eller et bilag, som du ikke har adgang til — så sæt can_solve=false, forklar hvorfor i 'working', og sæt value=0 og unit=\"\". Sæt kun can_solve=true når facit følger sikkert af teksten; angiv da 'value' (ét tal) og 'unit' (enheden), fx value=59 unit=\"m/s\" eller value=2.71e-14 unit=\"N\". Du må bruge standardværdier fra Databogen. Brug ikke værktøjer eller internet.\n\nDELSPØRGSMÅL:\n${questionText}"
+
 -- JSON schema (as a string) for the LLM judge's structured verdict. Used with
 -- std/ai.callJsonResult so the provider enforces the shape.
 export pure func judgeSchema() -> string =

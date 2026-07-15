@@ -118,6 +118,7 @@ pure func buildOne(setShort: string, setId: string, problems: [ProblemMeta], qs:
     { key: "runnable", value: JBool(c.runnable) },
     { key: "flags", value: JArray(map(\f. JString(f), c.flags)) },
     { key: "expected", value: expectedJson(c) },
+    { key: "raw_key", value: JString(answer) },
     { key: "note", value: JString(c.note) },
     { key: "source", value: JString("official-key") }
   ]);

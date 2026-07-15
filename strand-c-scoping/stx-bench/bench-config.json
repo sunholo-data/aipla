@@ -5,23 +5,71 @@
   "top_tier": "claude-opus-4-8",
   "_panel_selected": "M, 2026-07-15: opus / sonnet / haiku (Anthropic direct) + gemma4 & deepseek-flash (OpenRouter). Final panel is M's call; swap ids in the driver and it just works.",
   "panel": [
-    { "id": "claude-opus-4-8",             "tier": "frontier-top",  "route": "anthropic-direct", "enabled": true },
-    { "id": "claude-sonnet-4-6",           "tier": "frontier-mid",  "route": "anthropic-direct", "enabled": true },
-    { "id": "claude-haiku-4-5",            "tier": "frontier-low",  "route": "anthropic-direct", "enabled": true },
-    { "id": "google/gemma-4-26b-a4b-it",   "tier": "open-gemma4",   "route": "openrouter",       "enabled": true },
-    { "id": "deepseek/deepseek-v4-flash",  "tier": "open-deepseek", "route": "openrouter",       "enabled": true }
+    {
+      "id": "claude-opus-4-8",
+      "tier": "frontier-top",
+      "route": "anthropic-direct",
+      "enabled": true
+    },
+    {
+      "id": "claude-sonnet-5",
+      "tier": "frontier-sonnet5",
+      "route": "anthropic-direct",
+      "enabled": true
+    },
+    {
+      "id": "claude-sonnet-4-6",
+      "tier": "frontier-mid",
+      "route": "anthropic-direct",
+      "enabled": true
+    },
+    {
+      "id": "claude-haiku-4-5",
+      "tier": "frontier-low",
+      "route": "anthropic-direct",
+      "enabled": true
+    },
+    {
+      "id": "google/gemma-4-26b-a4b-it",
+      "tier": "open-gemma4",
+      "route": "openrouter",
+      "enabled": false
+    },
+    {
+      "id": "deepseek/deepseek-v4-flash",
+      "tier": "open-deepseek",
+      "route": "openrouter",
+      "enabled": false
+    }
   ],
   "other_options": [
-    { "id": "gemini-2.5-flash / -pro / gemini-3-*", "route": "vertex",   "_note": "verified live; add if wanted" },
-    { "id": "gpt-5-mini",                           "route": "openai",   "_note": "reasoning; high token cost" },
-    { "id": "google/gemma-4-26b-a4b-it:free",       "route": "openrouter", "_note": "free OR variant of gemma4 (rate-limited)" }
+    {
+      "id": "gemini-2.5-flash / -pro / gemini-3-*",
+      "route": "vertex",
+      "_note": "verified live; add if wanted"
+    },
+    {
+      "id": "gpt-5-mini",
+      "route": "openai",
+      "_note": "reasoning; high token cost"
+    },
+    {
+      "id": "google/gemma-4-26b-a4b-it:free",
+      "route": "openrouter",
+      "_note": "free OR variant of gemma4 (rate-limited)"
+    }
   ],
   "local_gpu_future": [
-    { "id": "ollama/<server-model>", "provider": "ollama", "enabled": false, "_note": "FUTURE / deferred. Not needed for scoring — OpenRouter covers small models. Only if the scores justify running a specific model on the server GPU cluster; then set OLLAMA_HOST + ids from `ollama list`." }
+    {
+      "id": "ollama/<server-model>",
+      "provider": "ollama",
+      "enabled": false,
+      "_note": "FUTURE / deferred. Not needed for scoring — OpenRouter covers small models. Only if the scores justify running a specific model on the server GPU cluster; then set OLLAMA_HOST + ids from `ollama list`."
+    }
   ],
   "grading": {
     "default_tolerance_rel": 0.05,
-    "graph_reading_tolerance_rel": 0.10
+    "graph_reading_tolerance_rel": 0.1
   },
   "budget": {
     "_note": "TWO LAYERS (confirmed with AILANG core 2026-07-15). (1) --routing-max-price = a per-token RATE ceiling, OpenRouter-only provider filter (now honest: filters providers, errors loudly on bad values, rejects on direct providers) — NOT a spend halt. (2) RUNNER-SIDE per-model TOKEN cap = the actual spend halt: runmodel.ail accumulates in+out tokens and stops THIS model at BUDGET_TOKENS, keeping partial results. The driver passes both per model. Reasoning models use ~6x tokens/item (gpt-5-mini 2370 vs gemini 391 live) — give them a higher cap.",
@@ -37,5 +85,59 @@
   "cache": {
     "system_prompt_breakpoint": true,
     "_correction": "stepWithCache {position:system, ttl:ephemeral} is a NO-OP on Gemini + Ollama (v0.18.4): only Anthropic (direct or via OpenRouter) populates cache_read_input_tokens. Do NOT model cache savings on the Gemini/Ollama tiers."
-  }
+  },
+  "openrouter_audit": [
+    {
+      "_note": "Open-weights audit via OpenRouter (current models, no Llama). Sizes tagged for uni self-hosting realism. Slugs verified against openrouter.ai/models 2026-07-15."
+    },
+    {
+      "id": "qwen/qwen3-8b",
+      "size": "8B",
+      "tier": "small",
+      "route": "openrouter",
+      "enabled": true
+    },
+    {
+      "id": "mistralai/mistral-small-3.2-24b-instruct",
+      "size": "24B",
+      "tier": "mid",
+      "route": "openrouter",
+      "enabled": true
+    },
+    {
+      "id": "google/gemma-3-27b-it",
+      "size": "27B",
+      "tier": "mid",
+      "route": "openrouter",
+      "enabled": true
+    },
+    {
+      "id": "qwen/qwen3-32b",
+      "size": "32B",
+      "tier": "upper",
+      "route": "openrouter",
+      "enabled": true
+    },
+    {
+      "id": "qwen/qwen3-30b-a3b-instruct-2507",
+      "size": "30B-A3B",
+      "tier": "moe-eff",
+      "route": "openrouter",
+      "enabled": true
+    },
+    {
+      "id": "qwen/qwen3-next-80b-a3b-instruct",
+      "size": "80B-A3B",
+      "tier": "moe-top",
+      "route": "openrouter",
+      "enabled": true
+    },
+    {
+      "id": "deepseek/deepseek-v4-flash",
+      "size": "moe",
+      "tier": "moe",
+      "route": "openrouter",
+      "enabled": true
+    }
+  ]
 }
