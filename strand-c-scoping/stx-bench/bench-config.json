@@ -1,0 +1,26 @@
+{
+  "_note": "Model panel lives in config, NOT code (kickoff Stage 2). Model ids MUST be re-verified against providers at build time - this is a starting suggestion, not a trusted list.",
+  "top_tier": "gemini-3-pro",
+  "panel": [
+    { "id": "gemini-3-pro",         "tier": "top",   "vendor": "google", "enabled": true },
+    { "id": "gemini-3-flash",       "tier": "mid",   "vendor": "google", "enabled": true },
+    { "id": "gemini-2.5-flash",     "tier": "low",   "vendor": "google", "enabled": true },
+    { "id": "gemini-2.5-flash-lite","tier": "floor", "vendor": "google", "enabled": true }
+  ],
+  "cross_vendor_spot_checks": [
+    { "id": "TODO-verify-claude-id",      "tier": "spot", "vendor": "anthropic",  "enabled": false },
+    { "id": "TODO-verify-openweights-id", "tier": "spot", "vendor": "openrouter", "enabled": false }
+  ],
+  "grading": {
+    "default_tolerance_rel": 0.05,
+    "graph_reading_tolerance_rel": 0.10
+  },
+  "budget": {
+    "max_calls_hint": 700,
+    "halt_on_budget_exhausted": true
+  },
+  "cache": {
+    "system_prompt_breakpoint": true,
+    "_correction": "stepWithCache {position:system, ttl:ephemeral} is a NO-OP on Gemini (v0.18.4): only Anthropic populates cache_read_input_tokens. Do NOT model cache savings on the Gemini tiers; the breakpoint is harmless and helps only the Anthropic spot-check."
+  }
+}
