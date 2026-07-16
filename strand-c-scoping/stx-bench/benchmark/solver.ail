@@ -26,6 +26,13 @@ export pure func answerSchema() -> string =
 export pure func solveInput(questionText: string) -> string =
   "Du er en dygtig gymnasieelev til skriftlig eksamen i Fysik A (stx). Løs delspørgsmålet med korrekt fysik. Vis din fulde udregning i feltet 'working'.\n\nGÆT ALDRIG. Hvis du ikke med sikkerhed kan bestemme facit ud fra den givne TEKST — fx fordi opgaven kræver aflæsning af en graf, figur eller et bilag, som du ikke har adgang til — så sæt can_solve=false, forklar hvorfor i 'working', og sæt value=0 og unit=\"\". Sæt kun can_solve=true når facit følger sikkert af teksten; angiv da 'value' (ét tal) og 'unit' (enheden), fx value=59 unit=\"m/s\" eller value=2.71e-14 unit=\"N\". Du må bruge standardværdier fra Databogen. Brug ikke værktøjer eller internet.\n\nDELSPØRGSMÅL:\n${questionText}"
 
+-- VISION solve prompt: the figure(s) are attached as image(s) on the Message,
+-- so — unlike solveInput — the model is told to READ the graph from the image
+-- rather than abstain. step() does not enforce a schema, so the JSON shape is
+-- demanded in the prompt and parsed (fence-tolerant) by the runner.
+export pure func solveVisionInput(questionText: string) -> string =
+  "Du er en dygtig gymnasieelev til skriftlig eksamen i Fysik A (stx). Løs delspørgsmålet med korrekt fysik og vis din fulde udregning i feltet 'working'. De nødvendige figurer/grafer er VEDHÆFTET som billede(r) — aflæs de relevante værdier direkte fra billedet. Svar UDELUKKENDE med gyldig JSON på præcis denne form og intet andet (ingen markdown, ingen kodeblok, ingen tekst udenom):\n{\"working\": string, \"can_solve\": boolean, \"value\": number, \"unit\": string}\nSæt can_solve=true og angiv value (ét tal) og unit (enheden), når du kan bestemme facit ved at aflæse billedet og regne, fx value=6.6 unit=\"mA\". Kun hvis billedet er ulæseligt eller utilstrækkeligt: sæt can_solve=false, value=0, unit=\"\". Du må bruge standardværdier fra Databogen. Brug ikke værktøjer eller internet.\n\nDELSPØRGSMÅL:\n${questionText}"
+
 -- JSON schema (as a string) for the LLM judge's structured verdict. Used with
 -- std/ai.callJsonResult so the provider enforces the shape.
 export pure func judgeSchema() -> string =
