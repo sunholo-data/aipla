@@ -139,5 +139,29 @@
       "route": "openrouter",
       "enabled": true
     }
+  ],
+  "app_gemini": [
+    {
+      "_note": "The app-repo AIPLA production stack (Vertex/ADC). Directly decision-relevant."
+    },
+    {
+      "id": "gemini-3-5-flash",
+      "tier": "app-top",
+      "route": "vertex",
+      "enabled": true
+    },
+    {
+      "id": "gemini-2-5-flash",
+      "tier": "app-mid",
+      "route": "vertex",
+      "enabled": true
+    },
+    {
+      "id": "gemini-2.5-flash-lite",
+      "tier": "app-lite",
+      "route": "vertex",
+      "enabled": true,
+      "_note": "GA lite; gemini-3.1-flash-lite-preview 404s on this Vertex project"
+    }
   ]
 }
