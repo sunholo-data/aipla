@@ -25,6 +25,14 @@ if [ "$GROUP" = "gemini" ]; then
   one gemini-2.5-flash      gemini-2-5-flash      gemini-2.5-flash
   one gemini-2.5-flash-lite gemini-2-5-flash-lite gemini-2.5-flash-lite
   one gpt-5-mini            gpt-5-mini            gpt-5-mini
+elif [ "$GROUP" = "vl" ]; then
+  # Current-generation open vision-language models (Oct 2025 – 2026), the
+  # dedicated-VL candidates for the self-host tiers.
+  one qwen/qwen3-vl-235b-a22b-instruct qwen/qwen3-vl-235b-a22b-instruct qwen3-vl-235b
+  one qwen/qwen3-vl-32b-instruct       qwen/qwen3-vl-32b-instruct       qwen3-vl-32b
+  one z-ai/glm-4.6v                    z-ai/glm-4.6v                    glm-4.6v
+  one z-ai/glm-5v-turbo                z-ai/glm-5v-turbo                glm-5v-turbo
+  one qwen/qwen3-vl-8b-instruct        qwen/qwen3-vl-8b-instruct        qwen3-vl-8b
 else
   one google/gemma-3-27b-it                    google/gemma-3-27b-it                    gemma-3-27b
   one mistralai/mistral-small-3.2-24b-instruct mistralai/mistral-small-3.2-24b-instruct mistral-small-3.2-24b

@@ -134,20 +134,25 @@ Results are **means ± std over 5 runs** per model (frontier ×3; all runs n = 3
 
 ### Graph-reading (vision) — the previously-excluded items, now scored
 
-The figure-dependent items above were excluded because a text-only model cannot see the graph. AILANG's runtime gained **image input** (`std/ai` v0.30.0), so the harness now attaches the problem's figure(s) and lets a **vision-capable** model read them directly. This is a **separate, smaller axis** — the 8 held graph-reading subquestions, scored only on models that accept images (Claude is absent: the account is usage-capped until 1 Aug). Same grader as the text panel at the wider graph-reading tolerance (0.10); the figure is sent as an image with the answer schema demanded in the prompt.
+The figure-dependent items above were excluded because a text-only model cannot see the graph. AILANG's runtime gained **image input** (`std/ai` v0.30.0), so the harness now attaches the problem's figure(s) and lets a **vision-capable** model read them directly. This is a **separate, smaller axis** — the 8 held graph-reading subquestions, scored only on models that accept images (Claude is absent: the account is usage-capped until 1 Aug). Same grader as the text panel at the wider graph-reading tolerance (0.10); the figure is sent as an image with the answer schema demanded in the prompt. It includes the current open **vision-language (VL)** models — the dedicated multimodal counterparts to the text panel's open models.
 
-| Model | Graph-reading accuracy (mean ± std, 5 runs × 8 items) |
-|---|---|
-| gemini-3.5-flash (app top) | 98 ± 5 |
-| gemini-2.5-flash (app mid) | 93 ± 6 |
-| gpt-5-mini | 75 ± 0 |
-| gemma-3-27b (open, self-host) | 60 ± 18 |
-| mistral-small-3.2-24b (open, self-host) | 43 ± 10 |
-| gemini-2.5-flash-lite (app lite) | 40 ± 9 |
+| Model | Runs on | Graph-reading (mean ± std, 5 × 8) |
+|---|---|---|
+| gemini-3.5-flash (app top) | Cloud (Tier 1) | 98 ± 5 |
+| **qwen3-vl-235b-a22b** (open VL) | Server / cluster — multi-GPU (Tier 2) | **95 ± 6** |
+| gemini-2.5-flash (app mid) | Cloud (Tier 1) | 93 ± 6 |
+| **qwen3-vl-32b** (open VL) | Single GPU (Tier 3) | **88 ± 0** |
+| **glm-4.6v** (open VL) | Single GPU (Tier 3) | **83 ± 6** |
+| gpt-5-mini | Cloud (Tier 1) | 75 ± 0 |
+| glm-5v-turbo (open VL) | Single GPU (Tier 3) | 70 ± 6 |
+| qwen3-vl-8b (open VL) | Small local — laptop (Tier 3) | 63 ± 8 |
+| gemma-3-27b (open, general) | Single GPU (Tier 3) | 60 ± 18 |
+| mistral-small-3.2-24b (open, general) | Single GPU (Tier 3) | 43 ± 10 |
+| gemini-2.5-flash-lite (app lite) | Cloud (Tier 1) | 40 ± 9 |
 
-**What it shows.** *Vision turns abstentions into scores.* Items that were pure "I can't see it" abstentions on the text panel are now solved — the frontier clears them cleanly (gemini-3.5-flash **98 ± 5**), and the app-tier descent repeats (3.5-flash → 2.5-flash → lite). **Self-hostable open-weights can read graphs**, just weaker and far noisier (gemma-3-27b 60 ± 18, with occasional hard errors; mistral-small-3.2 43 ± 10) — a locally-run model is not blind to figures, but figure-reading is where the frontier gap widens most.
+**What it shows.** *Vision turns abstentions into scores* — items that were pure "I can't see it" abstentions on the text panel are now solved, and the frontier clears them cleanly (gemini-3.5-flash **98 ± 5**). The sharper finding is on self-hosting: **a *dedicated* open VL model closes the figure-reading gap that general open-weights cannot.** `qwen3-vl-235b` (**95 ± 6**, multi-GPU) sits second only to the frontier; `qwen3-vl-32b` clears the ≥ 80% floor at **88 ± 0** (zero variance) on a *single* GPU — where the general open models flounder (gemma-3-27b 60 ± 18 with hard errors, mistral-small-3.2 43). So the earlier "self-host is blind to figures" caveat was really "*general* open-weights are" — the fix is to run a VL model (Qwen3-VL / GLM-4.6V class), not a text model, on the image items.
 
-**Read the bands, not the ranks — more so than above.** At **n = 8** one item is ± 12.5 pts, so even over 5 runs the std stay large (5–18) and only three groups actually separate: frontier Gemini (~93–98), gpt-5-mini (75 — oddly *zero*-variance, missing the same two items every run), and the floor (40–60, mutually overlapping). This is a **proof the capability is now measurable**, not a precise leaderboard; growing the graph-item set and an expert check of the figure-to-problem mapping (AR / JB) are the next steps.
+**Read the bands, not the ranks — more so than above.** At **n = 8** one item is ± 12.5 pts, so even over 5 runs the groups blur; the clean separations are frontier + qwen3-vl-235b (~93–98) at the top and mistral / gemini-lite (~40) at the floor, with a broad middle. Two oddities survive the noise: `qwen3-vl-32b` and `gpt-5-mini` are *zero*-variance (identical every run), while `gemma-3-27b` swings ± 18. This is a **proof the capability is now measurable**, not a precise leaderboard. Open items: the VL models are scored on figures only — their *text* score is untested, so we cannot yet claim one model does both; growing the graph set and an expert check of the figure-to-problem mapping (AR / JB) are the next steps.
 
 *Snapshot 2026-07-16 (means over 5 runs, n = 8 vision items). Provisional; a separate axis from the 33-item text metric.*
 
