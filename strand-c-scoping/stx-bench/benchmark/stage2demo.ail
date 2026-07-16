@@ -41,8 +41,8 @@ pure func panel() -> [string] = ["gemini-2.5-flash", "gemini-2.5-pro"]
 
 func solve(model: string, q: string) -> Result[StepResult, AIError] ! {AI} {
   let msgs = [
-    { role: "system", content: systemPrompt(), tool_calls: [], tool_call_id: "" },
-    { role: "user",   content: userMessage(q), tool_calls: [], tool_call_id: "" }
+    { role: "system", content: systemPrompt(), tool_calls: [], tool_call_id: "", images: [] },
+    { role: "user",   content: userMessage(q), tool_calls: [], tool_call_id: "", images: [] }
   ];
   step(model, msgs, [])
 }

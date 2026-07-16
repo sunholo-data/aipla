@@ -146,8 +146,8 @@ export func main() -> () ! {IO, FS} {
 -- One solver turn for a panel model (model="" uses the --ai handler model).
 func solveLive(model: string, questionText: string) -> Result[StepResult, AIError] ! {AI} {
   let msgs = [
-    { role: "system", content: systemPrompt(), tool_calls: [], tool_call_id: "" },
-    { role: "user",   content: userMessage(questionText), tool_calls: [], tool_call_id: "" }
+    { role: "system", content: systemPrompt(), tool_calls: [], tool_call_id: "", images: [] },
+    { role: "user",   content: userMessage(questionText), tool_calls: [], tool_call_id: "", images: [] }
   ];
   let breakpoints = [{ position: "system", ttl: "ephemeral" }];
   stepWithCache(model, msgs, [], breakpoints)

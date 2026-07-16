@@ -17,8 +17,8 @@ type Probe = { name: string, question: string, expected: Expected }
 
 func solve(q: string) -> Result[StepResult, AIError] ! {AI} {
   let msgs = [
-    { role: "system", content: systemPrompt(), tool_calls: [], tool_call_id: "" },
-    { role: "user",   content: userMessage(q), tool_calls: [], tool_call_id: "" }
+    { role: "system", content: systemPrompt(), tool_calls: [], tool_call_id: "", images: [] },
+    { role: "user",   content: userMessage(q), tool_calls: [], tool_call_id: "", images: [] }
   ];
   step("", msgs, [])
 }
