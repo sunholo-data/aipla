@@ -44,15 +44,20 @@ pure func parseTopics(arr: [Json]) -> [string] =
 -- An item whose id appears here is forced runnable with this expected value.
 type Recovered = { item_id: string, value: float, unit: string }
 
+-- Only numeric recoveries belong in the text runner; graph-reading recoveries
+-- (e.g. an angle read off a figure) are handled by the vision runner.
 pure func recRows(lines: [string]) -> [Recovered] =
   match lines {
     [] => [],
     l :: rest =>
       if trim(l) == "" then recRows(rest)
       else match decode(l) {
-        Ok(j)  => ({ item_id: getOrElse(getString(j, "item_id"), "?"),
-                     value: getOrElse(getNumber(j, "value"), 0.0),
-                     unit: getOrElse(getString(j, "unit"), "") }) :: recRows(rest),
+        Ok(j)  =>
+          if getOrElse(getString(j, "kind"), "numeric") == "numeric" then
+            ({ item_id: getOrElse(getString(j, "item_id"), "?"),
+               value: getOrElse(getNumber(j, "value"), 0.0),
+               unit: getOrElse(getString(j, "unit"), "") }) :: recRows(rest)
+          else recRows(rest),
         Err(_) => recRows(rest)
       }
   }
