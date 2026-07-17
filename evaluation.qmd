@@ -156,6 +156,23 @@ The figure-dependent items above were excluded because a text-only model cannot 
 
 *Snapshot 2026-07-16 (means over 5 runs, n = 8 vision items). Provisional; a separate axis from the 33-item text metric.*
 
+### Capability by tier — text and images combined
+
+A real deployment must handle *both* text and figure questions, so **a tier is only as capable as its weaker modality**. Combining the two panels gives the consolidated per-tier read (5-run means; best available model each; text n = 33, images n = 8):
+
+| Tier | Deployment | Text | Images | **Tier capability** | ≥ 80% |
+|---|---|---|---|---|---|
+| 1 | Cloud API | 93–96 | 98 | **93** | ✓ |
+| 2 | Server — multi-GPU | 91 | 95 | **91** | ✓ |
+| 3 | Server-local — single GPU | 88 | 88 | **88** | ✓ |
+| 4 | On-device — laptop / phone | 83 | 63 | **63** *(vision-limited)* | ✗ |
+
+**All three server-class tiers (1–3) already clear the ≥ 80% floor on *both* modalities** as of this July-2026 snapshot — for stx physics, competency is *reached*, not pending. This confirms the projected crossings in [the picture](#the-picture) with task-specific measurement rather than the GPQA proxy: Tier 1 and Tier 2 comfortably over, Tier 3 (single GPU) *just* over on both — and cleanly, since qwen3-32b (text) and qwen3-vl-32b (images) are the same size and both land at 88.
+
+**The only remaining gap is on-device — and it's vision, not text.** A small local model already solves stx *text* at the floor (qwen3-8b 83), but the small *vision* model trails (qwen3-vl-8b 63, ~17 points short). That gap is hardware-bound — device RAM, per the Tier-4 analysis above — so the working estimate stays **~2027**, and it will be *figure-reading*, not physics text, that gates it.
+
+*The main work ahead.* These remain **provisional** — text n = 33, images n = 8, judge-graded, not yet human-verified. The rank order and the "Tiers 1–3 are over the floor" conclusion are robust to the noise, but **firming the exact scores — more items, a broader graph set, and human calibration of the judge — is the next block of work**, and turns this from a directional read into a citable capability instrument.
+
 ## Task taxonomy
 
 Anchored on the four AIPLA research questions, refined with AR's curriculum priorities (experiments, mathematical representations, written assessment).
