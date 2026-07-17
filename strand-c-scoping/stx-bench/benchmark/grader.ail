@@ -76,6 +76,8 @@ export pure func unitCanon(unit: string) -> Option[(float, string)] =
     -- power
     "W"    => Some((1.0, "W")),
     "kW"   => Some((1000.0, "W")),
+    "MW"   => Some((1000000.0, "W")),
+    "GW"   => Some((1000000000.0, "W")),
     "mW"   => Some((0.001, "W")),
     "nW"   => Some((0.000000001, "W")),
     -- force
