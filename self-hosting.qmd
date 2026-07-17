@@ -22,6 +22,21 @@ This page captures the component-by-component swap and what UCPH IT would need t
 | Cloud Logging / Cloud Trace | Operational logs + traces | UCPH ELK or similar | Low | Standard OpenTelemetry shipping |
 | Firebase Auth (teachers) + anonymous group JWT (students) | Identity ([ADR-001](architecture.qmd#adr-001-student-identity-no-auth-anonymous-group-ids)) | UCPH SSO (teachers) + the existing group-JWT path (students — no change) | TBD | Student side is already self-contained (custom JWT, no Firebase identity); only the teacher side rides UCPH SSO |
 
+## Self-host model picks — text vs. images
+
+The [Evaluation](evaluation.qmd) benchmark now pins which local models clear the ≥ 80% floor per tier — and it **splits by modality**. The key finding: **no single open model does both text and figures well**, so a self-host tier runs *two* models, routed by whether the question carries a graph/figure.
+
+- The strong **text** models (deepseek-v4-flash, qwen3-32b/8b) are architecturally **text-only** — they cannot accept an image at all.
+- The strong **vision** models (the qwen3-vl line) *can* do text, but fall **12–36 points below** the text specialist at the same tier — every one of them drops under the floor on text. Multimodal training trades away physics/text reasoning.
+
+| Tier | Hardware | Text model | Text | Image (VL) model | Images |
+|---|---|---|---|---|---|
+| 2 — server / cluster | multi-GPU | deepseek-v4-flash | 91 ± 2 | qwen3-vl-235b-a22b | 95 ± 6 |
+| 3 — single GPU | ~1× A100 80 GB | qwen3-32b | 88 ± 6 | qwen3-vl-32b | 88 ± 0 |
+| 3 — laptop | single 24 GB GPU | qwen3-8b | 83 ± 3 | *escalate figures* | (qwen3-vl-8b 63 ✗) |
+
+So a UCPH GPU node serves **two local models per tier** behind one endpoint, routing figure items to the VL model. The **laptop tier is text-only in practice** — its VL option (qwen3-vl-8b at 63%) is below the floor, so figure questions there escalate to a bigger tier or a cloud call. Scores are 5-run means on the STX Fysik A benchmark (text n = 33, images n = 8 — the image axis is small, read it as directional). This tightens the migration table's Vertex/Ollama row: the capability gap is **two model slots per tier**, not one.
+
 ## Outstanding questions for UCPH IT
 
 (JB has already pinged them; awaiting response. Populate as answers come in.)
