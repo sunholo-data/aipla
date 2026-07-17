@@ -21,7 +21,7 @@ import benchmark/grader (Expected, gradeNumeric, verdictLabel)
 import benchmark/solver (answerSchema, solveInput, judgeInput, judgeSchema)
 import std/ai (AIError, callJsonResult)
 import std/clock (sleep)
-import std/fs (readFile)
+import std/fs (readFile, readFileResult)
 import std/env (getEnvOr)
 import std/json (decode, getString, getBool, getNumber, getArray, getObject, asString, Json)
 import std/option (Option, Some, None, getOrElse)
@@ -39,42 +39,78 @@ type Item = {
 pure func parseTopics(arr: [Json]) -> [string] =
   filter(\s. strLen(s) > 0, map(\j. getOrElse(asString(j), ""), arr))
 
-pure func rowToItem(j: Json) -> Option[Item] =
-  if getOrElse(getBool(j, "runnable"), false) then
-    match getObject(j, "expected") {
-      Some(exp) =>
-        Some({
-          item_id: getOrElse(getString(j, "item_id"), "?"),
-          set: getOrElse(getString(j, "set"), ""),
-          subq: getOrElse(getString(j, "subq"), ""),
-          topics: parseTopics(getOrElse(getArray(j, "topics"), [])),
-          question: getOrElse(getString(j, "question_text"), ""),
-          raw_key: getOrElse(getString(j, "raw_key"), ""),
-          expected: {
-            value: getOrElse(getNumber(exp, "value"), 0.0),
-            unit: getOrElse(getString(exp, "unit"), ""),
-            tolerance_rel: getOrElse(getNumber(exp, "tolerance_rel"), 0.05)
-          }
-        }),
-      None => None
-    }
-  else None
+-- Recovered-key overrides (runs/stage0/recovered.jsonl): human-curated final
+-- answers for items the deterministic Stage-0 extractor flagged needs-review.
+-- An item whose id appears here is forced runnable with this expected value.
+type Recovered = { item_id: string, value: float, unit: string }
 
-pure func collectItems(lines: [string]) -> [Item] =
+pure func recRows(lines: [string]) -> [Recovered] =
   match lines {
     [] => [],
     l :: rest =>
-      if trim(l) == "" then collectItems(rest)
+      if trim(l) == "" then recRows(rest)
+      else match decode(l) {
+        Ok(j)  => ({ item_id: getOrElse(getString(j, "item_id"), "?"),
+                     value: getOrElse(getNumber(j, "value"), 0.0),
+                     unit: getOrElse(getString(j, "unit"), "") }) :: recRows(rest),
+        Err(_) => recRows(rest)
+      }
+  }
+
+-- Graceful: a missing override file just means no recoveries (empty list).
+func loadRecovered(path: string) -> [Recovered] ! {FS} =
+  match readFileResult(path) {
+    Ok(raw) => recRows(split(raw, "\n")),
+    Err(_)  => []
+  }
+
+pure func recoveredFor(id: string, recs: [Recovered]) -> Option[(float, string)] =
+  match recs {
+    [] => None,
+    r :: rest => if r.item_id == id then Some((r.value, r.unit)) else recoveredFor(id, rest)
+  }
+
+pure func buildItem(j: Json, v: float, u: string, tol: float) -> Item =
+  {
+    item_id: getOrElse(getString(j, "item_id"), "?"),
+    set: getOrElse(getString(j, "set"), ""),
+    subq: getOrElse(getString(j, "subq"), ""),
+    topics: parseTopics(getOrElse(getArray(j, "topics"), [])),
+    question: getOrElse(getString(j, "question_text"), ""),
+    raw_key: getOrElse(getString(j, "raw_key"), ""),
+    expected: { value: v, unit: u, tolerance_rel: tol }
+  }
+
+pure func rowToItem(j: Json, recs: [Recovered]) -> Option[Item] =
+  match recoveredFor(getOrElse(getString(j, "item_id"), "?"), recs) {
+    Some((v, u)) => Some(buildItem(j, v, u, 0.05)),
+    None =>
+      if getOrElse(getBool(j, "runnable"), false) then
+        match getObject(j, "expected") {
+          Some(exp) => Some(buildItem(j,
+            getOrElse(getNumber(exp, "value"), 0.0),
+            getOrElse(getString(exp, "unit"), ""),
+            getOrElse(getNumber(exp, "tolerance_rel"), 0.05))),
+          None => None
+        }
+      else None
+  }
+
+pure func collectItems(lines: [string], recs: [Recovered]) -> [Item] =
+  match lines {
+    [] => [],
+    l :: rest =>
+      if trim(l) == "" then collectItems(rest, recs)
       else
         match decode(l) {
-          Ok(j)  => match rowToItem(j) { Some(it) => it :: collectItems(rest), None => collectItems(rest) },
-          Err(_) => collectItems(rest)
+          Ok(j)  => match rowToItem(j, recs) { Some(it) => it :: collectItems(rest, recs), None => collectItems(rest, recs) },
+          Err(_) => collectItems(rest, recs)
         }
   }
 
-func loadItems(path: string) -> [Item] ! {FS} {
+func loadItems(path: string, recs: [Recovered]) -> [Item] ! {FS} {
   let raw = readFile(path);
-  collectItems(split(raw, "\n"))
+  collectItems(split(raw, "\n"), recs)
 }
 
 -- ---- solve + grade ---------------------------------------------------------
@@ -137,5 +173,6 @@ func run(model: string, items: [Item]) -> () ! {AI, IO, Clock} {
 }
 
 export func main() -> () ! {AI, IO, FS, Env, Clock} {
-  run(getEnvOr("TRIAL_MODEL", "unknown"), loadItems("runs/stage0/items.jsonl"))
+  let recs = loadRecovered("runs/stage0/recovered.jsonl");
+  run(getEnvOr("TRIAL_MODEL", "unknown"), loadItems("runs/stage0/items.jsonl", recs))
 }
