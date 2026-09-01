@@ -25,12 +25,19 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
 
       - name: Render site
-        run: quarto render
+        env:
+          AIPLA_LEGACY_RETIREMENT: ${{ vars.AIPLA_LEGACY_RETIREMENT }}
+        run: |
+          if [ "${AIPLA_LEGACY_RETIREMENT}" = "enabled" ]; then
+            bash retirement/build-redirect-site.sh
+          else
+            quarto render
+          fi
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: ${{ vars.AIPLA_LEGACY_RETIREMENT == 'enabled' && '_redirect_site' || '_site' }}
 
   deploy:
     needs: build

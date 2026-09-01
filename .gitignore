@@ -1,5 +1,6 @@
 # Quarto build output
 _site/
+_redirect_site/
 .quarto/
 *_files/
 *_cache/
@@ -11,6 +12,9 @@ briefs/
 notes/
 admin/
 sources/
+index.md
+history.md
+*.pdf
 
 # OS / editor
 .DS_Store
