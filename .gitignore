@@ -12,6 +12,9 @@ briefs/
 notes/
 admin/
 sources/
+index.md
+history.md
+*.pdf
 
 # OS / editor
 .DS_Store
